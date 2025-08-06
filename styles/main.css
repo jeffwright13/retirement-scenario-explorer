@@ -11,6 +11,33 @@ header {
   border-radius: 0 0 10px 10px;
 }
 
+header#scenario-header {
+  background-color: #e0f7f4;
+  padding: 1.5em;
+  border-bottom: 1px solid #ccc;
+  border-radius: 0 0 12px 12px;
+  text-align: center;
+  margin-bottom: 1em;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+#scenario-header h1 {
+  margin: 0;
+  font-size: 1.8em;
+  color: #1d3557;
+}
+
+#scenario-header p {
+  margin: 0.5em 0 0 0;
+  font-size: 1em;
+  color: #555;
+}
+
+.hidden {
+  display: none;
+}
+
+
 #scenario-input {
   background-color: white;
   border-radius: 10px;

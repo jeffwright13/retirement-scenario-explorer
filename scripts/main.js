@@ -22,6 +22,22 @@ document.getElementById("toggle-csv-btn").addEventListener("click", () => {
   csvDiv.classList.toggle("expanded");
 });
 
+function updateHeaderFromMetadata(metadata) {
+  const header = document.getElementById("scenario-header");
+  const title = document.getElementById("scenario-title");
+  const notes = document.getElementById("scenario-notes");
+
+  if (metadata?.title || metadata?.notes) {
+    title.textContent = metadata.title || "";
+    notes.textContent = metadata.notes || "";
+    header.classList.remove("hidden");
+  } else {
+    title.textContent = "";
+    notes.textContent = "";
+    header.classList.add("hidden");
+  }
+}
+
 function simulateScenario(scenario) {
   const assets = JSON.parse(JSON.stringify(scenario.assets));
   const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) || [];
@@ -88,7 +104,6 @@ function simulateScenario(scenario) {
     csvRows.push(row);
   }
 
-  // Set CSV output
   document.getElementById("csv-table").textContent = csvRows.map((r) => r.join(",")).join("\n");
   document.getElementById("csv-container").classList.remove("expanded");
 
@@ -113,6 +128,9 @@ document.getElementById("run-btn").addEventListener("click", () => {
       order: item.priority,
     }));
   }
+
+  // Update header from metadata
+  updateHeaderFromMetadata(scenario.metadata);
 
   const { results, balanceHistory } = simulateScenario(scenario);
 
