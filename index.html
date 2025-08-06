@@ -10,17 +10,28 @@
   <!-- Scenario Input -->
   <div id="json-container" class="expanded">
     <label for="json-input"><strong>Scenario JSON:</strong></label>
-    <textarea id="json-input" rows="14" style="width: 100%;">
+    <textarea id="json-input" rows="18" style="width: 100%;">
 {
   "metadata": {
     "title": "Multiple Asset Test",
     "notes": "Draws from savings first, then Roth IRA."
   },
   "plan": {
-    "monthly_income": 1000,
     "monthly_expenses": 2500,
     "duration_months": 18
   },
+  "income": [
+    {
+      "name": "SSDI",
+      "amount": 1800,
+      "start_month": 0
+    },
+    {
+      "name": "Social Security",
+      "amount": 2400,
+      "start_month": 84
+    }
+  ],
   "assets": [
     {
       "name": "Brokerage",
