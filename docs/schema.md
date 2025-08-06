@@ -70,7 +70,7 @@ Each asset must include:
 * `name`: User-friendly name of the asset
 * `type`: One of `"taxable"`, `"tax_deferred"`, `"tax_free"`
 * `balance`: Starting balance
-* `interest_rate`: Annual return rate (decimal)
+* `interest_rate`: Annual return rate / annual percentage yield (APY) (decimal)
 * `compounding`: Either `"monthly"` or `"annual"`
 * `withdrawal_priority`: Integer priority used when drawing down (lower = first)
 

@@ -1,15 +1,35 @@
 {
   "assets": [
     {
-      "name": "IRA",
-      "type": "tax_deferred",
+      "name": "Brokerage",
+      "type": "taxable",
       "balance": 100000,
       "interest_rate": 0.05,
       "compounding": "monthly",
+      "withdrawal_priority": 2
+    },
+    {
+      "name": "Roth IRA",
+      "type": "tax_free",
+      "balance": 50000,
+      "interest_rate": 0.06,
+      "compounding": "monthly",
       "withdrawal_priority": 1
+    },
+    {
+      "name": "Savings",
+      "type": "taxable",
+      "balance": 129000,
+      "interest_rate": 0.037,
+      "compounding": "monthly",
+      "withdrawal_priority": 3
     }
   ],
-  "monthly_income": 4000,
-  "monthly_expenses": 3000,
-  "duration_months": 24
+  "monthly_income": 1000,
+  "monthly_expenses": 2500,
+  "duration_months": 18,
+  "metadata": {
+    "title": "Multiple Asset Test",
+    "notes": "Draws from savings first, then Roth IRA."
+  }
 }
