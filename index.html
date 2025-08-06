@@ -8,8 +8,11 @@
 </head>
 <body>
   <h1>Retirement Scenario Explorer</h1>
-  <textarea id="scenario-input" rows="30" cols="60"></textarea>
-  <button onclick="runScenario()">Run Scenario</button>
+  <button id="toggle-input">⬇️ Show/Hide Scenario</button>
+  <div id="scenario-container">
+    <textarea id="scenario-input" rows="30" cols="60"></textarea>
+    <button onclick="runScenario()">Run Scenario</button>
+  </div>
   <p id="status-message" style="font-weight: bold;"></p>
   <div id="chart-area"></div>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>

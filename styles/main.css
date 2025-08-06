@@ -8,6 +8,11 @@ body {
   margin-bottom: 1rem;
 }
 
+#scenario-container {
+  margin-bottom: 1rem;
+  transition: max-height 0.3s ease;
+}
+
 #chart-area {
   margin-top: 2rem;
 }

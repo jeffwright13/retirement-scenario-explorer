@@ -18,6 +18,12 @@ window.runScenario = function () {
   }
 };
 
+document.getElementById('toggle-input').addEventListener('click', () => {
+  const container = document.getElementById('scenario-container');
+  container.style.display = (container.style.display === 'none') ? 'block' : 'none';
+});
+
+
 function showStatus(message, color) {
   const status = document.getElementById('status-message');
   status.textContent = message;
@@ -30,3 +36,5 @@ function showStatus(message, color) {
     status.style.opacity = '0';
   }, 3000);
 }
+
+document.getElementById('scenario-container').style.display = 'none';

@@ -108,22 +108,93 @@ Optional metadata for labeling and notes:
 
 ---
 
-## ✅ Minimal Valid Example (One Asset)
+## ✅ Sample Scenario JSON Files
+
+### Scenario 1 — Basic Growth
 
 ```json
 {
   "assets": [
     {
-      "name": "Checking",
+      "name": "Brokerage",
       "type": "taxable",
-      "balance": 50000,
-      "interest_rate": 0.01,
+      "balance": 100000,
+      "interest_rate": 0.05,
       "compounding": "monthly",
       "withdrawal_priority": 1
     }
   ],
-  "monthly_income": 3000,
-  "monthly_expenses": 2500
+  "monthly_income": 4000,
+  "monthly_expenses": 3500,
+  "duration_months": 24,
+  "metadata": {
+    "title": "Basic Growth with Surplus",
+    "notes": "Models a simple growing portfolio with $500/month net savings."
+  }
+}
+```
+
+### Scenario 2 - Flat expenses w/ Withdrawal Event
+
+```json
+{
+  "assets": [
+    {
+      "name": "IRA",
+      "type": "tax_deferred",
+      "balance": 120000,
+      "interest_rate": 0.04,
+      "compounding": "monthly",
+      "withdrawal_priority": 1
+    }
+  ],
+  "monthly_income": 0,
+  "monthly_expenses": 3000,
+  "duration_months": 36,
+  "events": [
+    {
+      "type": "withdrawal",
+      "amount": 15000,
+      "month": 12,
+      "source": "IRA"
+    }
+  ],
+  "metadata": {
+    "title": "IRA Drawdown with One-Time Expense",
+    "notes": "Simulates no income and one-time withdrawal at month 12."
+  }
+}
+```
+
+### Scenario 3 — Multiple Assets with Interest
+
+```json
+{
+  "assets": [
+    {
+      "name": "Roth IRA",
+      "type": "tax_free",
+      "balance": 50000,
+      "interest_rate": 0.06,
+      "compounding": "monthly",
+      "withdrawal_priority": 2
+    },
+    {
+      "name": "Savings",
+      "type": "taxable",
+      "balance": 20000,
+      "interest_rate": 0.02,
+      "compounding": "monthly",
+      "withdrawal_priority": 1
+    }
+  ],
+  "monthly_income": 1000,
+  "monthly_expenses": 2500,
+  "duration_months": 18,
+  "metadata": {
+    "title": "Multiple Asset Test",
+    "notes": "Draws from savings first, then Roth IRA."
+  }
 }
 ```
 
