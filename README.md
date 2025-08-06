@@ -26,8 +26,7 @@ retirement-scenario-explorer/
 │   └── main.css
 ├── scripts/
 │   ├── main.js            # Handles user input/output
-│   ├── engine.js          # Core retirement logic (pure functions)
-│   └── chart.js           # Chart rendering (e.g. Plotly)
+│   └── engine.js          # Core retirement logic (pure functions)
 ├── tests/
 │   ├── engine.test.js     # Unit tests for engine
 │   └── test-runner.html   # Simple Mocha/Chai test runner
