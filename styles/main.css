@@ -1,0 +1,13 @@
+body {
+  font-family: sans-serif;
+  padding: 2rem;
+}
+
+#scenario-input {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+#chart-area {
+  margin-top: 2rem;
+}
