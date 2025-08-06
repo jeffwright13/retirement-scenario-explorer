@@ -104,7 +104,7 @@ function simulateScenario(scenario) {
     csvRows.push(row);
   }
 
-  document.getElementById("csv-table").textContent = csvRows.map((r) => r.join(",")).join("\n");
+  document.getElementById("csv-container").textContent = csvRows.map((r) => r.join(",")).join("\n");
   document.getElementById("csv-container").classList.remove("expanded");
 
   return { results, balanceHistory };
