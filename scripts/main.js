@@ -8,6 +8,10 @@ function getMonthlyIncome(incomeArray, currentMonth) {
   }, 0);
 }
 
+document.getElementById("toggle-csv-btn").addEventListener("click", () => {
+  document.getElementById("csv-container").classList.toggle("expanded");
+});
+
 function simulateScenario(scenario) {
   const assets = JSON.parse(JSON.stringify(scenario.assets));
   const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) || [];
@@ -65,6 +69,11 @@ function simulateScenario(scenario) {
       balanceHistory[asset.name].push(asset.balance);
     }
   }
+
+  // CSV Output
+  const csvText = csvRows.map(row => row.join(",")).join("\n");
+  document.getElementById("csv-container").textContent = csvText;
+  document.getElementById("csv-container").classList.remove("expanded");
 
   return { results, balanceHistory };
 }
