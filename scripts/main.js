@@ -15,7 +15,6 @@ function simulateScenario(scenario) {
   const incomeSources = scenario.income || [];
   const results = [];
 
-  // Initialize balance tracking
   const assetNames = assets.map(a => a.name);
   const balanceHistory = {};
   for (const name of assetNames) {
@@ -49,14 +48,12 @@ function simulateScenario(scenario) {
     if (remainingShortfall > 0) {
       monthlyLog.shortfall = remainingShortfall;
       results.push(monthlyLog);
-      // Still track balances even if we break early
       for (const asset of assets) {
         balanceHistory[asset.name].push(asset.balance);
       }
       break;
     }
 
-    // Apply monthly growth
     for (const asset of Object.values(assetMap)) {
       if (asset.interest_rate && asset.compounding === "monthly") {
         asset.balance *= (1 + asset.interest_rate / 12);
@@ -64,8 +61,6 @@ function simulateScenario(scenario) {
     }
 
     results.push(monthlyLog);
-
-    // Store balances after growth
     for (const asset of assets) {
       balanceHistory[asset.name].push(asset.balance);
     }
@@ -94,11 +89,16 @@ document.getElementById('run-btn').addEventListener('click', () => {
   }
 
   const { results, balanceHistory } = simulateScenario(scenario);
+
   const xLabels = results.map(r => {
     const year = Math.floor(r.month / 12) + 1;
     const month = (r.month % 12) + 1;
     return `${year}/${month}`;
   });
+
+  const tickInterval = scenario.plan.duration_months > 120 ? 12 : 6;
+  const filteredTicks = xLabels.filter((_, i) => i % tickInterval === 0);
+
   const incomes = results.map(r => r.income);
   const expenses = results.map(r => r.expenses);
   const shortfalls = results.map(r => r.shortfall);
@@ -139,14 +139,21 @@ document.getElementById('run-btn').addEventListener('click', () => {
 
   const layout = {
     title: 'Retirement Simulation',
-    xaxis: { title: 'Month' },
-    yaxis: { title: 'Amount ($)' },
+    xaxis: {
+      title: 'Year / Month',
+      tickangle: -45,
+      tickmode: 'array',
+      tickvals: filteredTicks,
+      ticktext: filteredTicks
+    },
+    yaxis: {
+      title: 'Amount ($)'
+    },
     barmode: 'overlay'
   };
 
   Plotly.newPlot('chart-area', traces, layout);
 
-  // Collapse input and scroll to chart
   const jsonDiv = document.getElementById('json-container');
   jsonDiv.classList.remove('expanded');
   jsonDiv.classList.add('collapsed');
