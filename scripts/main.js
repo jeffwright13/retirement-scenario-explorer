@@ -1,7 +1,7 @@
 function getMonthlyIncome(incomeArray, currentMonth) {
   return incomeArray.reduce((total, source) => {
     if (source.start_month <= currentMonth &&
-        (source.end_month === undefined || source.end_month >= currentMonth)) {
+        (source.stop_month === undefined || source.stop_month >= currentMonth)) {
       return total + source.amount;
     }
     return total;
@@ -78,7 +78,7 @@ document.getElementById('run-btn').addEventListener('click', () => {
 
   const results = simulateScenario(scenario);
 
-  // Plotly chart
+  // Prepare Plotly chart
   const months = results.map(r => r.month + 1);
   const incomes = results.map(r => r.income);
   const expenses = results.map(r => r.expenses);
@@ -117,12 +117,11 @@ document.getElementById('run-btn').addEventListener('click', () => {
 
   Plotly.newPlot('chart-area', [traceIncome, traceExpenses, traceShortfall], layout);
 
-  // Collapse JSON input
+  // Collapse JSON input and scroll to chart
   const jsonDiv = document.getElementById('json-container');
   jsonDiv.classList.remove('expanded');
   jsonDiv.classList.add('collapsed');
 
-  // Snap scroll to chart
   document.getElementById("chart-area").scrollIntoView({ behavior: "smooth" });
 });
 

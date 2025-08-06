@@ -10,26 +10,34 @@
   <!-- Scenario Input -->
   <div id="json-container" class="expanded">
     <label for="json-input"><strong>Scenario JSON:</strong></label>
-    <textarea id="json-input" rows="20" style="width: 100%;">
+    <textarea id="json-input" rows="22" style="width: 100%;">
 {
   "metadata": {
     "title": "Multiple Asset Test",
-    "notes": "Draws from savings first, then Roth IRA."
+    "notes": "Includes one-time inheritance in month 12."
   },
   "plan": {
     "monthly_expenses": 2500,
-    "duration_months": 18
+    "duration_months": 24
   },
   "income": [
     {
       "name": "SSDI",
       "amount": 1800,
-      "start_month": 0
+      "start_month": 0,
+      "stop_month": 9999
     },
     {
       "name": "Social Security",
       "amount": 2400,
-      "start_month": 84
+      "start_month": 84,
+      "stop_month": 9999
+    },
+    {
+      "name": "Inheritance",
+      "amount": 100000,
+      "start_month": 12,
+      "stop_month": 12
     }
   ],
   "assets": [
