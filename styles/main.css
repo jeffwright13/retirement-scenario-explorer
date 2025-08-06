@@ -11,3 +11,9 @@ body {
 #chart-area {
   margin-top: 2rem;
 }
+
+#status-message {
+  font-weight: bold;
+  margin-top: 0.5rem;
+  opacity: 0;
+}
