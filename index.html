@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Retirement Scenario Explorer</title>
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+  <style>
+    #json-container.collapsed textarea,
+    #json-container.collapsed #run-btn,
+    #csv-container.collapsed {
+      display: none;
+    }
+
+    #json-container,
+    #csv-container {
+      transition: all 0.3s ease-in-out;
+      margin-bottom: 1em;
+    }
+  </style>
+
   <style>
     body {
       font-family: sans-serif;
@@ -31,7 +46,12 @@
 <body>
   <h1>Retirement Scenario Explorer</h1>
 
-  <button id="toggle-json-btn">Show/Hide JSON</button>
+  <div style="margin-bottom: 1em;">
+    <button id="toggle-json-btn">Show/Hide JSON</button>
+    <button id="toggle-csv-btn">Show/Hide CSV</button>
+  </div>
+
+  <pre id="csv-container" class="collapsed" style="max-height: 300px; overflow: auto; background: #f9f9f9; padding: 1em; border: 1px solid #ccc;"></pre>
 
   <div id="json-container" class="collapsed">
     <textarea id="json-input" rows="20" cols="80">
