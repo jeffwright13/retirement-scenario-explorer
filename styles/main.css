@@ -22,3 +22,14 @@ body {
   margin-top: 0.5rem;
   opacity: 0;
 }
+
+#json-container.collapsed {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+#json-container.expanded {
+  max-height: 400px;
+  transition: max-height 0.3s ease;
+}
