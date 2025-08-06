@@ -15,6 +15,7 @@ A lightweight, browser-based tool for modeling and visualizing **retirement fina
 
 ## 📁 Project Structure
 
+```bash
 retirement-scenario-explorer/
 ├── index.html
 ├── styles/
@@ -31,3 +32,4 @@ retirement-scenario-explorer/
 ├── README.md
 ├── .gitignore
 └── package.json           # Optional: for JS testing libs like Jest or Mocha
+```
