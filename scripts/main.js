@@ -1,3 +1,44 @@
+function simulateScenario(scenario) {
+  const assets = JSON.parse(JSON.stringify(scenario.assets));
+  const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) || [];
+  const assetMap = Object.fromEntries(assets.map(a => [a.name, a]));
+  const results = [];
+
+  for (let month = 1; month <= scenario.plan.duration_months; month++) {
+    let shortfall = scenario.plan.monthly_expenses - scenario.plan.monthly_income;
+    let monthlyLog = { month, withdrawals: [], shortfall: 0 };
+
+    for (const entry of drawOrder) {
+      const asset = assetMap[entry.account];
+      if (!asset || asset.balance <= 0) continue;
+
+      const withdrawal = Math.min(asset.balance, shortfall);
+      asset.balance -= withdrawal;
+      shortfall -= withdrawal;
+
+      monthlyLog.withdrawals.push({ from: asset.name, amount: withdrawal });
+      if (shortfall <= 0) break;
+    }
+
+    if (shortfall > 0) {
+      monthlyLog.shortfall = shortfall;
+      results.push(monthlyLog);
+      break; // Out of money
+    }
+
+    // Apply monthly growth
+    for (const asset of Object.values(assetMap)) {
+      if (asset.interest_rate && asset.compounding === "monthly") {
+        asset.balance *= (1 + asset.interest_rate / 12);
+      }
+    }
+
+    results.push(monthlyLog);
+  }
+
+  return results;
+}
+
 document.getElementById('run-btn').addEventListener('click', () => {
   const jsonText = document.getElementById('json-input').value;
   let scenario;
@@ -9,7 +50,7 @@ document.getElementById('run-btn').addEventListener('click', () => {
     return;
   }
 
-  // Handle legacy format
+  // Legacy fallback (optional)
   if (scenario.withdrawal_priority && !scenario.order) {
     console.warn("⚠️ 'withdrawal_priority' is deprecated. Use 'order' instead.");
     scenario.order = scenario.withdrawal_priority.map(item => ({
@@ -18,12 +59,8 @@ document.getElementById('run-btn').addEventListener('click', () => {
     }));
   }
 
-  // Sort by 'order'
-  const orderedAccounts = scenario.order?.sort((a, b) => a.order - b.order) || [];
-  console.log("Withdrawal Order:", orderedAccounts);
-
-  // TODO: Replace with actual chart logic
-  document.getElementById("chart-area").textContent = "Processed scenario: " + scenario.scenario_name;
+  const results = simulateScenario(scenario);
+  document.getElementById("chart-area").textContent = JSON.stringify(results, null, 2);
 
   // Collapse input
   const jsonDiv = document.getElementById('json-container');

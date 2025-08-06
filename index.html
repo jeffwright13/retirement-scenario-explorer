@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Retirement Scenario Runner</title>
+  <title>Retirement Scenario Explorer</title>
   <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
@@ -10,27 +10,59 @@
   <!-- Scenario Input -->
   <div id="json-container" class="expanded">
     <label for="json-input"><strong>Scenario JSON:</strong></label>
-    <textarea id="json-input" rows="12" style="width: 100%;">
+    <textarea id="json-input" rows="14" style="width: 100%;">
 {
-  "scenario_name": "Base Case",
+  "metadata": {
+    "title": "Multiple Asset Test",
+    "notes": "Draws from savings first, then Roth IRA."
+  },
+  "plan": {
+    "monthly_income": 1000,
+    "monthly_expenses": 2500,
+    "duration_months": 18
+  },
+  "assets": [
+    {
+      "name": "Brokerage",
+      "type": "taxable",
+      "balance": 100000,
+      "interest_rate": 0.05,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Roth IRA",
+      "type": "tax_free",
+      "balance": 50000,
+      "interest_rate": 0.06,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Savings",
+      "type": "taxable",
+      "balance": 129000,
+      "interest_rate": 0.037,
+      "compounding": "monthly"
+    }
+  ],
   "order": [
     { "account": "Roth IRA", "order": 1 },
-    { "account": "Brokerage", "order": 2 }
+    { "account": "Brokerage", "order": 2 },
+    { "account": "Savings", "order": 3 }
   ]
 }
     </textarea>
   </div>
 
-  <!-- Controls -->
+  <!-- Buttons -->
   <div style="margin-top: 10px;">
     <button id="run-btn">Run</button>
     <button id="toggle-json-btn">Edit Scenario</button>
   </div>
 
-  <!-- Results -->
+  <!-- Results Display -->
   <div id="results" style="margin-top: 20px;">
     <h2>Results</h2>
-    <div id="chart-area">(Chart will go here)</div>
+    <pre id="chart-area">(Chart will go here)</pre>
   </div>
 
   <script src="scripts/main.js"></script>
