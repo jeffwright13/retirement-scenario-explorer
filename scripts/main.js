@@ -15,6 +15,13 @@ function simulateScenario(scenario) {
   const incomeSources = scenario.income || [];
   const results = [];
 
+  // Initialize balance tracking
+  const assetNames = assets.map(a => a.name);
+  const balanceHistory = {};
+  for (const name of assetNames) {
+    balanceHistory[name] = [];
+  }
+
   for (let month = 0; month < scenario.plan.duration_months; month++) {
     const incomeThisMonth = getMonthlyIncome(incomeSources, month);
     const shortfall = scenario.plan.monthly_expenses - incomeThisMonth;
@@ -42,9 +49,14 @@ function simulateScenario(scenario) {
     if (remainingShortfall > 0) {
       monthlyLog.shortfall = remainingShortfall;
       results.push(monthlyLog);
+      // Still track balances even if we break early
+      for (const asset of assets) {
+        balanceHistory[asset.name].push(asset.balance);
+      }
       break;
     }
 
+    // Apply monthly growth
     for (const asset of Object.values(assetMap)) {
       if (asset.interest_rate && asset.compounding === "monthly") {
         asset.balance *= (1 + asset.interest_rate / 12);
@@ -52,9 +64,14 @@ function simulateScenario(scenario) {
     }
 
     results.push(monthlyLog);
+
+    // Store balances after growth
+    for (const asset of assets) {
+      balanceHistory[asset.name].push(asset.balance);
+    }
   }
 
-  return results;
+  return { results, balanceHistory };
 }
 
 document.getElementById('run-btn').addEventListener('click', () => {
@@ -76,48 +93,57 @@ document.getElementById('run-btn').addEventListener('click', () => {
     }));
   }
 
-  const results = simulateScenario(scenario);
+  const { results, balanceHistory } = simulateScenario(scenario);
 
-  // Prepare Plotly chart
   const months = results.map(r => r.month + 1);
   const incomes = results.map(r => r.income);
   const expenses = results.map(r => r.expenses);
   const shortfalls = results.map(r => r.shortfall);
 
-  const traceIncome = {
-    x: months,
-    y: incomes,
-    name: 'Income',
-    type: 'scatter',
-    line: { color: 'green' }
-  };
+  const traces = [
+    {
+      x: months,
+      y: incomes,
+      name: 'Income',
+      type: 'scatter',
+      line: { color: 'green' }
+    },
+    {
+      x: months,
+      y: expenses,
+      name: 'Expenses',
+      type: 'scatter',
+      line: { color: 'red' }
+    },
+    {
+      x: months,
+      y: shortfalls,
+      name: 'Shortfall',
+      type: 'bar',
+      marker: { color: 'orange' }
+    }
+  ];
 
-  const traceExpenses = {
-    x: months,
-    y: expenses,
-    name: 'Expenses',
-    type: 'scatter',
-    line: { color: 'red' }
-  };
-
-  const traceShortfall = {
-    x: months,
-    y: shortfalls,
-    name: 'Shortfall',
-    type: 'bar',
-    marker: { color: 'orange' }
-  };
+  for (const [assetName, balances] of Object.entries(balanceHistory)) {
+    traces.push({
+      x: months.slice(0, balances.length),
+      y: balances,
+      name: assetName + ' Balance',
+      type: 'scatter',
+      line: { dash: 'dot' }
+    });
+  }
 
   const layout = {
-    title: 'Monthly Cash Flow',
+    title: 'Retirement Simulation',
     xaxis: { title: 'Month' },
     yaxis: { title: 'Amount ($)' },
-    barmode: 'stack'
+    barmode: 'overlay'
   };
 
-  Plotly.newPlot('chart-area', [traceIncome, traceExpenses, traceShortfall], layout);
+  Plotly.newPlot('chart-area', traces, layout);
 
-  // Collapse JSON input and scroll to chart
+  // Collapse input and scroll to chart
   const jsonDiv = document.getElementById('json-container');
   jsonDiv.classList.remove('expanded');
   jsonDiv.classList.add('collapsed');
