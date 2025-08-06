@@ -1,12 +1,37 @@
-# 📄 JSON Scenario Input Schema (v0.1)
+# 📄 JSON Scenario Input Schema (v0.2)
 
 This document defines the expected input format for the `retirement-scenario-explorer` tool.
 
-## 🧾 Top-Level Schema
+## 🦾 Top-Level Schema
 
 ```json
 {
-  "initial_balance": 100000,
+  "assets": [
+    {
+      "name": "IRA",
+      "type": "tax_deferred",
+      "balance": 150000,
+      "interest_rate": 0.05,
+      "compounding": "monthly",
+      "withdrawal_priority": 1
+    },
+    {
+      "name": "Brokerage",
+      "type": "taxable",
+      "balance": 100000,
+      "interest_rate": 0.04,
+      "compounding": "monthly",
+      "withdrawal_priority": 2
+    },
+    {
+      "name": "Savings",
+      "type": "tax_free",
+      "balance": 25000,
+      "interest_rate": 0.015,
+      "compounding": "monthly",
+      "withdrawal_priority": 3
+    }
+  ],
   "monthly_income": 4000,
   "monthly_expenses": 3000,
   "start_date": "2025-01-01",
@@ -15,17 +40,19 @@ This document defines the expected input format for the `retirement-scenario-exp
     {
       "type": "withdrawal",
       "amount": 5000,
-      "month": 18
+      "month": 18,
+      "source": "Brokerage"
     },
     {
       "type": "deposit",
       "amount": 10000,
-      "month": 60
+      "month": 60,
+      "target": "IRA"
     }
   ],
   "metadata": {
     "title": "Base Case Retirement Model",
-    "notes": "No Social Security yet, modest growth assumptions"
+    "notes": "Includes multiple account types and interest accrual"
   }
 }
 ```
@@ -34,17 +61,26 @@ This document defines the expected input format for the `retirement-scenario-exp
 
 ## 🔍 Field Reference
 
-### `initial_balance` (number, required)
+### `assets` (array, required)
 
-Starting balance in dollars.
+List of financial accounts or holdings.
+
+Each asset must include:
+
+* `name`: User-friendly name of the asset
+* `type`: One of `"taxable"`, `"tax_deferred"`, `"tax_free"`
+* `balance`: Starting balance
+* `interest_rate`: Annual return rate (decimal)
+* `compounding`: Either `"monthly"` or `"annual"`
+* `withdrawal_priority`: Integer priority used when drawing down (lower = first)
 
 ### `monthly_income` (number, required)
 
-Recurring income applied every month.
+Recurring income applied every month (e.g., pension, rental income).
 
 ### `monthly_expenses` (number, required)
 
-Recurring monthly expenses.
+Total recurring monthly expenses.
 
 ### `start_date` (string, optional)
 
@@ -56,28 +92,36 @@ Number of months to simulate. Defaults to 12 if omitted.
 
 ### `events` (array, optional)
 
-List of one-time financial events.
-
-Each event must include:
+List of one-time financial transactions. Each must include:
 
 * `type`: "withdrawal" or "deposit"
 * `amount`: Dollar amount
-* `month`: Which month it occurs (0 = first month)
+* `month`: 0-indexed month when it occurs
+* `source` or `target`: Asset name to draw from or deposit into
 
 ### `metadata` (object, optional)
 
-Optional human-friendly metadata:
+Optional metadata for labeling and notes:
 
-* `title`: Scenario title or label
-* `notes`: Free-form notes or assumptions
+* `title`: Scenario title
+* `notes`: Freeform descriptive notes
 
 ---
 
-## ✅ Minimal Valid Example
+## ✅ Minimal Valid Example (One Asset)
 
 ```json
 {
-  "initial_balance": 50000,
+  "assets": [
+    {
+      "name": "Checking",
+      "type": "taxable",
+      "balance": 50000,
+      "interest_rate": 0.01,
+      "compounding": "monthly",
+      "withdrawal_priority": 1
+    }
+  ],
   "monthly_income": 3000,
   "monthly_expenses": 2500
 }
@@ -87,13 +131,14 @@ Optional human-friendly metadata:
 
 ## 🚧 Coming Enhancements
 
-Future schema versions may include:
+Future schema versions may support:
 
-* Tax modeling
-* Inflation assumptions
-* Investment growth/returns
-* Account-specific modeling (IRA, Roth, taxable)
+* Realistic tax withholding and annual tax filing logic
+* Required Minimum Distributions (RMDs)
+* Account conversion events (e.g. Roth conversion)
+* Inflation-adjusted income and expenses
+* Social Security and Medicare modeling
 
 ---
 
-*Last updated: v0.1 — 2025-08-05*
+*Last updated: v0.2 — 2025-08-05*
