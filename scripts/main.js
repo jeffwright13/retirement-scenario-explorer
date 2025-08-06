@@ -94,29 +94,32 @@ document.getElementById('run-btn').addEventListener('click', () => {
   }
 
   const { results, balanceHistory } = simulateScenario(scenario);
-
-  const months = results.map(r => r.month + 1);
+  const xLabels = results.map(r => {
+    const year = Math.floor(r.month / 12) + 1;
+    const month = (r.month % 12) + 1;
+    return `${year}/${month}`;
+  });
   const incomes = results.map(r => r.income);
   const expenses = results.map(r => r.expenses);
   const shortfalls = results.map(r => r.shortfall);
 
   const traces = [
     {
-      x: months,
+      x: xLabels,
       y: incomes,
       name: 'Income',
       type: 'scatter',
       line: { color: 'green' }
     },
     {
-      x: months,
+      x: xLabels,
       y: expenses,
       name: 'Expenses',
       type: 'scatter',
       line: { color: 'red' }
     },
     {
-      x: months,
+      x: xLabels,
       y: shortfalls,
       name: 'Shortfall',
       type: 'bar',
@@ -126,7 +129,7 @@ document.getElementById('run-btn').addEventListener('click', () => {
 
   for (const [assetName, balances] of Object.entries(balanceHistory)) {
     traces.push({
-      x: months.slice(0, balances.length),
+      x: xLabels.slice(0, balances.length),
       y: balances,
       name: assetName + ' Balance',
       type: 'scatter',

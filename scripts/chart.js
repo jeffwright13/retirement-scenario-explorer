@@ -3,7 +3,7 @@ export function renderChart(data) {
   const balances = data.map(d => d.balance);
 
   const trace = {
-    x: months,
+    x: xLabels,
     y: balances,
     type: 'scatter',
     mode: 'lines+markers',
@@ -13,7 +13,7 @@ export function renderChart(data) {
 
   const layout = {
     title: 'Balance Over Time',
-    xaxis: { title: 'Month' },
+    xaxis: { title: 'Year / Month' },
     yaxis: { title: 'Balance ($)' }
   };
 
