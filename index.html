@@ -2,10 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Retirement Scenario Explorer</title>
-  <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
+    body {
+      font-family: sans-serif;
+      margin: 1em;
+    }
     #json-container.collapsed textarea,
     #json-container.collapsed #run-btn {
       display: none;
@@ -14,14 +18,23 @@
       transition: all 0.3s ease-in-out;
       margin-bottom: 1em;
     }
+    #chart-area {
+      height: 400px;
+    }
+    #csv-table {
+      margin-top: 2em;
+      white-space: pre-wrap;
+      font-size: 0.8em;
+    }
   </style>
 </head>
 <body>
   <h1>Retirement Scenario Explorer</h1>
 
-  <div id="json-container" class="expanded">
-    <button id="toggle-json-btn">Hide/Show JSON</button><br />
-    <textarea id="json-input" rows="20" cols="100">
+  <button id="toggle-json-btn">Show/Hide JSON</button>
+
+  <div id="json-container" class="collapsed">
+    <textarea id="json-input" rows="20" cols="80">
 {
   "metadata": {
     "title": "Multiple Asset Test",
@@ -29,7 +42,7 @@
   },
   "plan": {
     "monthly_expenses": 8250,
-    "duration_months": 180
+    "duration_months": 400
   },
   "income": [
     {
@@ -74,7 +87,7 @@
       "compounding": "monthly"
     },
     {
-      "name": "HYSA (Savings)",
+      "name": "Savings",
       "type": "taxable",
       "balance": 129000,
       "interest_rate": 0.037,
@@ -82,17 +95,19 @@
     }
   ],
   "order": [
-    { "account": "HYSA (Savings)", "order": 1 },
+    { "account": "Savings", "order": 1 },
     { "account": "Brokerage", "order": 2 },
     { "account": "Traditional IRA", "order": 3 },
     { "account": "Roth IRA", "order": 4 }
   ]
 }
-    </textarea><br />
+    </textarea>
+    <br />
     <button id="run-btn">Run Simulation</button>
   </div>
 
-  <div id="chart-area" style="width: 100%; height: 600px;"></div>
+  <div id="chart-area"></div>
+  <pre id="csv-table"></pre>
 
   <script src="scripts/main.js"></script>
 </body>

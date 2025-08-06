@@ -64,3 +64,74 @@
     { "account": "Roth IRA", "order": 4 }
   ]
 }
+
+
+
+
+
+{
+  "metadata": {
+    "title": "Multiple Asset Test",
+    "notes": "Includes one-time inheritance in month 12."
+  },
+  "plan": {
+    "monthly_expenses": 8250,
+    "duration_months": 400
+  },
+  "income": [
+    {
+      "name": "SSDI",
+      "amount": 0,
+      "start_month": 0,
+      "stop_month": 9999
+    },
+    {
+      "name": "Social Security",
+      "amount": 2503,
+      "start_month": 24,
+      "stop_month": 9999
+    },
+    {
+      "name": "Inheritance",
+      "amount": 0,
+      "start_month": 60,
+      "stop_month": 60
+    }
+  ],
+  "assets": [
+    {
+      "name": "Savings",
+      "type": "taxable",
+      "balance": 129000,
+      "interest_rate": 0.037,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Brokerage",
+      "type": "taxable",
+      "balance": 512000,
+      "interest_rate": 0.00,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Traditional IRA",
+      "type": "taxable",
+      "balance": 321000,
+      "interest_rate": 0.00,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Roth IRA",
+      "type": "tax_free",
+      "balance": 12000,
+      "interest_rate": 0.00,
+      "compounding": "monthly"
+    }
+  ],
+  "order": [
+    { "account": "Savings", "order": 1 },
+    { "account": "Brokerage", "order": 2 },
+    { "account": "Traditional IRA", "order": 3 },
+    { "account": "Roth IRA", "order": 4 }
+  ]
+}

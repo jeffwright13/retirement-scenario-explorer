@@ -91,15 +91,10 @@ document.getElementById('run-btn').addEventListener('click', () => {
   const { results, balanceHistory } = simulateScenario(scenario);
 
   let startYear, startMonth;
-  if (scenario.start_date) {
-    const parts = scenario.start_date.split('-');
-    startYear = parseInt(parts[0], 10);
-    startMonth = parseInt(parts[1], 10) - 1;
-  } else {
-    const now = new Date();
-    startYear = now.getFullYear();
-    startMonth = now.getMonth();
-  }
+  const now = new Date();
+  startYear = now.getFullYear();
+  startMonth = now.getMonth();
+
   const xLabels = results.map(r => {
     const date = new Date(startYear, startMonth + r.month);
     return date.toISOString().slice(0, 7); // "YYYY-MM"
@@ -147,7 +142,7 @@ document.getElementById('run-btn').addEventListener('click', () => {
   }
 
   const layout = {
-    title: 'Retirement Simulation',
+    title: scenario.metadata?.title || 'Retirement Simulation',
     xaxis: {
       title: 'Date (YYYY-MM)',
       tickangle: -45,
@@ -163,11 +158,29 @@ document.getElementById('run-btn').addEventListener('click', () => {
 
   Plotly.newPlot('chart-area', traces, layout);
 
-  // Auto-collapse JSON view
-  const jsonDiv = document.getElementById('json-container');
-  jsonDiv.classList.remove('expanded');
-  jsonDiv.classList.add('collapsed');
+  // Output CSV
+  const csvHeader = ["Month", "Date", "Income", "Expenses", "Shortfall", ...Object.keys(balanceHistory)];
+  const csvRows = [csvHeader.join(",")];
 
+  for (let i = 0; i < results.length; i++) {
+    const date = xLabels[i];
+    const r = results[i];
+    const balances = Object.values(balanceHistory).map(history => history[i].toFixed(2));
+    const row = [
+      r.month + 1,
+      date,
+      r.income.toFixed(2),
+      r.expenses.toFixed(2),
+      r.shortfall.toFixed(2),
+      ...balances
+    ];
+    csvRows.push(row.join(","));
+  }
+
+  document.getElementById("csv-table").textContent = csvRows.join("\n");
+
+  document.getElementById("json-container").classList.remove("expanded");
+  document.getElementById("json-container").classList.add("collapsed");
   document.getElementById("chart-area").scrollIntoView({ behavior: "smooth" });
 });
 
