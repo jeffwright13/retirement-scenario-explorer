@@ -2,6 +2,8 @@ import { calculateProjection } from './engine.js';
 import { renderChart } from './chart.js';
 
 window.runScenario = function () {
+  console.log("✅ runScenario called");
+
   const input = document.getElementById('scenario-input').value;
   const status = document.getElementById('status-message');
 
