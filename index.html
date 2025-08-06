@@ -17,46 +17,53 @@
     "notes": "Includes one-time inheritance in month 12."
   },
   "plan": {
-    "monthly_expenses": 2500,
-    "duration_months": 24
+    "monthly_expenses": 8250,
+    "duration_months": 180
   },
   "income": [
     {
       "name": "SSDI",
-      "amount": 1800,
+      "amount": 0,
       "start_month": 0,
       "stop_month": 9999
     },
     {
       "name": "Social Security",
-      "amount": 2400,
-      "start_month": 84,
+      "amount": 2503,
+      "start_month": 24,
       "stop_month": 9999
     },
     {
       "name": "Inheritance",
-      "amount": 100000,
-      "start_month": 12,
-      "stop_month": 12
+      "amount": 0,
+      "start_month": 60,
+      "stop_month": 60
     }
   ],
   "assets": [
     {
       "name": "Brokerage",
       "type": "taxable",
-      "balance": 100000,
-      "interest_rate": 0.05,
+      "balance": 512000,
+      "interest_rate": 0.06,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Traditional IRA",
+      "type": "taxable",
+      "balance": 321000,
+      "interest_rate": 0.06,
       "compounding": "monthly"
     },
     {
       "name": "Roth IRA",
       "type": "tax_free",
-      "balance": 50000,
+      "balance": 12000,
       "interest_rate": 0.06,
       "compounding": "monthly"
     },
     {
-      "name": "Savings",
+      "name": "HYSA (Savings)",
       "type": "taxable",
       "balance": 129000,
       "interest_rate": 0.037,
@@ -64,9 +71,10 @@
     }
   ],
   "order": [
-    { "account": "Roth IRA", "order": 1 },
+    { "account": "Savings", "order": 1 },
     { "account": "Brokerage", "order": 2 },
-    { "account": "Savings", "order": 3 }
+    { "account": "Traditional IRA", "order": 3 },
+    { "account": "Roth IRA", "order": 4 }
   ]
 }
     </textarea>
