@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Jeff's Retirement Drawdown Calculator",
-    "notes": ""
+    "notes": "Scenario: Default"
   },
   "plan": {
     "monthly_expenses": 8500,
