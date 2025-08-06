@@ -1,21 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
   <title>Retirement Scenario Explorer</title>
-  <link rel="stylesheet" href="styles/main.css" />
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <h1>Retirement Scenario Explorer</h1>
-  <button id="toggle-input">⬇️ Show/Hide Scenario</button>
-  <div id="scenario-container">
-    <textarea id="scenario-input" rows="30" cols="60"></textarea>
-    <button onclick="runScenario()">Run Scenario</button>
+
+  <!-- Scenario Input -->
+  <div id="json-container" class="expanded">
+    <label for="json-input"><strong>Scenario JSON:</strong></label>
+    <textarea id="json-input" rows="20" style="width: 100%;">
+{
+  "metadata": {
+    "title": "Multiple Asset Test",
+    "notes": "Draws from savings first, then Roth IRA."
+  },
+  "plan": {
+    "monthly_expenses": 2500,
+    "duration_months": 18
+  },
+  "income": [
+    {
+      "name": "SSDI",
+      "amount": 1800,
+      "start_month": 0
+    },
+    {
+      "name": "Social Security",
+      "amount": 2400,
+      "start_month": 84
+    }
+  ],
+  "assets": [
+    {
+      "name": "Brokerage",
+      "type": "taxable",
+      "balance": 100000,
+      "interest_rate": 0.05,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Roth IRA",
+      "type": "tax_free",
+      "balance": 50000,
+      "interest_rate": 0.06,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Savings",
+      "type": "taxable",
+      "balance": 129000,
+      "interest_rate": 0.037,
+      "compounding": "monthly"
+    }
+  ],
+  "order": [
+    { "account": "Roth IRA", "order": 1 },
+    { "account": "Brokerage", "order": 2 },
+    { "account": "Savings", "order": 3 }
+  ]
+}
+    </textarea>
   </div>
-  <p id="status-message" style="font-weight: bold;"></p>
-  <div id="chart-area"></div>
+
+  <!-- Buttons -->
+  <div style="margin-top: 10px;">
+    <button id="run-btn">Run</button>
+    <button id="toggle-json-btn">Edit Scenario</button>
+  </div>
+
+  <!-- Results Display -->
+  <div id="results" style="margin-top: 20px;">
+    <h2>Results</h2>
+    <div id="chart-area" style="height: 400px;"></div>
+  </div>
+
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <script type="module" src="scripts/main.js"></script>
+  <script src="scripts/main.js"></script>
 </body>
 </html>
