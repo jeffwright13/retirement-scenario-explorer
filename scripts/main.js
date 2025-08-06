@@ -192,11 +192,23 @@ document.getElementById("run-btn").addEventListener("click", () => {
       tickmode: "array",
       tickvals: filteredTicks,
       ticktext: filteredTicks,
+      showgrid: true,      // ✅ enables vertical gridlines
+      gridcolor: "#ddd",   // optional, lighter gridlines
+      zeroline: false
     },
     yaxis: {
       title: "Amount ($)",
+      showgrid: true,      // ✅ enables horizontal gridlines
+      gridcolor: "#ddd",
+      zeroline: false
     },
     barmode: "overlay",
+    margin: {
+      l: 60,
+      r: 30,
+      t: 60,
+      b: 80
+    }
   };
 
   Plotly.newPlot("chart-area", traces, layout);
