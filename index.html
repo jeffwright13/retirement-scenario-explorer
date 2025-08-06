@@ -1,21 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Retirement Scenario Explorer</title>
-  <link rel="stylesheet" href="styles/main.css" />
+  <meta charset="UTF-8">
+  <title>Retirement Scenario Runner</title>
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-  <h1>Retirement Scenario Explorer</h1>
-  <button id="toggle-input">⬇️ Show/Hide Scenario</button>
-  <div id="scenario-container">
-    <textarea id="scenario-input" rows="30" cols="60"></textarea>
-    <button onclick="runScenario()">Run Scenario</button>
+
+  <!-- Scenario Input -->
+  <div id="json-container" class="expanded">
+    <label for="json-input"><strong>Scenario JSON:</strong></label>
+    <textarea id="json-input" rows="12" style="width: 100%;">
+{
+  "scenario_name": "Base Case",
+  "order": [
+    { "account": "Roth IRA", "order": 1 },
+    { "account": "Brokerage", "order": 2 }
+  ]
+}
+    </textarea>
   </div>
-  <p id="status-message" style="font-weight: bold;"></p>
-  <div id="chart-area"></div>
-  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-  <script type="module" src="scripts/main.js"></script>
+
+  <!-- Controls -->
+  <div style="margin-top: 10px;">
+    <button id="run-btn">Run</button>
+    <button id="toggle-json-btn">Edit Scenario</button>
+  </div>
+
+  <!-- Results -->
+  <div id="results" style="margin-top: 20px;">
+    <h2>Results</h2>
+    <div id="chart-area">(Chart will go here)</div>
+  </div>
+
+  <script src="scripts/main.js"></script>
 </body>
 </html>
