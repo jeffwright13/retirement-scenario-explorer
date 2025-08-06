@@ -5,13 +5,23 @@
   <title>Retirement Scenario Explorer</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <style>
+    #json-container.collapsed textarea,
+    #json-container.collapsed #run-btn {
+      display: none;
+    }
+    #json-container {
+      transition: all 0.3s ease-in-out;
+      margin-bottom: 1em;
+    }
+  </style>
 </head>
 <body>
   <h1>Retirement Scenario Explorer</h1>
 
   <div id="json-container" class="expanded">
-    <button id="toggle-json-btn">Hide/Show JSON</button>
-    <textarea id="json-input" rows="20" cols="80">
+    <button id="toggle-json-btn">Hide/Show JSON</button><br />
+    <textarea id="json-input" rows="20" cols="100">
 {
   "metadata": {
     "title": "Multiple Asset Test",
@@ -36,7 +46,7 @@
     },
     {
       "name": "Inheritance",
-      "amount": 100000,
+      "amount": 0,
       "start_month": 60,
       "stop_month": 60
     }
@@ -78,8 +88,7 @@
     { "account": "Roth IRA", "order": 4 }
   ]
 }
-    </textarea>
-    <br />
+    </textarea><br />
     <button id="run-btn">Run Simulation</button>
   </div>
 

@@ -90,10 +90,19 @@ document.getElementById('run-btn').addEventListener('click', () => {
 
   const { results, balanceHistory } = simulateScenario(scenario);
 
+  let startYear, startMonth;
+  if (scenario.start_date) {
+    const parts = scenario.start_date.split('-');
+    startYear = parseInt(parts[0], 10);
+    startMonth = parseInt(parts[1], 10) - 1;
+  } else {
+    const now = new Date();
+    startYear = now.getFullYear();
+    startMonth = now.getMonth();
+  }
   const xLabels = results.map(r => {
-    const year = Math.floor(r.month / 12) + 1;
-    const month = (r.month % 12) + 1;
-    return `${year}/${month}`;
+    const date = new Date(startYear, startMonth + r.month);
+    return date.toISOString().slice(0, 7); // "YYYY-MM"
   });
 
   const tickInterval = scenario.plan.duration_months > 120 ? 12 : 6;
@@ -140,7 +149,7 @@ document.getElementById('run-btn').addEventListener('click', () => {
   const layout = {
     title: 'Retirement Simulation',
     xaxis: {
-      title: 'Year / Month',
+      title: 'Date (YYYY-MM)',
       tickangle: -45,
       tickmode: 'array',
       tickvals: filteredTicks,
@@ -154,6 +163,7 @@ document.getElementById('run-btn').addEventListener('click', () => {
 
   Plotly.newPlot('chart-area', traces, layout);
 
+  // Auto-collapse JSON view
   const jsonDiv = document.getElementById('json-container');
   jsonDiv.classList.remove('expanded');
   jsonDiv.classList.add('collapsed');
