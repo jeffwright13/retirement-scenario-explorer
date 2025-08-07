@@ -1,4 +1,5 @@
-// import { simulateScenario } from './engine.js';
+import { simulateScenario } from './engine.js';
+import { updateHeaderFromMetadata } from './render.js'; 
 
 /**
  * Calculates total income for a given month.
@@ -39,32 +40,7 @@ document.getElementById("toggle-csv-btn").addEventListener("click", () => {
   csvDiv.classList.toggle("expanded");
 });
 
-/**
- * Updates the top-of-page scenario header with title and notes.
- *
- * If metadata includes a title or notes, this function inserts them
- * into the corresponding DOM elements and makes the header visible.
- * Otherwise, it clears the contents and hides the header.
- *
- * @param {Object} metadata - Optional metadata object with scenario info
- * @param {string} [metadata.title] - Scenario title to display
- * @param {string} [metadata.notes] - Additional notes or description
- */
-function updateHeaderFromMetadata(metadata) {
-  const header = document.getElementById("scenario-header");
-  const title = document.getElementById("scenario-title");
-  const notes = document.getElementById("scenario-notes");
 
-  if (metadata?.title || metadata?.notes) {
-    title.textContent = metadata.title || "";
-    notes.textContent = metadata.notes || "";
-    header.classList.remove("hidden");
-  } else {
-    title.textContent = "";
-    notes.textContent = "";
-    header.classList.add("hidden");
-  }
-}
 
 /**
  * Simulates the monthly cash flow and asset drawdown over the plan duration.
@@ -175,7 +151,8 @@ function simulateScenario(scenario) {
 
 
   // Write the CSV output to the page
-  document.getElementById("csv-container").textContent = csvRows.map((r) => r.join(",")).join("\n");
+  // document.getElementById("csv-container").textContent = csvRows.map((r) => r.join(",")).join("\n");
+  document.getElementById("csv-container").textContent = csvText;
   document.getElementById("csv-container").classList.remove("expanded");
 
   // Returns two core data structures:
@@ -211,7 +188,8 @@ document.getElementById("run-btn").addEventListener("click", () => {
 
   // Run the simulation and unpack the result
   updateHeaderFromMetadata(scenario.metadata);
-  const { results, balanceHistory } = simulateScenario(scenario);
+  // const { results, balanceHistory } = simulateScenario(scenario);
+  const { results, balanceHistory, csvText } = simulateScenario(scenario);
 
   // Generate x-axis date labels for each month
   const now = new Date();
