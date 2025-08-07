@@ -55,12 +55,13 @@ export function simulateScenario(scenario) {
     }
   }
 
-
   for (let month = 0; month < scenario.plan.duration_months; month++) {
     applyIncomeAndDeposits(month);
     const income = getMonthlyIncome(incomeSources, month);
     const shortfall = scenario.plan.monthly_expenses - income;
     let remainingShortfall = shortfall;
+
+    console.log("[simulateScenario] month", month, "income", income);
 
     const log = {
       month,
@@ -100,29 +101,13 @@ export function simulateScenario(scenario) {
       balanceHistory[asset.name].push(asset.balance);
     }
 
-  //   const now = new Date();
-  //   const date = new Date(now.getFullYear(), now.getMonth()   month);
-  //   const row = [
-  //     month   1,
-  //     date.toISOString().slice(0, 7),
-  //     income.toFixed(2),
-  //     scenario.plan.monthly_expenses.toFixed(2),
-  //     log.shortfall.toFixed(2),
-  //     ...Object.keys(balanceHistory).map((name) => {
-  //       const value = balanceHistory[name][month];
-  //       return typeof value === "number" ? value.toFixed(2) : "0.00";
-  //     })
-  //   ];
-  //   csvRows.push(row);
-  // }
-
    // Build CSV after the loop so header includes dynamic assets
    const allAssetNames = Object.keys(balanceHistory);
    csvRows.push(["Month","Date","Income","Expenses","Shortfall", ...allAssetNames]);
 
    for (let month = 0; month < scenario.plan.duration_months; month++) {
      const now = new Date();
-     const date = new Date(now.getFullYear(), now.getMonth()   month);
+     const date = new Date(now.getFullYear(), now.getMonth() + month);
      const r = results[month];
      const assetCells = allAssetNames.map((name) => {
        const v = balanceHistory[name]?.[month];
