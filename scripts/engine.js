@@ -107,7 +107,10 @@ export function simulateScenario(scenario) {
       income.toFixed(2),
       scenario.plan.monthly_expenses.toFixed(2),
       log.shortfall.toFixed(2),
-      ...assetNames.map((name) => balanceHistory[name][month].toFixed(2)),
+      ...Object.keys(balanceHistory).map((name) => {
+        const value = balanceHistory[name][month];
+        return typeof value === "number" ? value.toFixed(2) : "0.00";
+      })
     ];
     csvRows.push(row);
   }
