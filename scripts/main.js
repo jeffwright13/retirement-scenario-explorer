@@ -2,9 +2,12 @@ import { simulateScenario } from './engine.js';
 import {
   renderChart,
   renderCsv,
-  updateHeaderFromMetadata
+  updateHeaderFromMetadata,
+  selectText
 } from './render.js';
 
+// Expose selectText for inline HTML buttons
+window.selectText = selectText;
 
 // Toggle visibility of the JSON input panel
 document.getElementById("toggle-json-btn").addEventListener("click", () => {

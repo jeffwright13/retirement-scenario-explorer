@@ -159,3 +159,20 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
 
   Plotly.newPlot("chart-area", traces, layout);
 }
+
+/**
+ * Selects all text contents within a given element by ID.
+ * Typically used for debugging or bulk copy.
+ *
+ * @param {string} elementId - The DOM ID of the target element
+ */
+export function selectText(elementId) {
+  const element = document.getElementById(elementId);
+  if (element) {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+}

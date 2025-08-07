@@ -60,9 +60,11 @@
     <button id="toggle-csv-btn">Show/Hide CSV</button>
   </div>
 
+  <button onclick="window.selectText('csv-container')">Select All CSV</button>
   <pre id="csv-container" class="collapsed" style="max-height: 300px; overflow: auto; background: #f9f9f9; padding: 1em; border: 1px solid #ccc;"></pre>
 
   <div id="json-container" class="collapsed">
+    <button onclick="window.selectText('json-input')">Select All JSON</button>
     <textarea id="json-input" rows="20" cols="80">
 {
   "metadata": {
