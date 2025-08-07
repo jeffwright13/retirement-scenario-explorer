@@ -30,9 +30,9 @@ export function simulateScenario(scenario) {
     for (const event of events) {
       if (
         typeof event.start_month === "number" &&
-        typeof event.end_month === "number" &&
+        typeof event.stop_month === "number" &&
         event.start_month <= month &&
-        event.end_month >= month &&
+        event.stop_month >= month &&
         typeof event.amount === "number"
       ) {
         const safeName = event.name ? event.name.replace(/\s+/g, "_") : "Untitled";
