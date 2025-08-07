@@ -46,8 +46,10 @@ document.getElementById("run-btn").addEventListener("click", () => {
 
   // Run the simulation and unpack the result
   updateHeaderFromMetadata(scenario.metadata);
-  // const { results, balanceHistory } = simulateScenario(scenario);
-  const { results, balanceHistory, csvText, windfallUsedAtMonth  } = simulateScenario(scenario);
+  // const { results, balanceHistory, csvText, windfallUsedAtMonth  } = simulateScenario(scenario);
+  const simulationResult = simulateScenario(scenario);
+  window._scenarioResult = simulationResult; // for debug visibility
+  const { results, balanceHistory, csvText, windfallUsedAtMonth } = simulationResult;
 
   // Generate x-axis date labels for each month
   const now = new Date();
