@@ -56,7 +56,8 @@ document.getElementById("run-btn").addEventListener("click", () => {
   const startYear = now.getFullYear();
   const startMonth = now.getMonth();
 
-  // Render the chart
+  // Render the CSV and the chart
+  renderCsv(csvText);
   renderChart(results, balanceHistory, scenario.metadata?.title, {windfallUsedAtMonth});
 
   // Collapse JSON input and scroll to chart
