@@ -47,7 +47,7 @@ document.getElementById("run-btn").addEventListener("click", () => {
   // Run the simulation and unpack the result
   updateHeaderFromMetadata(scenario.metadata);
   // const { results, balanceHistory } = simulateScenario(scenario);
-  const { results, balanceHistory, csvText } = simulateScenario(scenario);
+  const { results, balanceHistory, csvText, windfallUsedAtMonth  } = simulateScenario(scenario);
 
   // Generate x-axis date labels for each month
   const now = new Date();
@@ -55,7 +55,7 @@ document.getElementById("run-btn").addEventListener("click", () => {
   const startMonth = now.getMonth();
 
   // Render the chart
-  renderChart(results, balanceHistory, scenario.metadata?.title);
+  renderChart(results, balanceHistory, scenario.metadata?.title, {windfallUsedAtMonth});
 
   // Collapse JSON input and scroll to chart
   document.getElementById("json-container").classList.remove("expanded");

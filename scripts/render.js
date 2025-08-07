@@ -43,7 +43,7 @@ export function renderCsv(csvText) {
  * @param {Object} balanceHistory - Time-series balances per asset
  * @param {string} title - Chart title (usually from metadata)
  */
-export function renderChart(results, balanceHistory, title = "Retirement Simulation") {
+export function renderChart(results, balanceHistory, title = "Retirement Simulation", scenarioMeta = {}) {
   const now = new Date();
   const startYear = now.getFullYear();
   const startMonth = now.getMonth();
@@ -55,6 +55,43 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
 
   const tickInterval = results.length > 120 ? 12 : 6;
   const filteredTicks = xLabels.filter((_, i) => i % tickInterval === 0);
+
+  let windfallLine = null;
+  let windfallAnnotation = null;
+
+  if (typeof scenarioMeta.windfallUsedAtMonth === "number") {
+    const windfallMonthIndex = scenarioMeta.windfallUsedAtMonth;
+    const windfallDate = xLabels[windfallMonthIndex];
+
+    windfallLine = {
+      type: "line",
+      x0: windfallDate,
+      x1: windfallDate,
+      y0: 0,
+      y1: 1,
+      yref: "paper",
+      line: {
+        color: "orange",
+        width: 2,
+        dash: "dot"
+      }
+    };
+
+    windfallAnnotation = {
+      x: windfallDate,
+      y: 1,
+      yref: "paper",
+      text: "Windfall Used",
+      showarrow: true,
+      arrowhead: 6,
+      ax: 0,
+      ay: -40,
+      font: {
+        color: "orange",
+        size: 12
+      }
+    };
+  }
 
   const incomes = results.map((r) => r.income);
   const expenses = results.map((r) => r.expenses);
@@ -97,7 +134,7 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
   const layout = {
     title,
     xaxis: {
-      title: "Date (YYYY-MM)",
+      title: "Date",
       tickangle: -45,
       tickmode: "array",
       tickvals: filteredTicks,
@@ -112,6 +149,8 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
       gridcolor: "#ddd",
       zeroline: false
     },
+    shapes: windfallLine ? [windfallLine] : [],
+    annotations: windfallAnnotation ? [windfallAnnotation] : [],
     barmode: "overlay",
     margin: {
       l: 60, r: 30, t: 60, b: 80
