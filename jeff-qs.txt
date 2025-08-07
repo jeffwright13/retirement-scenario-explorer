@@ -1,0 +1,7 @@
+What happens if a 
+Might want to rehink and do a more general calculation approach, 
+ allowing pause/erstart of asset drawdowsn 
+ so that if for example a windfalll happened (inheritance), 
+ it could be accommodated as next-to-be-drawn-from, and then 
+ whatever asset was bring drawn then would continue later after windfall 
+ depeted

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Jeff's Retirement Drawdown Calculator",
-    "notes": "Scenario: SSI Age 62, "
+    "notes": "Scenario:\nExpenses $8.5k / mo\nSSI $2.4K / mo (starting at age 62)\n(1) 129k cash savings 3.7%\n(2) $512k Investment acct 5.5%\n(3) $322k Trad IRA 5.5%\n(4) $12k Roth IRA  5.5%\n"
   },
   "plan": {
     "monthly_expenses": 8500,

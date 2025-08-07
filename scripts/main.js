@@ -1,3 +1,18 @@
+// import { simulateScenario } from './engine.js';
+
+/**
+ * Calculates total income for a given month.
+ *
+ * Iterates through all income sources in the scenario and adds up the monthly
+ * amounts for any sources that are active during the given month.
+ * An income source is considered active if:
+ *  - Its start_month is less than or equal to the current month
+ *  - Its stop_month is either undefined (i.e., never stops) or not yet reached
+ *
+ * @param {Array} incomeArray - List of income sources from the scenario
+ * @param {number} currentMonth - The month to evaluate (e.g., 0 = month 1)
+ * @returns {number} Total income for that month
+ */
 function getMonthlyIncome(incomeArray, currentMonth) {
   return incomeArray.reduce((total, source) => {
     if (
@@ -10,18 +25,31 @@ function getMonthlyIncome(incomeArray, currentMonth) {
   }, 0);
 }
 
+// Toggle visibility of the JSON input panel
 document.getElementById("toggle-json-btn").addEventListener("click", () => {
   const jsonDiv = document.getElementById("json-container");
   jsonDiv.classList.toggle("collapsed");
   jsonDiv.classList.toggle("expanded");
 });
 
+// Toggle visibility of the CSV output panel
 document.getElementById("toggle-csv-btn").addEventListener("click", () => {
   const csvDiv = document.getElementById("csv-container");
   csvDiv.classList.toggle("collapsed");
   csvDiv.classList.toggle("expanded");
 });
 
+/**
+ * Updates the top-of-page scenario header with title and notes.
+ *
+ * If metadata includes a title or notes, this function inserts them
+ * into the corresponding DOM elements and makes the header visible.
+ * Otherwise, it clears the contents and hides the header.
+ *
+ * @param {Object} metadata - Optional metadata object with scenario info
+ * @param {string} [metadata.title] - Scenario title to display
+ * @param {string} [metadata.notes] - Additional notes or description
+ */
 function updateHeaderFromMetadata(metadata) {
   const header = document.getElementById("scenario-header");
   const title = document.getElementById("scenario-title");
