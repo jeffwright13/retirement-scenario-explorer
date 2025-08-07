@@ -1,19 +1,29 @@
-# 💰 retirement-scenario-explorer
+# 💰 Retirement Scenario Explorer
 
-📈 A browser-based tool for modeling and visualizing retirement financial scenarios. Built with HTML, CSS, and JavaScript. Inputs are scenario definitions in JSON format; outputs include dynamic charts showing cash flow, drawdowns, and asset balances over time. Designed to be composable, testable, and fully client-side.
+📈 A lightweight, browser-based tool for modeling and visualizing **retirement financial scenarios**.  
+Built with plain HTML, CSS, and JavaScript — **no backend**, no installs, and no build tools required.
 
-A lightweight, browser-based tool for modeling and visualizing **retirement financial scenarios**. Built with HTML, CSS, and JavaScript — no backend, no installs.
+⚠️ **Important:** To use this tool, you must run it via a local web server.  
+Modern browsers block `file://` access for local JS modules and `import`/`export` syntax.
+
+You can start a local server using:
+
+```bash
+# Python 3
+python3 -m http.server
+# Then open http://localhost:8000 in your browser
+```
 
 ---
 
 ## 🌟 Features
 
-- Accepts input as structured JSON (e.g. assets, withdrawals, income)
-- Dynamically computes projections over time
-- Renders interactive charts (e.g., cash flow, asset drawdown)
-- Modular and testable JavaScript logic
-- Fully client-side — works offline, deployable via GitHub Pages
-- Simple UI with clean separation between logic and presentation
+- Accepts structured JSON input (assets, income, withdrawal rules, etc.)
+- Dynamically computes retirement projections month-by-month
+- Renders interactive charts (cash flow, drawdowns, balances)
+- CSV export for deeper spreadsheet analysis
+- 100% client-side — works offline and respects your privacy
+- Modular, clean JavaScript codebase (no frameworks)
 
 ---
 
@@ -26,7 +36,9 @@ retirement-scenario-explorer/
 │   └── main.css
 ├── scripts/
 │   ├── main.js            # Handles user input/output
-│   └── engine.js          # Core retirement logic (pure functions)
+│   ├── engine.js          # Core retirement logic (pure functions)
+│   ├── render.js          # DOM + chart rendering only
+│   └── utils.js           # Small utility functions
 ├── tests/
 │   ├── engine.test.js     # Unit tests for engine
 │   └── test-runner.html   # Simple Mocha/Chai test runner
