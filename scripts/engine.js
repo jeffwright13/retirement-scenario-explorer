@@ -33,7 +33,7 @@ export function simulateScenario(scenario) {
         typeof event.amount === "number"
       ) {
         const safeName = event.name ? event.name.replace(/\s+/g, "_") : "Untitled";
-        const targetName = event.target || `Windfall_${safeName}`;
+        const targetName = event.target || event.name;
 
         if (!assetMap[targetName]) {
           assetMap[targetName] = {
