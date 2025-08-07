@@ -14,6 +14,7 @@ export function simulateScenario(scenario) {
   const assetMap = Object.fromEntries(assets.map((a) => [a.name, a]));
   const assetNames = assets.map((a) => a.name);
   const incomeSources = scenario.income || [];
+  const depositEvents = scenario.deposits || [];
   const results = [];
 
   const balanceHistory = {};
@@ -23,7 +24,39 @@ export function simulateScenario(scenario) {
 
   const csvRows = [["Month", "Date", "Income", "Expenses", "Shortfall", ...assetNames]];
 
+  function applyIncomeAndDeposits(month) {
+    const events = [...incomeSources, ...depositEvents];
+    for (const event of events) {
+      if (
+        event.start_month <= month &&
+        event.end_month >= month &&
+        typeof event.amount === "number"
+      ) {
+        const safeName = event.name ? event.name.replace(/\s+/g, "_") : "Untitled";
+        const targetName = event.target || `Windfall_${safeName}`;
+
+        if (!assetMap[targetName]) {
+          assetMap[targetName] = {
+            name: targetName,
+            type: "taxable",
+            balance: 0,
+            interest_rate: 0.0,
+            compounding: "monthly",
+            dynamic: true
+          };
+          assets.push(assetMap[targetName]);
+          balanceHistory[targetName] = [];
+          assetNames.push(targetName);
+        }
+
+        assetMap[targetName].balance += event.amount;
+      }
+    }
+  }
+
+
   for (let month = 0; month < scenario.plan.duration_months; month++) {
+    applyIncomeAndDeposits(month);
     const income = getMonthlyIncome(incomeSources, month);
     const shortfall = scenario.plan.monthly_expenses - income;
     let remainingShortfall = shortfall;
@@ -42,6 +75,9 @@ export function simulateScenario(scenario) {
 
       const withdrawal = Math.min(asset.balance, remainingShortfall);
       asset.balance -= withdrawal;
+      if (!scenario._windfallUsedAtMonth && asset.dynamic && withdrawal > 0) {
+        scenario._windfallUsedAtMonth = month;
+      }
       remainingShortfall -= withdrawal;
 
       log.withdrawals.push({ from: asset.name, amount: withdrawal });
@@ -78,5 +114,10 @@ export function simulateScenario(scenario) {
 
   const csvText = csvRows.map(r => r.join(",")).join("\n");
 
-  return { results, balanceHistory, csvText };
+  return {
+    results,
+    balanceHistory,
+    csvText,
+    windfallUsedAtMonth: scenario._windfallUsedAtMonth
+  };
 }
