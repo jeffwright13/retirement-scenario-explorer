@@ -51,6 +51,9 @@ document.getElementById("run-btn").addEventListener("click", () => {
   updateHeaderFromMetadata(scenario.metadata);
   // const { results, balanceHistory, csvText, windfallUsedAtMonth  } = simulateScenario(scenario);
   const simulationResult = simulateScenario(scenario);
+  console.log("Running simulation with scenario:", scenario);
+  console.log("Simulation result:", simulationResult);
+
   window._scenarioResult = simulationResult; // for debug visibility
   const { results, balanceHistory, csvText, windfallUsedAtMonth } = simulationResult;
 
