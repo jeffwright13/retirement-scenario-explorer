@@ -8,7 +8,6 @@
 
   <style>
     #json-container.collapsed textarea,
-    #json-container.collapsed #run-btn,
     #csv-container.collapsed {
       display: none;
     }
@@ -18,28 +17,29 @@
       transition: all 0.3s ease-in-out;
       margin-bottom: 1em;
     }
-  </style>
 
-  <style>
     body {
       background-color: #f4f4f4;
       color: #2c2c2c;
       font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
       margin: 1em;
     }
-    #json-container.collapsed textarea,
-    #json-container.collapsed #run-btn {
+
+    #json-container.collapsed textarea {
       display: none;
     }
+
     #json-container {
       margin-top: 2em;
       transition: all 0.3s ease-in-out;
       font-size: 0.8em;
       margin-bottom: 1em;
     }
+
     #chart-area {
       height: 400px;
     }
+
     #csv-table {
       margin-top: 2em;
       transition: all 0.3s ease-in-out;
@@ -66,17 +66,16 @@
     <textarea id="json-input" rows="20" cols="80">
 {
   "metadata": {
-    "title": "Jeff's Retirement Drawdown Calculator",
-    "notes": "Scenario: SSI Age 62, "
+    "title": "Retirement Drawdown Calculator"
   },
   "plan": {
-    "monthly_expenses": 8500,
-    "duration_months": 360
+    "monthly_expenses": 6000,
+    "duration_months": 240
   },
   "income": [
     {
       "name": "Social Security",
-      "amount": 2442,
+      "amount": 3000,
       "start_month": 24
     }
   ],
@@ -84,21 +83,21 @@
     {
       "name": "Savings",
       "type": "taxable",
-      "balance": 129000,
-      "interest_rate": 0.037,
+      "balance": 100000,
+      "interest_rate": 0.0375,
       "compounding": "monthly"
     },
     {
       "name": "Investment",
       "type": "taxable",
-      "balance": 510600,
+      "balance": 250000,
       "interest_rate": 0.06,
       "compounding": "monthly"
     },
     {
       "name": "Traditional IRA",
       "type": "taxable",
-      "balance": 321000,
+      "balance": 100000,
       "interest_rate": 0.06,
       "compounding": "monthly"
     },
@@ -130,9 +129,10 @@
   ]
 }
     </textarea>
-    <br />
-    <button id="run-btn">Run Simulation</button>
   </div>
+
+  <!-- Run Simulation is now outside the collapsible JSON block -->
+  <button id="run-btn" style="margin-bottom: 1em;">Run Simulation</button>
 
   <div id="chart-area"></div>
 
