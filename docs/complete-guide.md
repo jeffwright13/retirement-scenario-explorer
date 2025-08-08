@@ -78,7 +78,7 @@ Same Sarah, but Social Security starts in month 12.
   },
   "plan": { 
     "monthly_expenses": 3000, 
-    "duration_months": 48 
+    "duration_months": 120 
   },
   "income": [
     {
@@ -127,7 +127,7 @@ Real retirees have multiple accounts with different characteristics.
   },
   "plan": { 
     "monthly_expenses": 4000, 
-    "duration_months": 120 
+    "duration_months": 168 
   },
   "income": [
     {
