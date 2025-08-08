@@ -176,15 +176,15 @@ Real retirees have multiple accounts with different characteristics.
 
 ---
 
-## 📖 Level 4: Life Events as Assets
+## 📖 Level 4: Modeling Large Expenses
 
-Here's where the model gets clever: windfalls, expenses, and future accounts are all just "assets" that activate at specific times.
+If you you want to nodel large future expenses, use individual `income` entries, and give them a `stop_month` after defining their `start_month`.
 
 ```json
 {
   "metadata": {
-    "title": "Level 4: Life Events as Assets",
-    "notes": "Carol gets an inheritance in year 5 (+$150k) but has a major home repair in year 3 (-$25k). Shows how to model windfalls and expenses."
+    "title": "Level 4: Two Large Expenses",
+    "notes": "Carol anticipates a major home repair in years 3 (-$15k for a new kichen, paid all at once) and 5 (-$45k for a new roof, paid over three months)."
   },
   "plan": { 
     "monthly_expenses": 5000, 
@@ -194,7 +194,19 @@ Here's where the model gets clever: windfalls, expenses, and future accounts are
     {
       "name": "Social Security",
       "amount": 2800, 
-      "start_month": 36
+      "start_month": 12
+    },
+    {
+      "name": "Kitchen",
+      "amount": -15000,
+      "start_month": 36,
+      "stop_month": 36
+    },
+    {
+      "name": "Roof",
+      "amount": -15000,
+      "start_month": 60,
+      "stop_month": 62
     }
   ],
   "assets": [
@@ -204,31 +216,31 @@ Here's where the model gets clever: windfalls, expenses, and future accounts are
       "balance": 300000,
       "interest_rate": 0.05,
       "compounding": "monthly"
-    },
-    {
-      "name": "Roof Replacement",
-      "type": "taxable", 
-      "balance": -25000,
-      "start_month": 36
-    },
-    {
-      "name": "Inheritance",
-      "type": "taxable",
-      "balance": 150000,
-      "start_month": 60,
-      "interest_rate": 0.04,
-      "compounding": "monthly"
     }
+    // {
+    //   "name": "Roof Replacement",
+    //   "type": "taxable", 
+    //   "balance": -25000,
+    //   "start_month": 36
+    // },
+    // {
+    //   "name": "Inheritance",
+    //   "type": "taxable",
+    //   "balance": 150000,
+    //   "start_month": 60,
+    //   "interest_rate": 0.04,
+    //   "compounding": "monthly"
+    // }
   ],
   "order": [
     {
       "account": "Brokerage",
       "order": 1
-    },
-    {
-      "account": "Inheritance",
-      "order": 2
     }
+    // {
+    //   "account": "Inheritance",
+    //   "order": 2
+    // }
   ]
 }
 ```

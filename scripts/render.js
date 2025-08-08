@@ -1,13 +1,5 @@
 /**
  * Update the top-of-page scenario header with title and notes.
- *
- * If metadata includes a title or notes, this function inserts them
- * into the corresponding DOM elements and makes the header visible.
- * Otherwise, it clears the contents and hides the header.
- *
- * @param {Object} metadata - Optional metadata object with scenario info
- * @param {string} [metadata.title] - Scenario title to display
- * @param {string} [metadata.notes] - Additional notes or description
  */
 export function updateHeaderFromMetadata(metadata) {
   const header = document.getElementById("scenario-header");
@@ -26,22 +18,21 @@ export function updateHeaderFromMetadata(metadata) {
 }
 
 /**
- * Render the CSV output into the CSV container.
- *
- * @param {string} csvText - CSV-formatted simulation output
+ * Render the CSV output into the CSV container and show the section.
  */
 export function renderCsv(csvText) {
   const container = document.getElementById("csv-container");
+  const csvSection = document.getElementById("csv-section");
+  
   container.textContent = csvText;
-  container.classList.remove("expanded");
+  
+  // Show the CSV section and container
+  csvSection.classList.remove("collapsed");
+  container.classList.remove("collapsed");
 }
 
 /**
  * Render the simulation chart using Plotly.
- *
- * @param {Array} results - Simulation result logs
- * @param {Object} balanceHistory - Time-series balances per asset
- * @param {string} title - Chart title (usually from metadata)
  */
 export function renderChart(results, balanceHistory, title = "Retirement Simulation", scenarioMeta = {}) {
   const now = new Date();
@@ -162,9 +153,6 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
 
 /**
  * Selects all text contents within a given element by ID.
- * Typically used for debugging or bulk copy.
- *
- * @param {string} elementId - The DOM ID of the target element
  */
 export function selectText(elementId) {
   const element = document.getElementById(elementId);

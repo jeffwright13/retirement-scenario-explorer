@@ -7,11 +7,12 @@
   <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
   <style>
-    /* Modern, clean styling */
+    /* Modern, clean styling with performance improvements */
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
+      will-change: transform; /* Hardware acceleration */
     }
 
     body {
@@ -50,9 +51,43 @@
       opacity: 0.9;
     }
 
+    /* Getting Started Panel */
+    .getting-started-panel {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      padding: 25px 30px;
+      border-bottom: none;
+    }
+
+    .getting-started-panel h3 {
+      font-size: 1.4rem;
+      margin-bottom: 15px;
+      font-weight: 600;
+    }
+
+    .getting-started-panel ol {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      padding-left: 20px;
+    }
+
+    .getting-started-panel li {
+      margin-bottom: 8px;
+    }
+
+    .getting-started-panel a {
+      color: #e6fffa;
+      text-decoration: underline;
+      font-weight: 500;
+    }
+
+    .getting-started-panel a:hover {
+      color: white;
+    }
+
     /* Scenario header (when metadata exists) */
     #scenario-header {
-      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
       color: white;
       padding: 20px 30px;
       border-bottom: none;
@@ -81,6 +116,7 @@
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 30px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     .control-group {
@@ -104,7 +140,7 @@
       flex-wrap: wrap;
     }
 
-    /* Beautiful buttons */
+    /* Beautiful buttons with faster transitions */
     button {
       background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
       color: white;
@@ -113,7 +149,7 @@
       border-radius: 6px;
       font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s ease;
+      transition: all 0.1s ease; /* Faster transitions */
       font-size: 0.95rem;
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
@@ -145,6 +181,11 @@
       background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
     }
 
+    .btn-small {
+      padding: 8px 16px;
+      font-size: 0.85rem;
+    }
+
     /* JSON input area */
     .json-section {
       margin-bottom: 30px;
@@ -154,7 +195,8 @@
       background: #1a202c;
       border-radius: 8px;
       overflow: hidden;
-      transition: all 0.3s ease;
+      transition: max-height 0.2s ease; /* Faster transitions */
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 
     #json-container.collapsed {
@@ -174,11 +216,19 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
     .json-header h3 {
       margin: 0;
       font-size: 1.1rem;
+    }
+
+    .json-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
     #json-input {
@@ -203,13 +253,36 @@
       min-height: 500px;
       margin-bottom: 30px;
       padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     }
 
     /* CSV output */
+    .csv-section {
+      margin-bottom: 30px;
+    }
+
+    .csv-header {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .csv-header h3 {
+      margin: 0;
+      color: #2d3748;
+      font-size: 1.1rem;
+    }
+
     #csv-container {
       background: #f7fafc;
       border: 2px solid #e2e8f0;
-      border-radius: 8px;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
       padding: 20px;
       font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
       font-size: 12px;
@@ -217,11 +290,25 @@
       max-height: 400px;
       overflow: auto;
       white-space: pre;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
     }
 
     #csv-container.collapsed {
       display: none;
+    }
+
+    .csv-section.collapsed .csv-header {
+      display: none;
+    }
+
+    /* Loading state */
+    .loading {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .loading::after {
+      content: " ⏳";
     }
 
     /* Responsive design */
@@ -245,17 +332,20 @@
       .main-content {
         padding: 20px;
       }
+
+      .json-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .json-actions {
+        width: 100%;
+      }
     }
 
     /* Hidden class */
     .hidden {
       display: none;
-    }
-
-    /* Loading state */
-    .loading {
-      opacity: 0.6;
-      pointer-events: none;
     }
   </style>
 </head>
@@ -265,6 +355,17 @@
     <div class="header">
       <h1>💰 Retirement Scenario Explorer</h1>
       <p>Model your financial future with interactive scenarios</p>
+    </div>
+
+    <!-- Getting Started Panel -->
+    <div class="getting-started-panel">
+      <h3>🎓 How to Use This Tool</h3>
+      <ol>
+        <li><strong>Choose a scenario</strong> from the <a href="docs/complete-guide.md" target="_blank">Complete Guide</a></li>
+        <li><strong>Copy & paste</strong> the JSON into the input below</li>
+        <li><strong>Click "Run Simulation"</strong> to see the results</li>
+        <li><strong>Analyze the chart</strong> to understand the financial trajectory</li>
+      </ol>
     </div>
 
     <!-- Scenario-specific header (hidden by default) -->
@@ -290,14 +391,6 @@
             <button id="run-btn" class="btn-success">Run Simulation</button>
           </div>
         </div>
-
-        <div class="control-group">
-          <h3>📋 Quick Actions</h3>
-          <div class="button-group">
-            <button onclick="window.selectText('json-input')" class="btn-secondary">Select All JSON</button>
-            <button onclick="window.selectText('csv-container')" class="btn-secondary">Select All CSV</button>
-          </div>
-        </div>
       </div>
 
       <!-- JSON Input Section -->
@@ -305,6 +398,9 @@
         <div id="json-container" class="collapsed">
           <div class="json-header">
             <h3>📝 Scenario Configuration</h3>
+            <div class="json-actions">
+              <button onclick="window.selectText('json-input')" class="btn-secondary btn-small">Select All</button>
+            </div>
           </div>
           <textarea id="json-input" placeholder="Paste your scenario JSON here or click Show/Hide JSON Input to see the default example...">
 {
@@ -379,7 +475,13 @@
       <div id="chart-area"></div>
 
       <!-- CSV Output -->
-      <pre id="csv-container" class="collapsed"></pre>
+      <div class="csv-section collapsed" id="csv-section">
+        <div class="csv-header">
+          <h3>📊 Detailed Results (CSV)</h3>
+          <button onclick="window.selectText('csv-container')" class="btn-secondary btn-small">Select All</button>
+        </div>
+        <pre id="csv-container" class="collapsed"></pre>
+      </div>
     </div>
   </div>
 

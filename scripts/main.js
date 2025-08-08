@@ -18,56 +18,68 @@ document.getElementById("toggle-json-btn").addEventListener("click", () => {
 
 // Toggle visibility of the CSV output panel
 document.getElementById("toggle-csv-btn").addEventListener("click", () => {
+  const csvSection = document.getElementById("csv-section");
   const csvDiv = document.getElementById("csv-container");
+  
+  csvSection.classList.toggle("collapsed");
   csvDiv.classList.toggle("collapsed");
-  csvDiv.classList.toggle("expanded");
 });
 
-
-// "Run Simulation" button handler
+// "Run Simulation" button handler with loading state
 document.getElementById("run-btn").addEventListener("click", () => {
+  const runButton = document.getElementById("run-btn");
+  
+  // Add loading state
+  runButton.classList.add("loading");
+  runButton.textContent = "Running...";
+  runButton.disabled = true;
 
-  // Read and parse scenario JSON from the input box
-  const jsonText = document.getElementById("json-input").value;
-  let scenario;
+  // Small delay to show loading state (makes it feel more responsive)
+  setTimeout(() => {
+    try {
+      // Read and parse scenario JSON from the input box
+      const jsonText = document.getElementById("json-input").value;
+      let scenario;
 
-  try {
-    scenario = JSON.parse(jsonText);
-  } catch (err) {
-    alert("Invalid JSON: " + err.message);
-    return;
-  }
+      try {
+        scenario = JSON.parse(jsonText);
+      } catch (err) {
+        alert("Invalid JSON: " + err.message);
+        return;
+      }
 
-  // Convert legacy field (withdrawal_priority) to new format (order)
-  if (scenario.withdrawal_priority && !scenario.order) {
-    console.warn("⚠️ 'withdrawal_priority' is deprecated. Use 'order' instead.");
-    scenario.order = scenario.withdrawal_priority.map((item) => ({
-      account: item.account,
-      order: item.priority,
-    }));
-  }
+      // Convert legacy field (withdrawal_priority) to new format (order)
+      if (scenario.withdrawal_priority && !scenario.order) {
+        console.warn("⚠️ 'withdrawal_priority' is deprecated. Use 'order' instead.");
+        scenario.order = scenario.withdrawal_priority.map((item) => ({
+          account: item.account,
+          order: item.priority,
+        }));
+      }
 
-  // Run the simulation and unpack the result
-  updateHeaderFromMetadata(scenario.metadata);
-  // const { results, balanceHistory, csvText, windfallUsedAtMonth  } = simulateScenario(scenario);
-  const simulationResult = simulateScenario(scenario);
-  console.log("Running simulation with scenario:", scenario);
-  console.log("Simulation result:", simulationResult);
+      // Run the simulation and unpack the result
+      updateHeaderFromMetadata(scenario.metadata);
+      const simulationResult = simulateScenario(scenario);
+      console.log("Running simulation with scenario:", scenario);
+      console.log("Simulation result:", simulationResult);
 
-  window._scenarioResult = simulationResult; // for debug visibility
-  const { results, balanceHistory, csvText, windfallUsedAtMonth } = simulationResult;
+      window._scenarioResult = simulationResult; // for debug visibility
+      const { results, balanceHistory, csvText, windfallUsedAtMonth } = simulationResult;
 
-  // Generate x-axis date labels for each month
-  const now = new Date();
-  const startYear = now.getFullYear();
-  const startMonth = now.getMonth();
+      // Render the CSV and the chart
+      renderCsv(csvText);
+      renderChart(results, balanceHistory, scenario.metadata?.title, {windfallUsedAtMonth});
 
-  // Render the CSV and the chart
-  renderCsv(csvText);
-  renderChart(results, balanceHistory, scenario.metadata?.title, {windfallUsedAtMonth});
+      // Collapse JSON input and scroll to chart
+      document.getElementById("json-container").classList.remove("expanded");
+      document.getElementById("json-container").classList.add("collapsed");
+      document.getElementById("chart-area").scrollIntoView({ behavior: "smooth" });
 
-  // Collapse JSON input and scroll to chart
-  document.getElementById("json-container").classList.remove("expanded");
-  document.getElementById("json-container").classList.add("collapsed");
-  document.getElementById("chart-area").scrollIntoView({ behavior: "smooth" });
+    } finally {
+      // Remove loading state
+      runButton.classList.remove("loading");
+      runButton.textContent = "Run Simulation";
+      runButton.disabled = false;
+    }
+  }, 100); // Small delay to show loading state
 });
