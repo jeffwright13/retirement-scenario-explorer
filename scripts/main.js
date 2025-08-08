@@ -26,7 +26,7 @@ let exampleScenarios = {};
 
 async function loadScenarios() {
   try {
-    const response = await fetch('data/scenarios.json');
+    const response = await fetch('data/example-scenarios.json');
     exampleScenarios = await response.json();
   } catch (error) {
     console.error('Failed to load scenarios:', error);
