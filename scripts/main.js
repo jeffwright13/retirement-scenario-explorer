@@ -49,6 +49,8 @@ async function loadScenarios() {
 
 // Initialize scenarios when page loads
 document.addEventListener('DOMContentLoaded', loadScenarios);
+
+// Scenario dropdown functionality
   "level1-simple": {
     title: "Level 1: Simple Drawdown",
     description: "Basic scenario: $120k savings, $3k/month expenses, 2% growth. See how long money lasts with no income.",
