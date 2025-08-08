@@ -85,6 +85,70 @@
       color: white;
     }
 
+    /* Scenario Selector Styling */
+    .scenario-selector {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .scenario-dropdown {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      color: #2d3748;
+      min-width: 250px;
+      cursor: pointer;
+    }
+
+    .scenario-dropdown:focus {
+      outline: none;
+      border-color: #4299e1;
+      box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+    }
+
+    .scenario-preview {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .scenario-preview h4 {
+      margin: 0 0 8px 0;
+      font-size: 1rem;
+    }
+
+    .scenario-preview p {
+      margin: 0 0 12px 0;
+      font-size: 0.95rem;
+    }
+
+    .scenario-preview details {
+      margin-top: 10px;
+    }
+
+    .scenario-preview summary {
+      cursor: pointer;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .scenario-preview pre {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 12px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      line-height: 1.4;
+      overflow-x: auto;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
     /* Scenario header (when metadata exists) */
     #scenario-header {
       background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
@@ -360,12 +424,29 @@
     <!-- Getting Started Panel -->
     <div class="getting-started-panel">
       <h3>🎓 How to Use This Tool</h3>
-      <ol>
-        <li><strong>Choose a scenario</strong> from the <a href="https://github.com/jeffwright13/retirement-scenario-explorer/blob/main/docs/complete-guide.md" target="_blank">Complete Guide</a></li>
-        <li><strong>Copy & paste</strong> the JSON into the input below</li>
-        <li><strong>Click "Run Simulation"</strong> to see the results</li>
-        <li><strong>Analyze the chart</strong> to understand the financial trajectory</li>
-      </ol>
+      <div class="scenario-selector">
+        <label for="scenario-dropdown"><strong>📊 Quick Start:</strong></label>
+        <select id="scenario-dropdown" class="scenario-dropdown">
+          <option value="">Choose an Example Scenario...</option>
+          <option value="level1-simple">Level 1: Simple Drawdown</option>
+          <option value="level2-income">Level 2: Adding Social Security</option>
+          <option value="level3-multiple">Level 3: Multiple Assets</option>
+          <option value="ss-claim-62">Social Security: Claim at 62</option>
+          <option value="ss-claim-67">Social Security: Claim at 67</option>
+          <option value="ssdi-approved">SSDI: Approved</option>
+          <option value="default">Default Example</option>
+        </select>
+        <button id="load-scenario-btn" class="btn-small" disabled>Load Scenario</button>
+      </div>
+      <div class="scenario-preview" id="scenario-preview" style="display: none;">
+        <h4>📋 Preview:</h4>
+        <p id="scenario-description"></p>
+        <details>
+          <summary>👀 Peek at JSON Configuration</summary>
+          <pre id="scenario-json-preview"></pre>
+        </details>
+      </div>
+      <p><strong>Or:</strong> Read the <a href="https://github.com/jeffwright13/retirement-scenario-explorer/blob/main/docs/complete-guide.md" target="_blank">Complete Guide</a> and copy-paste any scenario manually.</p>
     </div>
 
     <!-- Scenario-specific header (hidden by default) -->

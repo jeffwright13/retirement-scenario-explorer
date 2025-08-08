@@ -5,9 +5,60 @@ import {
   updateHeaderFromMetadata,
   selectText
 } from './render.js';
+import { exampleScenarios } from '../data/example-scenarios.js';
 
 // Expose selectText for inline HTML buttons
 window.selectText = selectText;
+
+// Scenario dropdown functionality
+document.getElementById("scenario-dropdown").addEventListener("change", (e) => {
+  const scenarioKey = e.target.value;
+  const loadBtn = document.getElementById("load-scenario-btn");
+  const previewDiv = document.getElementById("scenario-preview");
+  const descriptionP = document.getElementById("scenario-description");
+  const jsonPreview = document.getElementById("scenario-json-preview");
+  
+  if (scenarioKey && exampleScenarios[scenarioKey]) {
+    const scenario = exampleScenarios[scenarioKey];
+    
+    // Enable load button and show preview
+    loadBtn.disabled = false;
+    previewDiv.style.display = "block";
+    descriptionP.textContent = scenario.description;
+    jsonPreview.textContent = JSON.stringify(scenario.data, null, 2);
+  } else {
+    // Disable load button and hide preview
+    loadBtn.disabled = true;
+    previewDiv.style.display = "none";
+  }
+});
+
+// Load scenario button
+document.getElementById("load-scenario-btn").addEventListener("click", () => {
+  const scenarioKey = document.getElementById("scenario-dropdown").value;
+  
+  if (scenarioKey && exampleScenarios[scenarioKey]) {
+    const scenario = exampleScenarios[scenarioKey];
+    
+    // Load JSON into textarea
+    document.getElementById("json-input").value = JSON.stringify(scenario.data, null, 2);
+    
+    // Show JSON container if collapsed
+    const jsonContainer = document.getElementById("json-container");
+    if (jsonContainer.classList.contains("collapsed")) {
+      jsonContainer.classList.remove("collapsed");
+      jsonContainer.classList.add("expanded");
+    }
+    
+    // Scroll to JSON area
+    jsonContainer.scrollIntoView({ behavior: "smooth", block: "start" });
+    
+    // Reset dropdown
+    document.getElementById("scenario-dropdown").value = "";
+    document.getElementById("load-scenario-btn").disabled = true;
+    document.getElementById("scenario-preview").style.display = "none";
+  }
+});
 
 // Toggle visibility of the JSON input panel
 document.getElementById("toggle-json-btn").addEventListener("click", () => {
