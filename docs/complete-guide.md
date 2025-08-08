@@ -74,17 +74,17 @@ Same Sarah, but Social Security starts in month 12.
 {
   "metadata": {
     "title": "Level 2: Adding Social Security",
-    "notes": "Same Sarah, but Social Security of $1,800/month starts in month 12. Watch the dramatic change in sustainability!"
+    "notes": "Same Sarah, but Social Security of $1,800/month starts in month 6. Watch the dramatic change in sustainability!"
   },
   "plan": { 
     "monthly_expenses": 3000, 
-    "duration_months": 120 
+    "duration_months": 104
   },
   "income": [
     {
       "name": "Social Security",
       "amount": 1800,
-      "start_month": 12
+      "start_month": 6
     }
   ],
   "assets": [
@@ -109,9 +109,7 @@ Same Sarah, but Social Security starts in month 12.
 - **Months 1-11**: Same as before - withdrawing $3,000/month
 - **Month 12 onward**: Income = $1,800, Shortfall = only $1,200 → Withdrawing $1,200/month instead of $3,000
 
-**Expected Outcome**: Money lasts 15+ years instead of 3.5 years.
-
-**Key Insight**: Income timing is crucial. Starting Social Security even 1 year earlier extends financial runway by years.
+**Expected Outcome**: Money lasts 8+ years instead of 3.5 years.
 
 ---
 
