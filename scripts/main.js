@@ -62,9 +62,9 @@ document.getElementById("scenario-dropdown").addEventListener("change", (e) => {
     previewDiv.style.display = "block";
     descriptionP.textContent = scenario.description;
     
-    // Show only simulation data (exclude title/description from JSON preview)
-    const { title, description, ...simulationData } = scenario;
-    jsonPreview.textContent = JSON.stringify(simulationData, null, 2);
+    // Show complete scenario structure including key name
+    const completeScenario = { [scenarioKey]: scenario };
+    jsonPreview.textContent = JSON.stringify(completeScenario, null, 2);
   } else {
     // Disable load button and hide preview
     loadBtn.disabled = true;
@@ -79,9 +79,9 @@ document.getElementById("load-scenario-btn").addEventListener("click", () => {
   if (scenarioKey && exampleScenarios[scenarioKey]) {
     const scenario = exampleScenarios[scenarioKey];
     
-    // Load only simulation data (exclude title/description which are UI-only)
-    const { title, description, ...simulationData } = scenario;
-    document.getElementById("json-input").value = JSON.stringify(simulationData, null, 2);
+    // Load complete scenario structure including key name
+    const completeScenario = { [scenarioKey]: scenario };
+    document.getElementById("json-input").value = JSON.stringify(completeScenario, null, 2);
     
     // Show JSON container if collapsed
     const jsonContainer = document.getElementById("json-container");
@@ -130,13 +130,24 @@ document.getElementById("run-btn").addEventListener("click", () => {
     try {
       // Read and parse scenario JSON from the input box
       const jsonText = document.getElementById("json-input").value;
-      let scenario;
+      let parsedData;
 
       try {
-        scenario = JSON.parse(jsonText);
+        parsedData = JSON.parse(jsonText);
       } catch (err) {
         alert("Invalid JSON: " + err.message);
         return;
+      }
+
+      // Handle both formats: complete scenario object or direct scenario data
+      let scenario;
+      if (parsedData.plan && parsedData.assets) {
+        // Direct scenario data (legacy format)
+        scenario = parsedData;
+      } else {
+        // Complete scenario object - extract the first scenario
+        const scenarioKey = Object.keys(parsedData)[0];
+        scenario = parsedData[scenarioKey];
       }
 
       // Convert legacy field (withdrawal_priority) to new format (order)
