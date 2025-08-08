@@ -1,23 +1,4 @@
 /**
- * Update the top-of-page scenario header with title and notes.
- */
-export function updateHeaderFromMetadata(metadata) {
-  const header = document.getElementById("scenario-header");
-  const title = document.getElementById("scenario-title");
-  const notes = document.getElementById("scenario-notes");
-
-  if (metadata?.title || metadata?.notes) {
-    title.textContent = metadata.title || "";
-    notes.textContent = metadata.notes || "";
-    header.classList.remove("hidden");
-  } else {
-    title.textContent = "";
-    notes.textContent = "";
-    header.classList.add("hidden");
-  }
-}
-
-/**
  * Render the CSV output into the CSV container and show the section.
  */
 export function renderCsv(csvText) {

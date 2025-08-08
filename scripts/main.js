@@ -2,7 +2,6 @@ import { simulateScenario } from './engine.js';
 import {
   renderChart,
   renderCsv,
-  updateHeaderFromMetadata,
   selectText
 } from './render.js';
 
@@ -149,7 +148,6 @@ document.getElementById("run-btn").addEventListener("click", () => {
       }
 
       // Run the simulation and unpack the result
-      updateHeaderFromMetadata(scenario.metadata);
       const simulationResult = simulateScenario(scenario);
       console.log("Running simulation with scenario:", scenario);
       console.log("Simulation result:", simulationResult);
