@@ -124,6 +124,7 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
 
   const layout = {
     title,
+    hoverdistance: 50,  // Require cursor to be closer to trigger hover
     xaxis: {
       title: "Date",
       tickangle: -45,
