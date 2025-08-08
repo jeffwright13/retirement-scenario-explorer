@@ -29,14 +29,7 @@ python3 -m http.server
 
 ## 📚 Documentation
 
-**[Complete Modeling Guide](docs/complete-guide.md)** - Everything you need to know about retirement scenario modeling, from basic concepts to advanced strategies. Includes copy-paste JSON examples for:
-- Simple drawdown scenarios
-- Social Security timing strategies  
-- SSDI analysis
-- Early retirement bridge strategies
-- Complex real-world cases
-
-Start here and work through the levels progressively!
+**[Complete Modeling Guide](docs/complete-guide.md)** - Everything you need to know about retirement scenario modeling, from basic concepts to advanced strategies. Includes copy-paste JSON examples for all scenarios. Start here and work through the levels progressively!
 
 ---
 
