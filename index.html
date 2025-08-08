@@ -96,26 +96,6 @@
       margin-top: 15px;
     }
 
-    .getting-started-panel ol {
-      font-size: 1.05rem;
-      line-height: 1.6;
-      padding-left: 20px;
-    }
-
-    .getting-started-panel li {
-      margin-bottom: 8px;
-    }
-
-    .getting-started-panel a {
-      color: #e6fffa;
-      text-decoration: underline;
-      font-weight: 500;
-    }
-
-    .getting-started-panel a:hover {
-      color: white;
-    }
-
     /* Scenario Selector Styling */
     .scenario-selector {
       display: flex;
@@ -180,23 +160,14 @@
       overflow-y: auto;
     }
 
-    /* Scenario header (when metadata exists) */
-    #scenario-header {
-      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+    .getting-started-panel a {
+      color: #e6fffa;
+      text-decoration: underline;
+      font-weight: 500;
+    }
+
+    .getting-started-panel a:hover {
       color: white;
-      padding: 20px 30px;
-      border-bottom: none;
-      margin: 0;
-    }
-
-    #scenario-header h1 {
-      font-size: 1.8rem;
-      margin-bottom: 8px;
-    }
-
-    #scenario-header p {
-      opacity: 0.95;
-      font-size: 1rem;
     }
 
     /* Main content area */
@@ -455,21 +426,27 @@
     <!-- Getting Started Panel -->
     <div class="getting-started-panel" id="getting-started-panel">
       <div class="getting-started-header" onclick="toggleGettingStarted()">
-        <h3>🎓 How to Use This Tool</h3>
+        <h3>📊 Scenario Explorer</h3>
         <span class="collapse-indicator">🔽</span>
       </div>
       <div class="getting-started-content">
         <div class="scenario-selector">
           <label for="scenario-dropdown"><strong>📊 Quick Start:</strong></label>
           <select id="scenario-dropdown" class="scenario-dropdown">
-            <option value="">Choose an Example Scenario...</option>
-            <option value="level1-simple">Level 1: Simple Drawdown</option>
-            <option value="level2-income">Level 2: Adding Social Security</option>
-            <option value="level3-multiple">Level 3: Multiple Assets</option>
-            <option value="ss-claim-62">Social Security: Claim at 62</option>
-            <option value="ss-claim-67">Social Security: Claim at 67</option>
-            <option value="ssdi-approved">SSDI: Approved</option>
-            <option value="default">Default Example</option>
+            <option value="">Choose a Scenario...</option>
+            <optgroup label="📚 Learning Examples">
+              <option value="level1-simple">Level 1: Simple Drawdown</option>
+              <option value="level2-income">Level 2: Adding Social Security</option>
+              <option value="level3-multiple">Level 3: Multiple Assets</option>
+              <option value="ss-claim-62">Social Security: Claim at 62</option>
+              <option value="ss-claim-67">Social Security: Claim at 67</option>
+              <option value="ssdi-approved">SSDI: Approved</option>
+              <option value="default">Balanced Portfolio Example</option>
+            </optgroup>
+            <optgroup label="🛠 Create Your Own">
+              <option value="blank-template">Blank Template</option>
+              <option value="full-template">Full Template (Commented)</option>
+            </optgroup>
           </select>
           <button id="load-scenario-btn" class="btn-small" disabled>Load Scenario</button>
         </div>
@@ -484,12 +461,6 @@
         <p><strong>Or:</strong> Read the <a href="https://github.com/jeffwright13/retirement-scenario-explorer/blob/main/docs/complete-guide.md" target="_blank">Complete Guide</a> and copy-paste any scenario manually.</p>
       </div>
     </div>
-
-    <!-- Scenario-specific header (hidden by default) -->
-    <header id="scenario-header" class="hidden">
-      <h1 id="scenario-title"></h1>
-      <p id="scenario-notes"></p>
-    </header>
 
     <div class="main-content">
       <!-- Control Panel -->
@@ -519,72 +490,7 @@
               <button onclick="window.selectText('json-input')" class="btn-secondary btn-small">Select All</button>
             </div>
           </div>
-          <textarea id="json-input" placeholder="Paste your scenario JSON here or click Show/Hide JSON Input to see the default example...">
-{
-  "metadata": {
-    "title": "Retirement Drawdown Calculator"
-  },
-  "plan": {
-    "monthly_expenses": 6000,
-    "duration_months": 240
-  },
-  "income": [
-    {
-      "name": "Social Security",
-      "amount": 3000,
-      "start_month": 24
-    }
-  ],
-  "assets": [
-    {
-      "name": "Savings",
-      "type": "taxable",
-      "balance": 100000,
-      "interest_rate": 0.0375,
-      "compounding": "monthly"
-    },
-    {
-      "name": "Investment",
-      "type": "taxable",
-      "balance": 250000,
-      "interest_rate": 0.06,
-      "compounding": "monthly"
-    },
-    {
-      "name": "Traditional IRA",
-      "type": "taxable",
-      "balance": 100000,
-      "interest_rate": 0.06,
-      "compounding": "monthly"
-    },
-    {
-      "name": "Roth IRA",
-      "type": "tax_free",
-      "balance": 12000,
-      "interest_rate": 0.06,
-      "compounding": "monthly"
-    }
-  ],
-  "order": [
-    {
-      "account": "Savings",
-      "order": 1
-    },
-    {
-      "account": "Investment",
-      "order": 2
-    },
-    {
-      "account": "Traditional IRA",
-      "order": 3
-    },
-    {
-      "account": "Roth IRA",
-      "order": 4
-    }
-  ]
-}
-          </textarea>
+          <textarea id="json-input" placeholder="Select a scenario from the dropdown above, or paste your own JSON configuration here..."></textarea>
         </div>
       </div>
 
