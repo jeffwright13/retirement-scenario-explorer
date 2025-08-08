@@ -170,11 +170,11 @@ export function selectText(elementId) {
   const element = document.getElementById(elementId);
   if (element) {
     if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
-      // For input/textarea elements, use .select()
+      // For textarea and input elements
       element.focus();
       element.select();
     } else {
-      // For other elements, use range selection
+      // For other elements like <pre>, <div>, etc.
       const range = document.createRange();
       range.selectNodeContents(element);
       const selection = window.getSelection();
