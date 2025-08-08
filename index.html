@@ -51,18 +51,49 @@
       opacity: 0.9;
     }
 
-    /* Getting Started Panel */
+    /* Getting Started Panel - collapsible */
     .getting-started-panel {
       background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
       color: white;
       padding: 25px 30px;
       border-bottom: none;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      overflow: hidden;
     }
 
-    .getting-started-panel h3 {
+    .getting-started-panel.collapsed {
+      max-height: 60px;
+      padding: 15px 30px;
+    }
+
+    .getting-started-panel.collapsed .getting-started-content {
+      display: none;
+    }
+
+    .getting-started-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+    }
+
+    .getting-started-header h3 {
       font-size: 1.4rem;
-      margin-bottom: 15px;
+      margin: 0;
       font-weight: 600;
+    }
+
+    .collapse-indicator {
+      font-size: 1.2rem;
+      transition: transform 0.3s ease;
+    }
+
+    .getting-started-panel.collapsed .collapse-indicator {
+      transform: rotate(180deg);
+    }
+
+    .getting-started-content {
+      margin-top: 15px;
     }
 
     .getting-started-panel ol {
@@ -422,31 +453,36 @@
     </div>
 
     <!-- Getting Started Panel -->
-    <div class="getting-started-panel">
-      <h3>🎓 How to Use This Tool</h3>
-      <div class="scenario-selector">
-        <label for="scenario-dropdown"><strong>📊 Quick Start:</strong></label>
-        <select id="scenario-dropdown" class="scenario-dropdown">
-          <option value="">Choose an Example Scenario...</option>
-          <option value="level1-simple">Level 1: Simple Drawdown</option>
-          <option value="level2-income">Level 2: Adding Social Security</option>
-          <option value="level3-multiple">Level 3: Multiple Assets</option>
-          <option value="ss-claim-62">Social Security: Claim at 62</option>
-          <option value="ss-claim-67">Social Security: Claim at 67</option>
-          <option value="ssdi-approved">SSDI: Approved</option>
-          <option value="default">Default Example</option>
-        </select>
-        <button id="load-scenario-btn" class="btn-small" disabled>Load Scenario</button>
+    <div class="getting-started-panel" id="getting-started-panel">
+      <div class="getting-started-header" onclick="toggleGettingStarted()">
+        <h3>🎓 How to Use This Tool</h3>
+        <span class="collapse-indicator">🔽</span>
       </div>
-      <div class="scenario-preview" id="scenario-preview" style="display: none;">
-        <h4>📋 Preview:</h4>
-        <p id="scenario-description"></p>
-        <details>
-          <summary>👀 Peek at JSON Configuration</summary>
-          <pre id="scenario-json-preview"></pre>
-        </details>
+      <div class="getting-started-content">
+        <div class="scenario-selector">
+          <label for="scenario-dropdown"><strong>📊 Quick Start:</strong></label>
+          <select id="scenario-dropdown" class="scenario-dropdown">
+            <option value="">Choose an Example Scenario...</option>
+            <option value="level1-simple">Level 1: Simple Drawdown</option>
+            <option value="level2-income">Level 2: Adding Social Security</option>
+            <option value="level3-multiple">Level 3: Multiple Assets</option>
+            <option value="ss-claim-62">Social Security: Claim at 62</option>
+            <option value="ss-claim-67">Social Security: Claim at 67</option>
+            <option value="ssdi-approved">SSDI: Approved</option>
+            <option value="default">Default Example</option>
+          </select>
+          <button id="load-scenario-btn" class="btn-small" disabled>Load Scenario</button>
+        </div>
+        <div class="scenario-preview" id="scenario-preview" style="display: none;">
+          <h4>📋 Scenario Details:</h4>
+          <p id="scenario-description"></p>
+          <details>
+            <summary>👀 Peek at JSON Configuration</summary>
+            <pre id="scenario-json-preview"></pre>
+          </details>
+        </div>
+        <p><strong>Or:</strong> Read the <a href="https://github.com/jeffwright13/retirement-scenario-explorer/blob/main/docs/complete-guide.md" target="_blank">Complete Guide</a> and copy-paste any scenario manually.</p>
       </div>
-      <p><strong>Or:</strong> Read the <a href="https://github.com/jeffwright13/retirement-scenario-explorer/blob/main/docs/complete-guide.md" target="_blank">Complete Guide</a> and copy-paste any scenario manually.</p>
     </div>
 
     <!-- Scenario-specific header (hidden by default) -->
