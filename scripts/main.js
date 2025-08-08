@@ -5,7 +5,6 @@ import {
   updateHeaderFromMetadata,
   selectText
 } from './render.js';
-import { exampleScenarios } from '../data/example-scenarios.js';
 
 // Expose selectText for inline HTML buttons
 window.selectText = selectText;
@@ -21,29 +20,6 @@ function collapseGettingStarted() {
   const panel = document.getElementById("getting-started-panel");
   panel.classList.add("collapsed");
 }
-
-// Scenario dropdown functionality
-document.getElementById("scenario-dropdown").addEventListener("change", (e) => {
-  const scenarioKey = e.target.value;
-  const loadBtn = document.getElementById("load-scenario-btn");
-  const previewDiv = document.getElementById("scenario-preview");
-  const descriptionP = document.getElementById("scenario-description");
-  const jsonPreview = document.getElementById("scenario-json-preview");
-  
-  if (scenarioKey && exampleScenarios[scenarioKey]) {
-    const scenario = exampleScenarios[scenarioKey];
-    
-    // Enable load button and show preview
-    loadBtn.disabled = false;
-    previewDiv.style.display = "block";
-    descriptionP.textContent = scenario.description;
-    jsonPreview.textContent = JSON.stringify(scenario.data, null, 2);
-  } else {
-    // Disable load button and hide preview
-    loadBtn.disabled = true;
-    previewDiv.style.display = "none";
-  }
-});
 
 // Enhanced example scenarios with better metadata
 const exampleScenarios = {
@@ -383,6 +359,29 @@ const exampleScenarios = {
     }
   }
 };
+
+// Scenario dropdown functionality
+document.getElementById("scenario-dropdown").addEventListener("change", (e) => {
+  const scenarioKey = e.target.value;
+  const loadBtn = document.getElementById("load-scenario-btn");
+  const previewDiv = document.getElementById("scenario-preview");
+  const descriptionP = document.getElementById("scenario-description");
+  const jsonPreview = document.getElementById("scenario-json-preview");
+  
+  if (scenarioKey && exampleScenarios[scenarioKey]) {
+    const scenario = exampleScenarios[scenarioKey];
+    
+    // Enable load button and show preview
+    loadBtn.disabled = false;
+    previewDiv.style.display = "block";
+    descriptionP.textContent = scenario.description;
+    jsonPreview.textContent = JSON.stringify(scenario.data, null, 2);
+  } else {
+    // Disable load button and hide preview
+    loadBtn.disabled = true;
+    previewDiv.style.display = "none";
+  }
+});
 
 // Load scenario button
 document.getElementById("load-scenario-btn").addEventListener("click", () => {
