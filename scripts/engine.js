@@ -10,7 +10,7 @@ import { getMonthlyIncome } from './utils.js';
  */
 export function simulateScenario(scenario) {
   const assets = JSON.parse(JSON.stringify(scenario.assets));
-  const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) || [];
+  const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) || assets.map((asset, index) => ({ account: asset.name, order: index + 1 }));
   const assetMap = Object.fromEntries(assets.map((a) => [a.name, a]));
   const assetNames = assets.map((a) => a.name);
   const incomeSources = scenario.income || [];
