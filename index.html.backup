@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retirement Scenario Explorer</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+  <style>
+    #json-container.collapsed textarea,
+    #csv-container.collapsed {
+      display: none;
+    }
+
+    #json-container,
+    #csv-container {
+      transition: all 0.3s ease-in-out;
+      margin-bottom: 1em;
+    }
+
+    body {
+      background-color: #f4f4f4;
+      color: #2c2c2c;
+      font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
+      margin: 1em;
+    }
+
+    #json-container.collapsed textarea {
+      display: none;
+    }
+
+    #json-container {
+      margin-top: 2em;
+      transition: all 0.3s ease-in-out;
+      font-size: 0.8em;
+      margin-bottom: 1em;
+    }
+
+    #chart-area {
+      height: 400px;
+    }
+
+    #csv-table {
+      margin-top: 2em;
+      transition: all 0.3s ease-in-out;
+      font-size: 0.8em;
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+
+<header id="scenario-header" class="hidden">
+  <h1 id="scenario-title"></h1>
+  <p id="scenario-notes"></p>
+</header>
+
+<body>
+  <div style="margin-bottom: 1em;">
+    <button id="toggle-json-btn">Show/Hide JSON</button>
+    <button id="toggle-csv-btn">Show/Hide CSV</button>
+  </div>
+
+  <button onclick="window.selectText('csv-container')">Select All CSV</button>
+  <pre id="csv-container" class="collapsed" style="max-height: 300px; overflow: auto; background: #f9f9f9; padding: 1em; border: 1px solid #ccc;"></pre>
+
+  <div id="json-container" class="collapsed">
+    <button onclick="window.selectText('json-input')">Select All JSON</button>
+    <textarea id="json-input" rows="20" cols="80">
+{
+  "metadata": {
+    "title": "Retirement Drawdown Calculator"
+  },
+  "plan": {
+    "monthly_expenses": 6000,
+    "duration_months": 240
+  },
+  "income": [
+    {
+      "name": "Social Security",
+      "amount": 3000,
+      "start_month": 24
+    }
+  ],
+  "assets": [
+    {
+      "name": "Savings",
+      "type": "taxable",
+      "balance": 100000,
+      "interest_rate": 0.0375,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Investment",
+      "type": "taxable",
+      "balance": 250000,
+      "interest_rate": 0.06,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Traditional IRA",
+      "type": "taxable",
+      "balance": 100000,
+      "interest_rate": 0.06,
+      "compounding": "monthly"
+    },
+    {
+      "name": "Roth IRA",
+      "type": "tax_free",
+      "balance": 12000,
+      "interest_rate": 0.06,
+      "compounding": "monthly"
+    }
+  ],
+  "order": [
+    {
+      "account": "Savings",
+      "order": 1
+    },
+    {
+      "account": "Investment",
+      "order": 2
+    },
+    {
+      "account": "Traditional IRA",
+      "order": 3
+    },
+    {
+      "account": "Roth IRA",
+      "order": 4
+    }
+  ]
+}
+    </textarea>
+    <button id="run-btn">Run Simulation</button>
+  </div>
+
+  <div id="chart-area"></div>
+
+  <script type="module" src="scripts/main.js"></script>
+</body>
+</html>
