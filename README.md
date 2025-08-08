@@ -27,33 +27,22 @@ python3 -m http.server
 
 ---
 
-## 📁 Project Structure
+## 📚 Documentation
 
-```bash
-retirement-scenario-explorer/
-├── index.html
-├── styles/
-│   └── main.css
-├── scripts/
-│   ├── main.js            # Handles user input/output
-│   ├── engine.js          # Core retirement logic (pure functions)
-│   ├── render.js          # DOM + chart rendering only
-│   └── utils.js           # Small utility functions
-├── tests/
-│   ├── engine.test.js     # Unit tests for engine
-│   └── test-runner.html   # Simple Mocha/Chai test runner
-├── data/
-│   └── sample-scenario.json
-├── README.md
-├── .gitignore
-└── package.json           # Optional: for JS testing libs like Jest or Mocha
-```
+**[Complete Modeling Guide](docs/complete-guide.md)** - Everything you need to know about retirement scenario modeling, from basic concepts to advanced strategies. Includes copy-paste JSON examples for:
+- Simple drawdown scenarios
+- Social Security timing strategies  
+- SSDI analysis
+- Early retirement bridge strategies
+- Complex real-world cases
+
+Start here and work through the levels progressively!
 
 ---
 
 ## 🧠 Modeling Real-Life Retirement Scenarios
 
-The `retirement-scenario-explorer` uses a streamlined but powerful financial simulation model. While it does not currently support a separate `events[]` or `phases[]` system, it can model **complex real-life situations** using only:
+The `retirement-scenario-explorer` uses a streamlined but powerful financial simulation model. It can model **complex real-life situations** using only:
 
 - `assets[]` – accounts, reserves, windfalls, and even negative-balance shocks
 - `income[]` – steady or phased monthly income streams
