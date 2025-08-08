@@ -169,10 +169,17 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
 export function selectText(elementId) {
   const element = document.getElementById(elementId);
   if (element) {
-    const range = document.createRange();
-    range.selectNodeContents(element);
-    const selection = window.getSelection();
-    selection.removeAllRanges();
-    selection.addRange(range);
+    if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
+      // For input/textarea elements, use .select()
+      element.focus();
+      element.select();
+    } else {
+      // For other elements, use range selection
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
   }
 }
