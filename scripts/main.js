@@ -32,15 +32,12 @@ async function loadScenarios() {
     // Fallback scenarios if file load fails
     exampleScenarios = {
       "default": {
-        title: "Default Example",
+        title: "Basic Retirement Example",
         description: "Basic retirement scenario (fallback)",
-        data: {
-          "metadata": { "title": "Basic Retirement Example" },
-          "plan": { "monthly_expenses": 6000, "duration_months": 240 },
-          "income": [{ "name": "Social Security", "amount": 3000, "start_month": 24 }],
-          "assets": [{ "name": "Savings", "type": "taxable", "balance": 300000, "interest_rate": 0.05, "compounding": "monthly" }],
-          "order": [{ "account": "Savings", "order": 1 }]
-        }
+        plan: { monthly_expenses: 6000, duration_months: 240 },
+        income: [{ name: "Social Security", amount: 3000, start_month: 24 }],
+        assets: [{ name: "Savings", type: "taxable", balance: 300000, interest_rate: 0.05, compounding: "monthly" }],
+        order: [{ account: "Savings", order: 1 }]
       }
     };
   }
@@ -64,7 +61,10 @@ document.getElementById("scenario-dropdown").addEventListener("change", (e) => {
     loadBtn.disabled = false;
     previewDiv.style.display = "block";
     descriptionP.textContent = scenario.description;
-    jsonPreview.textContent = JSON.stringify(scenario.data, null, 2);
+    
+    // Show only simulation data (exclude title/description from JSON preview)
+    const { title, description, ...simulationData } = scenario;
+    jsonPreview.textContent = JSON.stringify(simulationData, null, 2);
   } else {
     // Disable load button and hide preview
     loadBtn.disabled = true;
@@ -79,8 +79,9 @@ document.getElementById("load-scenario-btn").addEventListener("click", () => {
   if (scenarioKey && exampleScenarios[scenarioKey]) {
     const scenario = exampleScenarios[scenarioKey];
     
-    // Load JSON into textarea
-    document.getElementById("json-input").value = JSON.stringify(scenario.data, null, 2);
+    // Load only simulation data (exclude title/description which are UI-only)
+    const { title, description, ...simulationData } = scenario;
+    document.getElementById("json-input").value = JSON.stringify(simulationData, null, 2);
     
     // Show JSON container if collapsed
     const jsonContainer = document.getElementById("json-container");
@@ -155,9 +156,9 @@ document.getElementById("run-btn").addEventListener("click", () => {
       window._scenarioResult = simulationResult; // for debug visibility
       const { results, balanceHistory, csvText, windfallUsedAtMonth } = simulationResult;
 
-      // Render the CSV and the chart
+      // Render the CSV and the chart - use scenario title directly
       renderCsv(csvText);
-      renderChart(results, balanceHistory, scenario.metadata?.title, {windfallUsedAtMonth});
+      renderChart(results, balanceHistory, scenario.title || "Retirement Simulation", {windfallUsedAtMonth});
 
       // Collapse getting started panel and JSON input, then scroll to chart
       collapseGettingStarted();
