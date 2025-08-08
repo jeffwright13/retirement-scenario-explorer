@@ -1,15 +1,11 @@
-// data/example-scenarios.js
-// Centralized location for all example scenarios
-// Edit here to update both the guide documentation AND the dropdown
-
-export const exampleScenarios = {
+{
   "level1-simple": {
-    title: "Level 1: Simple Drawdown",
-    description: "Sarah has $120k in savings earning 2% annually. She needs $3,000/month to live. How long will her money last?",
-    data: {
+    "title": "Level 1: Simple Drawdown",
+    "description": "Basic scenario: $120k savings, $3k/month expenses, 2% growth. See how long money lasts with no income.",
+    "data": {
       "metadata": {
-        "title": "Level 1: Simple Drawdown",
-        "notes": "Sarah has $120k in savings earning 2% annually. She needs $3,000/month to live. How long will her money last?"
+        "title": "Level 1: Simple Asset Drawdown",
+        "notes": "Sarah, 60, has $120,000 in savings earning 2% annually. She needs $3,000/month for living expenses. No other income sources. How long will her money last?"
       },
       "plan": { 
         "monthly_expenses": 3000, 
@@ -35,12 +31,12 @@ export const exampleScenarios = {
   },
 
   "level2-income": {
-    title: "Level 2: Adding Social Security",
-    description: "Same Sarah, but Social Security starts in month 12. Watch the dramatic change in sustainability!",
-    data: {
+    "title": "Level 2: Adding Social Security",
+    "description": "Same scenario but Social Security starts in month 12. Watch the dramatic sustainability improvement!",
+    "data": {
       "metadata": {
-        "title": "Level 2: Adding Social Security",
-        "notes": "Same Sarah, but Social Security of $1,800/month starts in month 12. Watch the dramatic change in sustainability!"
+        "title": "Level 2: Impact of Social Security Income",
+        "notes": "Same Sarah, but Social Security of $1,800/month begins in month 12 (year 1). This reduces her monthly shortfall from $3,000 to just $1,200. See how income timing dramatically affects sustainability."
       },
       "plan": { 
         "monthly_expenses": 3000, 
@@ -72,12 +68,12 @@ export const exampleScenarios = {
   },
 
   "level3-multiple": {
-    title: "Level 3: Multiple Assets",
-    description: "Bob has savings and investments. Priority-based withdrawal strategy preserves higher-growth assets longer.",
-    data: {
+    "title": "Level 3: Multiple Assets & Withdrawal Priority",
+    "description": "Bob has low-yield savings and high-yield investments. Strategic withdrawal order preserves growth longer.",
+    "data": {
       "metadata": {
-        "title": "Level 3: Multiple Assets and Withdrawal Priority",
-        "notes": "Bob has savings and investments. He wants to preserve the higher-growth investments as long as possible by spending savings first."
+        "title": "Level 3: Strategic Asset Withdrawal Priority",
+        "notes": "Bob, 62, has $50k in savings (1.5% growth) and $200k investments (6% growth). He spends savings first to preserve higher-growth assets longer. Social Security starts in month 24. Compare this strategy to spending investments first."
       },
       "plan": { 
         "monthly_expenses": 4000, 
@@ -120,12 +116,12 @@ export const exampleScenarios = {
   },
 
   "ss-claim-62": {
-    title: "Social Security: Claim at 62",
-    description: "Maria claims early: $2,100/month (75% of full benefit) starting at age 62. Lower monthly benefit but immediate cash flow.",
-    data: {
+    "title": "Social Security: Early Claiming at 62",
+    "description": "Maria claims at 62 for immediate income but reduced monthly benefit. Compare with delayed claiming strategies.",
+    "data": {
       "metadata": {
-        "title": "Maria - Claim Social Security at Age 62",
-        "notes": "Early claiming: $2,100/month (75% of full benefit) starting at age 62 (month 24). Compare with other timing strategies."
+        "title": "SS Strategy A: Early Claiming at Age 62",
+        "notes": "Maria, 60, retires with $650k total assets. She claims Social Security early at 62 (month 24) receiving $2,100/month (75% of full benefit). This provides immediate cash flow but permanent benefit reduction. Monthly shortfall: $4,400 after SS starts."
       },
       "plan": {
         "monthly_expenses": 6500,
@@ -168,12 +164,12 @@ export const exampleScenarios = {
   },
 
   "ss-claim-67": {
-    title: "Social Security: Claim at 67",
-    description: "Maria waits for full benefit: $2,800/month (100%) starting at age 67. More asset depletion early, but higher lifetime benefit.",
-    data: {
+    "title": "Social Security: Full Retirement Age (67)",
+    "description": "Maria waits for full benefit: higher monthly amount but more early asset depletion. Compare the trade-offs.",
+    "data": {
       "metadata": {
-        "title": "Maria - Claim Social Security at Full Retirement Age (67)",
-        "notes": "Normal claiming: $2,800/month (100% of full benefit) starting at age 67 (month 84). Compare asset depletion with early/delayed strategies."
+        "title": "SS Strategy B: Full Retirement Age Claiming (67)",
+        "notes": "Same Maria waits until full retirement age (month 84) to claim $2,800/month (100% benefit). Higher monthly amount but requires 7 years of full asset drawdown ($6,500/month). Monthly shortfall: $3,700 after SS starts."
       },
       "plan": {
         "monthly_expenses": 6500,
@@ -216,12 +212,12 @@ export const exampleScenarios = {
   },
 
   "ssdi-approved": {
-    title: "SSDI: Approved",
-    description: "Tom gets SSDI at 58: $2,600/month (full retirement amount) immediately. Financial game-changer.",
-    data: {
+    "title": "SSDI Success Story",
+    "description": "Tom gets SSDI approval: immediate full retirement benefit at 58. This is the best-case financial scenario.",
+    "data": {
       "metadata": {
-        "title": "Tom - SSDI Approved",
-        "notes": "SSDI pays full retirement benefit amount immediately ($2,600/month), converts to regular Social Security at full retirement age (67)."
+        "title": "SSDI Approved: The Financial Game-Changer",
+        "notes": "Tom, 58, successfully gets SSDI approval and receives his full retirement benefit ($2,600/month) immediately - 9 years early! This converts to regular Social Security at 67. With $225k in assets and $5,200 monthly expenses, his shortfall drops to just $2,600/month."
       },
       "plan": {
         "monthly_expenses": 5200,
@@ -270,11 +266,12 @@ export const exampleScenarios = {
   },
 
   "default": {
-    title: "Default Example",
-    description: "A balanced retirement scenario with multiple account types and Social Security.",
-    data: {
+    "title": "Balanced Portfolio Example",
+    "description": "Multi-account retirement scenario with strategic withdrawal order and Social Security timing.",
+    "data": {
       "metadata": {
-        "title": "Retirement Drawdown Calculator"
+        "title": "Balanced Retirement Portfolio Strategy",
+        "notes": "Balanced scenario with 4 account types: Emergency savings (3.75%), Growth investments (6%), Traditional IRA (6%), and Roth IRA (6%). Social Security starts at month 24. Withdrawal priority preserves tax-advantaged accounts longest."
       },
       "plan": {
         "monthly_expenses": 6000,
@@ -337,4 +334,4 @@ export const exampleScenarios = {
       ]
     }
   }
-};
+}

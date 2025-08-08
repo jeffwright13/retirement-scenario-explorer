@@ -21,8 +21,34 @@ function collapseGettingStarted() {
   panel.classList.add("collapsed");
 }
 
-// Enhanced example scenarios with better metadata
-const exampleScenarios = {
+// Load scenarios from JSON file
+let exampleScenarios = {};
+
+async function loadScenarios() {
+  try {
+    const response = await fetch('data/scenarios.json');
+    exampleScenarios = await response.json();
+  } catch (error) {
+    console.error('Failed to load scenarios:', error);
+    // Fallback scenarios if file load fails
+    exampleScenarios = {
+      "default": {
+        title: "Default Example",
+        description: "Basic retirement scenario (fallback)",
+        data: {
+          "metadata": { "title": "Basic Retirement Example" },
+          "plan": { "monthly_expenses": 6000, "duration_months": 240 },
+          "income": [{ "name": "Social Security", "amount": 3000, "start_month": 24 }],
+          "assets": [{ "name": "Savings", "type": "taxable", "balance": 300000, "interest_rate": 0.05, "compounding": "monthly" }],
+          "order": [{ "account": "Savings", "order": 1 }]
+        }
+      }
+    };
+  }
+}
+
+// Initialize scenarios when page loads
+document.addEventListener('DOMContentLoaded', loadScenarios);
   "level1-simple": {
     title: "Level 1: Simple Drawdown",
     description: "Basic scenario: $120k savings, $3k/month expenses, 2% growth. See how long money lasts with no income.",
@@ -288,77 +314,6 @@ const exampleScenarios = {
       ]
     }
   },
-
-  "default": {
-    title: "Balanced Portfolio Example",
-    description: "Multi-account retirement scenario with strategic withdrawal order and Social Security timing.",
-    data: {
-      "metadata": {
-        "title": "Balanced Retirement Portfolio Strategy",
-        "notes": "Balanced scenario with 4 account types: Emergency savings (3.75%), Growth investments (6%), Traditional IRA (6%), and Roth IRA (6%). Social Security starts at month 24. Withdrawal priority preserves tax-advantaged accounts longest."
-      },
-      "plan": {
-        "monthly_expenses": 6000,
-        "duration_months": 240
-      },
-      "income": [
-        {
-          "name": "Social Security",
-          "amount": 3000,
-          "start_month": 24
-        }
-      ],
-      "assets": [
-        {
-          "name": "Savings",
-          "type": "taxable",
-          "balance": 100000,
-          "interest_rate": 0.0375,
-          "compounding": "monthly"
-        },
-        {
-          "name": "Investment",
-          "type": "taxable",
-          "balance": 250000,
-          "interest_rate": 0.06,
-          "compounding": "monthly"
-        },
-        {
-          "name": "Traditional IRA",
-          "type": "taxable",
-          "balance": 100000,
-          "interest_rate": 0.06,
-          "compounding": "monthly"
-        },
-        {
-          "name": "Roth IRA",
-          "type": "tax_free",
-          "balance": 12000,
-          "interest_rate": 0.06,
-          "compounding": "monthly"
-        }
-      ],
-      "order": [
-        {
-          "account": "Savings",
-          "order": 1
-        },
-        {
-          "account": "Investment",
-          "order": 2
-        },
-        {
-          "account": "Traditional IRA",
-          "order": 3
-        },
-        {
-          "account": "Roth IRA",
-          "order": 4
-        }
-      ]
-    }
-  }
-};
 
 // Scenario dropdown functionality
 document.getElementById("scenario-dropdown").addEventListener("change", (e) => {
