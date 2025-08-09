@@ -8,21 +8,20 @@
  *  - Its stop_month is either undefined (i.e., never stops) or not yet reached
  *
  * @param {Array} incomeArray - List of income sources from the scenario
- * @param {number} currentMonth - The month to evaluate (e.g., 0 = month 1)
+ * @param {number} currentMonth - The month to evaluate (1-based: 1 = first month)
  * @returns {number} Total income for that month
  */
-  export function getMonthlyIncome(incomeArray, currentMonth) {
-    return incomeArray.reduce((total, source) => {
-      const start = Number.isFinite(source.start_month) ? source.start_month : 0;
-      const end =
-        Number.isFinite(source.stop_month) ? source.stop_month :
-        Number.isFinite(source.stop_month) ? source.stop_month :
-        Number.POSITIVE_INFINITY; // recurring if no end/stop
-  
-      if (currentMonth >= start && currentMonth <= end) {
-        const amt = typeof source.amount === "number" ? source.amount : 0;
-        return total + amt;
-      }
-      return total;
-    }, 0);
-  }
+export function getMonthlyIncome(incomeArray, currentMonth) {
+  return incomeArray.reduce((total, source) => {
+    // FIXED: Handle month indexing correctly - now expecting 1-based currentMonth
+    const start = Number.isFinite(source.start_month) ? source.start_month : 1;
+    const end = Number.isFinite(source.stop_month) ? source.stop_month : Number.POSITIVE_INFINITY;
+
+    // FIXED: Use consistent 1-based month comparison
+    if (currentMonth >= start && currentMonth <= end) {
+      const amt = typeof source.amount === "number" ? source.amount : 0;
+      return total + amt;
+    }
+    return total;
+  }, 0);
+}

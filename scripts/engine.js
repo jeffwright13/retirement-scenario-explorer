@@ -22,12 +22,13 @@ export function simulateScenario(scenario) {
     balanceHistory[name] = [];
   }
 
-  // We’ll build CSV AFTER the loop so the header includes dynamic assets
+  // We'll build CSV AFTER the loop so the header includes dynamic assets
   const csvRows = [];
 
-  function applyIncomeAndDeposits(month) {
-    const events = [...incomeSources, ...depositEvents];
-    for (const event of events) {
+  // FIXED: Separate deposit processing from income processing
+  function applyDeposits(month) {
+    // Only process deposits, not income sources
+    for (const event of depositEvents) {
       if (
         typeof event.start_month === "number" &&
         typeof event.stop_month === "number" &&
@@ -35,8 +36,7 @@ export function simulateScenario(scenario) {
         event.stop_month >= month &&
         typeof event.amount === "number"
       ) {
-        const safeName = event.name ? event.name.replace(/\s+/g, "_") : "Untitled";
-        const targetName = event.target || event.name; // explicit target wins; else use name as-is
+        const targetName = event.target || event.name;
 
         if (!assetMap[targetName]) {
           assetMap[targetName] = {
@@ -59,13 +59,13 @@ export function simulateScenario(scenario) {
 
   // ---- Main simulation loop ----
   for (let month = 0; month < scenario.plan.duration_months; month++) {
-    applyIncomeAndDeposits(month);
+    // FIXED: Only apply deposits, not income (income is handled by getMonthlyIncome)
+    applyDeposits(month);
 
-    const income = getMonthlyIncome(incomeSources, month);
+    // FIXED: Use 1-based month indexing for income calculation to match JSON expectations
+    const income = getMonthlyIncome(incomeSources, month + 1);
     const shortfall = scenario.plan.monthly_expenses - income;
     let remainingShortfall = shortfall;
-
-    // console.log("[simulateScenario] month", month, "income", income);
 
     const log = {
       month,
@@ -100,34 +100,34 @@ export function simulateScenario(scenario) {
     // Monthly compounding
     for (const asset of Object.values(assetMap)) {
       if (asset.interest_rate && asset.compounding === "monthly") {
-        asset.balance *= 1 + asset.interest_rate / 12; // <-- FIXED (+)
+        asset.balance *= 1 + asset.interest_rate / 12;
       }
     }
 
     results.push(log);
 
-    // Snapshot balances for this month
+    // Snapshot balances for this month - FIXED: Only include actual assets, not income sources
     for (const asset of assets) {
       balanceHistory[asset.name].push(asset.balance);
     }
   }
 
-  // ---- Build CSV after the loop so header matches final assets ----
-  const allAssetNames = Object.keys(balanceHistory);
-  csvRows.push(["Month", "Date", "Income", "Expenses", "Shortfall", ...allAssetNames]);
+  // ---- Build CSV after the loop - FIXED: Only include actual asset balances, not income tracking ----
+  const realAssetNames = assets.filter(a => !a.dynamic || a.balance > 0).map(a => a.name);
+  csvRows.push(["Month", "Date", "Income", "Expenses", "Shortfall", ...realAssetNames]);
 
   for (let m = 0; m < scenario.plan.duration_months; m++) {
     const now = new Date();
     const date = new Date(now.getFullYear(), now.getMonth() + m);
     const r = results[m];
 
-    const assetCells = allAssetNames.map((name) => {
+    const assetCells = realAssetNames.map((name) => {
       const v = balanceHistory[name]?.[m];
       return typeof v === "number" ? v.toFixed(2) : "0.00";
     });
 
     csvRows.push([
-      m + 1, // <-- FIXED (+)
+      m + 1,
       date.toISOString().slice(0, 7),
       (r?.income ?? 0).toFixed(2),
       scenario.plan.monthly_expenses.toFixed(2),
