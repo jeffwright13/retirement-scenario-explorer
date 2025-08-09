@@ -1,0 +1,53 @@
+{
+  "ssdi-approved": {
+    "metadata": {
+      "title": "SSDI Approved: The Financial Game-Changer", 
+      "description": "Tom, 58, gets SSDI approval and receives full retirement benefit 9 years early",
+      "tags": ["ssdi", "disability", "social-security", "early-income"],
+      "discussion_file": "discussions/ssdi-benefits.md"
+    },
+    "plan": {
+      "monthly_expenses": 5200,
+      "duration_months": 300
+    },
+    "income": [
+      {
+        "name": "SSDI",
+        "amount": 2600,
+        "start_month": 6,
+        "stop_month": 107
+      },
+      {
+        "name": "Social Security",
+        "amount": 2600,
+        "start_month": 108
+      }
+    ],
+    "assets": [
+      {
+        "name": "401k",
+        "type": "taxable",
+        "balance": 180000,
+        "interest_rate": 0.055,
+        "compounding": "monthly"
+      },
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 45000,
+        "interest_rate": 0.02,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      },
+      {
+        "account": "401k",
+        "order": 2
+      }
+    ]
+  }
+}

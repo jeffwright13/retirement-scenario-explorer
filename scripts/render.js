@@ -1,9 +1,20 @@
 /**
+ * Rendering Module
+ * Handles chart and CSV visualization
+ * Pure rendering logic - no business logic or DOM manipulation outside of rendering
+ */
+
+/**
  * Render the CSV output into the CSV container and show the section.
  */
 export function renderCsv(csvText) {
   const container = document.getElementById("csv-container");
   const csvSection = document.getElementById("csv-section");
+  
+  if (!container || !csvSection) {
+    console.error('CSV rendering elements not found');
+    return;
+  }
   
   container.textContent = csvText;
   
@@ -16,6 +27,12 @@ export function renderCsv(csvText) {
  * Render the simulation chart using Plotly.
  */
 export function renderChart(results, balanceHistory, title = "Retirement Simulation", scenarioMeta = {}) {
+  const chartArea = document.getElementById("chart-area");
+  if (!chartArea) {
+    console.error('Chart area element not found');
+    return;
+  }
+
   const now = new Date();
   const startYear = now.getFullYear();
   const startMonth = now.getMonth();
@@ -28,6 +45,7 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
   const tickInterval = results.length > 120 ? 12 : 6;
   const filteredTicks = xLabels.filter((_, i) => i % tickInterval === 0);
 
+  // Prepare windfall visualization if applicable
   let windfallLine = null;
   let windfallAnnotation = null;
 
@@ -65,6 +83,7 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
     };
   }
 
+  // Prepare main data traces
   const incomes = results.map((r) => r.income);
   const expenses = results.map((r) => r.expenses);
   const shortfalls = results.map((r) => r.shortfall);
@@ -93,6 +112,7 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
     },
   ];
 
+  // Add asset balance traces
   for (const [assetName, balances] of Object.entries(balanceHistory)) {
     traces.push({
       x: xLabels.slice(0, balances.length),
@@ -103,9 +123,10 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
     });
   }
 
+  // Configure chart layout
   const layout = {
     title,
-    hoverdistance: 50,  // Require cursor to be closer to trigger hover
+    hoverdistance: 50,
     xaxis: {
       title: "Date",
       tickangle: -45,
@@ -130,26 +151,10 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
     }
   };
 
-  Plotly.newPlot("chart-area", traces, layout);
-}
-
-/**
- * Selects all text contents within a given element by ID.
- */
-export function selectText(elementId) {
-  const element = document.getElementById(elementId);
-  if (element) {
-    if (element.tagName === 'TEXTAREA' || element.tagName === 'INPUT') {
-      // For textarea and input elements
-      element.focus();
-      element.select();
-    } else {
-      // For other elements like <pre>, <div>, etc.
-      const range = document.createRange();
-      range.selectNodeContents(element);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
+  // Render the chart
+  try {
+    Plotly.newPlot("chart-area", traces, layout);
+  } catch (error) {
+    console.error('Failed to render chart:', error);
   }
 }

@@ -1,0 +1,22 @@
+retirement-scenario-explorer/
+├── index.html
+├── scripts/
+│   ├── engine.js              # Core simulation (already updated)
+│   ├── main.js                # UI orchestration (needs refactor)
+│   ├── render.js              # Visualization
+│   └── utils.js               # Utilities
+├── styles/
+│   └── main.css               # All CSS (extract from index.html)
+├── data/
+│   ├── scenario-index.json    # NEW: Scenario metadata + references
+│   ├── scenarios/             # NEW: Individual scenario files
+│   │   ├── inflation-3pct.json
+│   │   ├── inflation-none.json
+│   │   ├── inflation-70s.json
+│   │   └── personal-test.json
+│   └── discussions/           # NEW: Educational content
+│       ├── inflation-basics.md
+│       ├── sequence-returns.md
+│       └── early-retirement.md
+└── docs/
+    └── complete-guide.md
