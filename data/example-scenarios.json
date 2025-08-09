@@ -433,5 +433,108 @@
       "duration_months": 300
     },
     "note": "Complex expense adjustments not yet implemented - coming in future version"
+  },
+  "inflation-3pct": {
+    "title": "3% Annual Inflation Impact",
+    "description": "Shows how typical 3% inflation grows $5,200/month to $9,400 over 20 years. Your money needs to work harder!",
+    "plan": {
+      "monthly_expenses": 5200,
+      "inflation_rate": 0.03,
+      "duration_months": 300
+    },
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 500000,
+        "interest_rate": 0.05,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      }
+    ]
+  },
+  "inflation-none": {
+    "title": "No Inflation (Unrealistic Baseline)",
+    "description": "Same scenario but no inflation. Compare with 3% scenario to see inflation's devastating impact.",
+    "plan": {
+      "monthly_expenses": 5200,
+      "inflation_rate": 0,
+      "duration_months": 300
+    },
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 500000,
+        "interest_rate": 0.05,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      }
+    ]
+  },
+  "inflation-70s-nightmare": {
+    "title": "1970s High Inflation (8% Annual)",
+    "description": "What if we hit 1970s-style inflation? $5,200 becomes $25,000/month after 20 years. Terrifying but possible.",
+    "plan": {
+      "monthly_expenses": 5200,
+      "inflation_rate": 0.08,
+      "duration_months": 300
+    },
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 500000,
+        "interest_rate": 0.05,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      }
+    ]
+  },
+  "inflation-with-ss": {
+    "title": "Inflation vs Social Security COLA",
+    "description": "Social Security adjusts for inflation (COLA), but will it keep up? This shows 3% inflation with SS starting at 67.",
+    "plan": {
+      "monthly_expenses": 5200,
+      "inflation_rate": 0.03,
+      "duration_months": 300
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 2600,
+        "start_month": 108
+      }
+    ],
+    "assets": [
+      {
+        "name": "401k",
+        "type": "taxable",
+        "balance": 300000,
+        "interest_rate": 0.06,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "401k",
+        "order": 1
+      }
+    ]
   }
 }
