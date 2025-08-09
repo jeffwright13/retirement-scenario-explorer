@@ -68,7 +68,7 @@ function addCommentsToJson(jsonText) {
 // Initialize scenarios when page loads
 document.addEventListener('DOMContentLoaded', loadScenarios);
 
-// IMPROVED: Auto-execute scenarios when selected
+// IMPROVED: Auto-load scenarios when selected (but don't auto-execute)
 document.getElementById("scenario-dropdown").addEventListener("change", (e) => {
   const scenarioKey = e.target.value;
   const previewDiv = document.getElementById("scenario-preview");
@@ -93,42 +93,15 @@ document.getElementById("scenario-dropdown").addEventListener("change", (e) => {
 
     jsonPreview.textContent = jsonText;
 
-    // AUTO-EXECUTE: Load into JSON input and run immediately (unless it's a template)
-    if (!scenarioKey.includes('template')) {
-      loadAndExecuteScenario(scenarioKey, scenario, jsonText);
-    } else {
-      // For templates, just load into JSON input but don't execute
-      loadScenarioIntoInput(jsonText);
-    }
+    // AUTO-LOAD: Load into JSON input for inspection (user must still click "Run Simulation")
+    loadScenarioIntoInput(jsonText);
   } else {
     // Hide preview if no scenario selected
     previewDiv.style.display = "none";
   }
 });
 
-// NEW: Function to load scenario into input and execute
-function loadAndExecuteScenario(scenarioKey, scenario, jsonText) {
-  // Load into JSON input
-  document.getElementById("json-input").value = jsonText;
-  
-  // Show JSON container if collapsed
-  const jsonContainer = document.getElementById("json-container");
-  if (jsonContainer.classList.contains("collapsed")) {
-    jsonContainer.classList.remove("collapsed");
-    jsonContainer.classList.add("expanded");
-  }
-  
-  // Execute immediately
-  executeScenario();
-  
-  // Reset dropdown for better UX
-  setTimeout(() => {
-    document.getElementById("scenario-dropdown").value = "";
-    document.getElementById("scenario-preview").style.display = "none";
-  }, 100);
-}
-
-// NEW: Function to just load into input (for templates)
+// NEW: Function to load scenario into input (no auto-execution)
 function loadScenarioIntoInput(jsonText) {
   document.getElementById("json-input").value = jsonText;
   
@@ -139,7 +112,7 @@ function loadScenarioIntoInput(jsonText) {
     jsonContainer.classList.add("expanded");
   }
   
-  // Scroll to JSON area
+  // Scroll to JSON area smoothly
   jsonContainer.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
