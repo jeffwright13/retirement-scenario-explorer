@@ -3,6 +3,7 @@ import { getMonthlyIncome } from './utils.js';
 /**
  * Run the retirement simulation on the provided scenario.
  * Calculates income, expenses, shortfalls, asset withdrawals, and interest.
+ * Now supports inflation modeling for expenses.
  * Returns both detailed logs and a CSV export string.
  *
  * @param {Object} scenario - The scenario config
@@ -21,6 +22,9 @@ export function simulateScenario(scenario) {
   for (const name of assetNames) {
     balanceHistory[name] = [];
   }
+
+  // INFLATION SUPPORT: Parse inflation configuration
+  const inflationConfig = parseInflationConfig(scenario.plan);
 
   // We'll build CSV AFTER the loop so the header includes dynamic assets
   const csvRows = [];
@@ -57,6 +61,16 @@ export function simulateScenario(scenario) {
     }
   }
 
+  // NEW: Calculate inflation-adjusted expenses for a given month
+  function getInflationAdjustedExpenses(month) {
+    const yearsElapsed = Math.floor(month / 12);
+    const baseExpenses = inflationConfig.baseExpenses;
+    const inflationRate = inflationConfig.annualRate;
+    
+    // Apply compound inflation: base * (1 + rate)^years
+    return baseExpenses * Math.pow(1 + inflationRate, yearsElapsed);
+  }
+
   // ---- Main simulation loop ----
   for (let month = 0; month < scenario.plan.duration_months; month++) {
     // FIXED: Only apply deposits, not income (income is handled by getMonthlyIncome)
@@ -64,13 +78,16 @@ export function simulateScenario(scenario) {
 
     // FIXED: Use 1-based month indexing for income calculation to match JSON expectations
     const income = getMonthlyIncome(incomeSources, month + 1);
-    const shortfall = scenario.plan.monthly_expenses - income;
+    
+    // NEW: Use inflation-adjusted expenses instead of fixed expenses
+    const monthlyExpenses = getInflationAdjustedExpenses(month);
+    const shortfall = monthlyExpenses - income;
     let remainingShortfall = shortfall;
 
     const log = {
       month,
       income,
-      expenses: scenario.plan.monthly_expenses,
+      expenses: monthlyExpenses,  // Now inflation-adjusted
       withdrawals: [],
       shortfall: 0,
     };
@@ -97,7 +114,7 @@ export function simulateScenario(scenario) {
       log.shortfall = remainingShortfall;
     }
 
-    // Monthly compounding
+    // Monthly compounding - FUTURE: This is where variable returns will go
     for (const asset of Object.values(assetMap)) {
       if (asset.interest_rate && asset.compounding === "monthly") {
         asset.balance *= 1 + asset.interest_rate / 12;
@@ -130,7 +147,7 @@ export function simulateScenario(scenario) {
       m + 1,
       date.toISOString().slice(0, 7),
       (r?.income ?? 0).toFixed(2),
-      scenario.plan.monthly_expenses.toFixed(2),
+      (r?.expenses ?? 0).toFixed(2),  // Now shows inflation-adjusted expenses
       (r?.shortfall ?? 0).toFixed(2),
       ...assetCells
     ]);
@@ -143,5 +160,33 @@ export function simulateScenario(scenario) {
     balanceHistory,
     csvText,
     windfallUsedAtMonth: scenario._windfallUsedAtMonth
+  };
+}
+
+/**
+ * NEW: Parse inflation configuration from scenario plan
+ * Supports both simple and complex inflation modeling
+ */
+function parseInflationConfig(plan) {
+  // Support legacy format (fixed monthly_expenses)
+  if (typeof plan.monthly_expenses === "number") {
+    return {
+      baseExpenses: plan.monthly_expenses,
+      annualRate: plan.inflation_rate || 0  // Default to no inflation if not specified
+    };
+  }
+
+  // Support new format (inflation-aware expenses)
+  if (typeof plan.monthly_expenses === "object") {
+    return {
+      baseExpenses: plan.monthly_expenses.base || 5000,
+      annualRate: plan.monthly_expenses.inflation_rate || 0
+    };
+  }
+
+  // Fallback
+  return {
+    baseExpenses: 5000,
+    annualRate: 0
   };
 }
