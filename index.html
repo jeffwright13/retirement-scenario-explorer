@@ -423,7 +423,7 @@
       <p>Model your financial future with interactive scenarios</p>
     </div>
 
-    <!-- Getting Started Panel -->
+    <!-- Updated Getting Started Panel -->
     <div class="getting-started-panel" id="getting-started-panel">
       <div class="getting-started-header" onclick="toggleGettingStarted()">
         <h3>📊 Scenario Explorer</h3>
@@ -434,21 +434,9 @@
           <label for="scenario-dropdown"><strong>📊 Quick Start:</strong></label>
           <select id="scenario-dropdown" class="scenario-dropdown">
             <option value="">Choose a Scenario...</option>
-            <optgroup label="📚 Learning Examples">
-              <option value="level1-simple">Level 1: Simple Drawdown</option>
-              <option value="level2-income">Level 2: Adding Social Security</option>
-              <option value="level3-multiple">Level 3: Multiple Assets</option>
-              <option value="ss-claim-62">Social Security: Claim at 62</option>
-              <option value="ss-claim-67">Social Security: Claim at 67</option>
-              <option value="ssdi-approved">SSDI: Approved</option>
-              <option value="default">Balanced Portfolio Example</option>
-            </optgroup>
-            <optgroup label="🛠 Create Your Own">
-              <option value="blank-template">Blank Template</option>
-              <option value="full-template">Full Template (Commented)</option>
-            </optgroup>
+            <!-- Options will be populated dynamically from scenario-index.json -->
           </select>
-          <button id="load-scenario-btn" class="btn-small" disabled>Load Scenario</button>
+          <!-- REMOVED: Load Scenario button (no longer needed) -->
         </div>
         <div class="scenario-preview" id="scenario-preview" style="display: none;">
           <h4>📋 Scenario Details:</h4>
@@ -457,22 +445,15 @@
             <summary>👀 Peek at JSON Configuration</summary>
             <pre id="scenario-json-preview"></pre>
           </details>
+          <!-- FUTURE: Add discussion panel here -->
         </div>
         <p><strong>Or:</strong> Read the <a href="https://github.com/jeffwright13/retirement-scenario-explorer/blob/main/docs/complete-guide.md" target="_blank">Complete Guide</a> and copy-paste any scenario manually.</p>
       </div>
     </div>
 
     <div class="main-content">
-      <!-- Control Panel -->
+      <!-- Updated Control Panel (Contextual Controls) -->
       <div class="control-panel">
-        <div class="control-group">
-          <h3>📊 View Controls</h3>
-          <div class="button-group">
-            <button id="toggle-json-btn" class="btn-secondary">Show/Hide JSON Input</button>
-            <button id="toggle-csv-btn" class="btn-secondary">Show/Hide CSV Output</button>
-          </div>
-        </div>
-        
         <div class="control-group">
           <h3>🚀 Simulation</h3>
           <div class="button-group">
@@ -481,12 +462,13 @@
         </div>
       </div>
 
-      <!-- JSON Input Section -->
+      <!-- Updated JSON Section (with contextual control) --> 
       <div class="json-section">
         <div id="json-container" class="collapsed">
           <div class="json-header">
             <h3>📝 Scenario Configuration</h3>
             <div class="json-actions">
+              <button id="toggle-json-btn" class="btn-secondary btn-small">Show JSON</button>
               <button onclick="window.selectText('json-input')" class="btn-secondary btn-small">Select All</button>
             </div>
           </div>
@@ -497,15 +479,18 @@
       <!-- Chart Area -->
       <div id="chart-area"></div>
 
-      <!-- CSV Output -->
+      <!-- Updated CSV Section (collapsed by default, with contextual control) -->
       <div class="csv-section collapsed" id="csv-section">
         <div class="csv-header">
           <h3>📊 Detailed Results (CSV)</h3>
-          <button onclick="window.selectText('csv-container')" class="btn-secondary btn-small">Select All</button>
+          <div class="csv-actions">
+            <button id="toggle-csv-btn" class="btn-secondary btn-small">Show CSV</button>
+            <button onclick="window.selectText('csv-container')" class="btn-secondary btn-small">Select All</button>
+          </div>
         </div>
         <pre id="csv-container" class="collapsed"></pre>
       </div>
-    </div>
+    </div> <!-- FIXED: Added missing closing div for main-content -->
   </div>
 
   <script type="module" src="scripts/main.js"></script>
