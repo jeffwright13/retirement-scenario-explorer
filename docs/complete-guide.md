@@ -4,6 +4,61 @@
 
 ---
 
+## 📚 Retirement Scenario Explorer Learning Path
+
+### Level 0 — Orientation
+1. **[Chapter 1 — Welcome & Orientation](../data/discussions/01-intro.md)**  
+   Get familiar with the tool’s interface and run your first positive-cash-flow scenario.  
+   - Introduces JSON structure  
+   - Runs with no inflation, one asset, fixed salary  
+
+2. **[Chapter 2 — Budgeting 101](../data/discussions/02-budgeting.md)**  
+   Learn fixed vs. variable expenses and simulate realistic monthly budgets.
+
+---
+
+### Level 1 — Core Financial Concepts
+3. **Inflation Basics** — `/data/discussions/inflation-basics.md`  
+   Model how inflation affects purchasing power over decades.
+
+4. **Assets & Growth**  
+   Add investment accounts and see how compounding works with different return rates.
+
+5. **Income Streams**  
+   Add Social Security, pensions, or part-time work with defined start/stop months.
+
+---
+
+### Level 2 — Planning for Real Life
+6. **One-Time Events**  
+   Inheritances, large purchases, or medical bills.
+
+7. **Sequence of Returns Risk** — `/data/discussions/sequence-returns.md`  
+   How market timing affects your plan even if average returns look fine.
+
+8. **Early Retirement** — `/data/discussions/early-retirement.md`  
+   Simulate retiring years earlier than planned and see the effects.
+
+---
+
+### Level 3 — Advanced Modeling
+9. **Tax-Aware Withdrawals**  
+   Compare taxable-first vs. tax-deferred-first drawdown strategies.
+
+10. **Multi-Scenario Comparisons**  
+    Clone and tweak scenarios to run side-by-side.
+
+11. **Stress Testing**  
+    Simulate recessions, high-inflation decades, or unexpected expenses.
+
+---
+
+**Tip:** Every chapter links to:
+- A `.json` scenario in `/data/scenarios/`
+- A `.md` discussion in `/data/discussions/`
+So you can **read → run → modify** for each concept.
+
+---
 ## 🧠 How the Simulation Works
 
 Every month, the simulation follows this simple process:
@@ -28,30 +83,43 @@ This loop runs for however many months you specify (`duration_months`), creating
 
 ```json
 {
-  "metadata": {
-    "title": "Level 1: Simple Drawdown",
-    "notes": "Sarah has $120k in savings earning 2% annually. She needs $3,000/month to live. How long will her money last?"
-  },
-  "plan": { 
-    "monthly_expenses": 3000, 
-    "duration_months": 48 
-  },
-  "income": [],
-  "assets": [
-    {
-      "name": "Savings",
-      "type": "taxable",
-      "balance": 120000,
-      "interest_rate": 0.02,
-      "compounding": "monthly"
+  "example": {
+    "metadata": {
+      "title": "Level 1: Simple Drawdown",
+      "description": "Sarah has $120k in savings earning 2% annually. She needs $3,000/month to live. How long will her money last?"
+    },
+    "plan": {
+      "monthly_expenses": 3000,
+      "duration_months": 48,
+      "inflation_schedule": "example_no_inflation"
+    },
+    "income": [],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 120000,
+        "compounding": "monthly",
+        "return_schedule": "example_Savings_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_Savings_returns": {
+        "type": "fixed",
+        "rate": 0.02
+      }
     }
-  ],
-  "order": [
-    {
-      "account": "Savings",
-      "order": 1
-    }
-  ]
+  }
 }
 ```
 
@@ -72,36 +140,49 @@ Same Sarah, but Social Security starts in month 12.
 
 ```json
 {
-  "metadata": {
-    "title": "Level 2: Adding Social Security",
-    "notes": "Same Sarah, but Social Security of $1,800/month starts in month 6. Watch the dramatic change in sustainability!"
-  },
-  "plan": { 
-    "monthly_expenses": 3000, 
-    "duration_months": 104
-  },
-  "income": [
-    {
-      "name": "Social Security",
-      "amount": 1800,
-      "start_month": 6
+  "example": {
+    "metadata": {
+      "title": "Level 2: Adding Social Security",
+      "description": "Same Sarah, but Social Security of $1,800/month starts in month 6. Watch the dramatic change in sustainability!"
+    },
+    "plan": {
+      "monthly_expenses": 3000,
+      "duration_months": 104,
+      "inflation_schedule": "example_no_inflation"
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 1800,
+        "start_month": 6
+      }
+    ],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 120000,
+        "compounding": "monthly",
+        "return_schedule": "example_Savings_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_Savings_returns": {
+        "type": "fixed",
+        "rate": 0.02
+      }
     }
-  ],
-  "assets": [
-    {
-      "name": "Savings",
-      "type": "taxable", 
-      "balance": 120000,
-      "interest_rate": 0.02,
-      "compounding": "monthly"
-    }
-  ],
-  "order": [
-    {
-      "account": "Savings",
-      "order": 1
-    }
-  ]
+  }
 }
 ```
 
@@ -119,47 +200,64 @@ Real retirees have multiple accounts with different characteristics.
 
 ```json
 {
-  "metadata": {
-    "title": "Level 3: Multiple Assets and Withdrawal Priority",
-    "notes": "Bob has savings and investments. He wants to preserve the higher-growth investments as long as possible by spending savings first."
-  },
-  "plan": { 
-    "monthly_expenses": 4000, 
-    "duration_months": 168 
-  },
-  "income": [
-    {
-      "name": "Social Security", 
-      "amount": 2200,
-      "start_month": 24
-    }
-  ],
-  "assets": [
-    {
-      "name": "Savings",
-      "type": "taxable",
-      "balance": 50000,
-      "interest_rate": 0.015,
-      "compounding": "monthly"
+  "example": {
+    "metadata": {
+      "title": "Level 3: Multiple Assets and Withdrawal Priority",
+      "description": "Bob has savings and investments. He wants to preserve the higher-growth investments as long as possible by spending savings first."
     },
-    {
-      "name": "Investment Account", 
-      "type": "taxable",
-      "balance": 200000,
-      "interest_rate": 0.06,
-      "compounding": "monthly"
-    }
-  ],
-  "order": [
-    {
-      "account": "Savings",
-      "order": 1
+    "plan": {
+      "monthly_expenses": 4000,
+      "duration_months": 168,
+      "inflation_schedule": "example_no_inflation"
     },
-    {
-      "account": "Investment Account",
-      "order": 2
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 2200,
+        "start_month": 24
+      }
+    ],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 50000,
+        "compounding": "monthly",
+        "return_schedule": "example_Savings_returns"
+      },
+      {
+        "name": "Investment Account",
+        "type": "taxable",
+        "balance": 200000,
+        "compounding": "monthly",
+        "return_schedule": "example_Investment_Account_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      },
+      {
+        "account": "Investment Account",
+        "order": 2
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_Savings_returns": {
+        "type": "fixed",
+        "rate": 0.015
+      },
+      "example_Investment_Account_returns": {
+        "type": "fixed",
+        "rate": 0.06
+      }
     }
-  ]
+  }
 }
 ```
 
@@ -270,47 +368,64 @@ One of the biggest retirement decisions is **when to claim Social Security**. Le
 
 ```json
 {
-  "metadata": {
-    "title": "SS Strategy A: Claim at Age 62",
-    "notes": "Maria claims early: $2,100/month (75% of full benefit) starting at age 62. Lower monthly benefit but immediate cash flow."
-  },
-  "plan": {
-    "monthly_expenses": 6500,
-    "duration_months": 360
-  },
-  "income": [
-    {
-      "name": "Social Security (Early)",
-      "amount": 2100,
-      "start_month": 24
-    }
-  ],
-  "assets": [
-    {
-      "name": "401k/IRA",
-      "type": "taxable",
-      "balance": 450000,
-      "interest_rate": 0.06,
-      "compounding": "monthly"
+  "example": {
+    "metadata": {
+      "title": "SS Strategy A: Claim at Age 62",
+      "description": "Maria claims early: $2,100/month (75% of full benefit) starting at age 62. Lower monthly benefit but immediate cash flow."
     },
-    {
-      "name": "Taxable Investments",
-      "type": "taxable", 
-      "balance": 200000,
-      "interest_rate": 0.055,
-      "compounding": "monthly"
-    }
-  ],
-  "order": [
-    {
-      "account": "Taxable Investments",
-      "order": 1
+    "plan": {
+      "monthly_expenses": 6500,
+      "duration_months": 360,
+      "inflation_schedule": "example_no_inflation"
     },
-    {
-      "account": "401k/IRA",
-      "order": 2
+    "income": [
+      {
+        "name": "Social Security (Early)",
+        "amount": 2100,
+        "start_month": 24
+      }
+    ],
+    "assets": [
+      {
+        "name": "401k/IRA",
+        "type": "taxable",
+        "balance": 450000,
+        "compounding": "monthly",
+        "return_schedule": "example_401k/IRA_returns"
+      },
+      {
+        "name": "Taxable Investments",
+        "type": "taxable",
+        "balance": 200000,
+        "compounding": "monthly",
+        "return_schedule": "example_Taxable_Investments_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Taxable Investments",
+        "order": 1
+      },
+      {
+        "account": "401k/IRA",
+        "order": 2
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_401k/IRA_returns": {
+        "type": "fixed",
+        "rate": 0.06
+      },
+      "example_Taxable_Investments_returns": {
+        "type": "fixed",
+        "rate": 0.055
+      }
     }
-  ]
+  }
 }
 ```
 
@@ -318,47 +433,64 @@ One of the biggest retirement decisions is **when to claim Social Security**. Le
 
 ```json
 {
-  "metadata": {
-    "title": "SS Strategy B: Claim at Full Retirement Age (67)",
-    "notes": "Maria waits for full benefit: $2,800/month (100%) starting at age 67. More asset depletion early, but higher lifetime benefit."
-  },
-  "plan": {
-    "monthly_expenses": 6500,
-    "duration_months": 360
-  },
-  "income": [
-    {
-      "name": "Social Security (Full)",
-      "amount": 2800,
-      "start_month": 84
-    }
-  ],
-  "assets": [
-    {
-      "name": "401k/IRA",
-      "type": "taxable",
-      "balance": 450000,
-      "interest_rate": 0.06,
-      "compounding": "monthly"
+  "example": {
+    "metadata": {
+      "title": "SS Strategy B: Claim at Full Retirement Age (67)",
+      "description": "Maria waits for full benefit: $2,800/month (100%) starting at age 67. More asset depletion early, but higher lifetime benefit."
     },
-    {
-      "name": "Taxable Investments",
-      "type": "taxable",
-      "balance": 200000,
-      "interest_rate": 0.055,
-      "compounding": "monthly"
-    }
-  ],
-  "order": [
-    {
-      "account": "Taxable Investments",
-      "order": 1
+    "plan": {
+      "monthly_expenses": 6500,
+      "duration_months": 360,
+      "inflation_schedule": "example_no_inflation"
     },
-    {
-      "account": "401k/IRA",
-      "order": 2
+    "income": [
+      {
+        "name": "Social Security (Full)",
+        "amount": 2800,
+        "start_month": 84
+      }
+    ],
+    "assets": [
+      {
+        "name": "401k/IRA",
+        "type": "taxable",
+        "balance": 450000,
+        "compounding": "monthly",
+        "return_schedule": "example_401k/IRA_returns"
+      },
+      {
+        "name": "Taxable Investments",
+        "type": "taxable",
+        "balance": 200000,
+        "compounding": "monthly",
+        "return_schedule": "example_Taxable_Investments_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Taxable Investments",
+        "order": 1
+      },
+      {
+        "account": "401k/IRA",
+        "order": 2
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_401k/IRA_returns": {
+        "type": "fixed",
+        "rate": 0.06
+      },
+      "example_Taxable_Investments_returns": {
+        "type": "fixed",
+        "rate": 0.055
+      }
     }
-  ]
+  }
 }
 ```
 
@@ -366,47 +498,64 @@ One of the biggest retirement decisions is **when to claim Social Security**. Le
 
 ```json
 {
-  "metadata": {
-    "title": "SS Strategy C: Delay Until Age 70",
-    "notes": "Maria delays for maximum benefit: $3,696/month (132%) starting at age 70. Highest monthly benefit but maximum early asset depletion."
-  },
-  "plan": {
-    "monthly_expenses": 6500,
-    "duration_months": 360
-  },
-  "income": [
-    {
-      "name": "Social Security (Delayed)",
-      "amount": 3696,
-      "start_month": 120
-    }
-  ],
-  "assets": [
-    {
-      "name": "401k/IRA",
-      "type": "taxable",
-      "balance": 450000,
-      "interest_rate": 0.06,
-      "compounding": "monthly"
+  "example": {
+    "metadata": {
+      "title": "SS Strategy C: Delay Until Age 70",
+      "description": "Maria delays for maximum benefit: $3,696/month (132%) starting at age 70. Highest monthly benefit but maximum early asset depletion."
     },
-    {
-      "name": "Taxable Investments",
-      "type": "taxable",
-      "balance": 200000,
-      "interest_rate": 0.055,
-      "compounding": "monthly"
-    }
-  ],
-  "order": [
-    {
-      "account": "Taxable Investments",
-      "order": 1
+    "plan": {
+      "monthly_expenses": 6500,
+      "duration_months": 360,
+      "inflation_schedule": "example_no_inflation"
     },
-    {
-      "account": "401k/IRA",
-      "order": 2
+    "income": [
+      {
+        "name": "Social Security (Delayed)",
+        "amount": 3696,
+        "start_month": 120
+      }
+    ],
+    "assets": [
+      {
+        "name": "401k/IRA",
+        "type": "taxable",
+        "balance": 450000,
+        "compounding": "monthly",
+        "return_schedule": "example_401k/IRA_returns"
+      },
+      {
+        "name": "Taxable Investments",
+        "type": "taxable",
+        "balance": 200000,
+        "compounding": "monthly",
+        "return_schedule": "example_Taxable_Investments_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Taxable Investments",
+        "order": 1
+      },
+      {
+        "account": "401k/IRA",
+        "order": 2
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_401k/IRA_returns": {
+        "type": "fixed",
+        "rate": 0.06
+      },
+      "example_Taxable_Investments_returns": {
+        "type": "fixed",
+        "rate": 0.055
+      }
     }
-  ]
+  }
 }
 ```
 
@@ -434,53 +583,70 @@ For those with health issues, SSDI can be life-changing financially.
 
 ```json
 {
-  "metadata": {
-    "title": "SSDI Approved",
-    "notes": "Tom gets SSDI at 58: $2,600/month (full retirement amount) immediately, converts to regular SS at 67. Financial game-changer."
-  },
-  "plan": {
-    "monthly_expenses": 5200,
-    "duration_months": 300
-  },
-  "income": [
-    {
-      "name": "SSDI",
-      "amount": 2600,
-      "start_month": 6,
-      "stop_month": 107
+  "example": {
+    "metadata": {
+      "title": "SSDI Approved",
+      "description": "Tom gets SSDI at 58: $2,600/month (full retirement amount) immediately, converts to regular SS at 67. Financial game-changer."
     },
-    {
-      "name": "Social Security",
-      "amount": 2600, 
-      "start_month": 108
-    }
-  ],
-  "assets": [
-    {
-      "name": "401k",
-      "type": "taxable",
-      "balance": 180000,
-      "interest_rate": 0.055,
-      "compounding": "monthly"
+    "plan": {
+      "monthly_expenses": 5200,
+      "duration_months": 300,
+      "inflation_schedule": "example_no_inflation"
     },
-    {
-      "name": "Savings",
-      "type": "taxable",
-      "balance": 45000,
-      "interest_rate": 0.02,
-      "compounding": "monthly"
+    "income": [
+      {
+        "name": "SSDI",
+        "amount": 2600,
+        "start_month": 6,
+        "stop_month": 107
+      },
+      {
+        "name": "Social Security",
+        "amount": 2600,
+        "start_month": 108
+      }
+    ],
+    "assets": [
+      {
+        "name": "401k",
+        "type": "taxable",
+        "balance": 180000,
+        "compounding": "monthly",
+        "return_schedule": "example_401k_returns"
+      },
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 45000,
+        "compounding": "monthly",
+        "return_schedule": "example_Savings_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      },
+      {
+        "account": "401k",
+        "order": 2
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_401k_returns": {
+        "type": "fixed",
+        "rate": 0.055
+      },
+      "example_Savings_returns": {
+        "type": "fixed",
+        "rate": 0.02
+      }
     }
-  ],
-  "order": [
-    {
-      "account": "Savings",
-      "order": 1
-    },
-    {
-      "account": "401k",
-      "order": 2
-    }
-  ]
+  }
 }
 ```
 
@@ -488,47 +654,64 @@ For those with health issues, SSDI can be life-changing financially.
 
 ```json
 {
-  "metadata": {
-    "title": "SSDI Denied - Early SS at 62", 
-    "notes": "Tom's SSDI denied. Must survive 4 years on assets alone, then reduced SS benefit ($1,950 = 75% of full). Much harder path."
-  },
-  "plan": {
-    "monthly_expenses": 5200,
-    "duration_months": 300
-  },
-  "income": [
-    {
-      "name": "Social Security (Early)",
-      "amount": 1950,
-      "start_month": 48
-    }
-  ],
-  "assets": [
-    {
-      "name": "401k",
-      "type": "taxable", 
-      "balance": 180000,
-      "interest_rate": 0.055,
-      "compounding": "monthly"
+  "example": {
+    "metadata": {
+      "title": "SSDI Denied - Early SS at 62",
+      "description": "Tom's SSDI denied. Must survive 4 years on assets alone, then reduced SS benefit ($1,950 = 75% of full). Much harder path."
     },
-    {
-      "name": "Savings",
-      "type": "taxable",
-      "balance": 45000,
-      "interest_rate": 0.02,
-      "compounding": "monthly"
-    }
-  ],
-  "order": [
-    {
-      "account": "Savings",
-      "order": 1
+    "plan": {
+      "monthly_expenses": 5200,
+      "duration_months": 300,
+      "inflation_schedule": "example_no_inflation"
     },
-    {
-      "account": "401k",
-      "order": 2
+    "income": [
+      {
+        "name": "Social Security (Early)",
+        "amount": 1950,
+        "start_month": 48
+      }
+    ],
+    "assets": [
+      {
+        "name": "401k",
+        "type": "taxable",
+        "balance": 180000,
+        "compounding": "monthly",
+        "return_schedule": "example_401k_returns"
+      },
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 45000,
+        "compounding": "monthly",
+        "return_schedule": "example_Savings_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      },
+      {
+        "account": "401k",
+        "order": 2
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_401k_returns": {
+        "type": "fixed",
+        "rate": 0.055
+      },
+      "example_Savings_returns": {
+        "type": "fixed",
+        "rate": 0.02
+      }
     }
-  ]
+  }
 }
 ```
 
@@ -536,53 +719,70 @@ For those with health issues, SSDI can be life-changing financially.
 
 ```json
 {
-  "metadata": {
-    "title": "SSDI Denied - Part-Time Work Bridge",
-    "notes": "Tom's SSDI denied but he manages part-time work ($2,200/month) until full retirement at 67. Preserves more assets."
-  },
-  "plan": {
-    "monthly_expenses": 5200,
-    "duration_months": 300
-  },
-  "income": [
-    {
-      "name": "Part-Time Work",
-      "amount": 2200,
-      "start_month": 6,
-      "stop_month": 107
+  "example": {
+    "metadata": {
+      "title": "SSDI Denied - Part-Time Work Bridge",
+      "description": "Tom's SSDI denied but he manages part-time work ($2,200/month) until full retirement at 67. Preserves more assets."
     },
-    {
-      "name": "Social Security (Full)",
-      "amount": 2600,
-      "start_month": 108
-    }
-  ],
-  "assets": [
-    {
-      "name": "401k",
-      "type": "taxable",
-      "balance": 180000,
-      "interest_rate": 0.055,
-      "compounding": "monthly"
+    "plan": {
+      "monthly_expenses": 5200,
+      "duration_months": 300,
+      "inflation_schedule": "example_no_inflation"
     },
-    {
-      "name": "Savings", 
-      "type": "taxable",
-      "balance": 45000,
-      "interest_rate": 0.02,
-      "compounding": "monthly"
+    "income": [
+      {
+        "name": "Part-Time Work",
+        "amount": 2200,
+        "start_month": 6,
+        "stop_month": 107
+      },
+      {
+        "name": "Social Security (Full)",
+        "amount": 2600,
+        "start_month": 108
+      }
+    ],
+    "assets": [
+      {
+        "name": "401k",
+        "type": "taxable",
+        "balance": 180000,
+        "compounding": "monthly",
+        "return_schedule": "example_401k_returns"
+      },
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 45000,
+        "compounding": "monthly",
+        "return_schedule": "example_Savings_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Savings",
+        "order": 1
+      },
+      {
+        "account": "401k",
+        "order": 2
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_401k_returns": {
+        "type": "fixed",
+        "rate": 0.055
+      },
+      "example_Savings_returns": {
+        "type": "fixed",
+        "rate": 0.02
+      }
     }
-  ],
-  "order": [
-    {
-      "account": "Savings",
-      "order": 1
-    },
-    {
-      "account": "401k",
-      "order": 2
-    }
-  ]
+  }
 }
 ```
 
@@ -601,58 +801,79 @@ Want to retire before Social Security? You need a bridge strategy.
 
 ```json
 {
-  "metadata": {
-    "title": "Early Retirement Bridge - Bond Tent Strategy", 
-    "notes": "Shift to conservative assets during early retirement to reduce sequence-of-returns risk. Bonds first, then stocks, preserve 401k growth."
-  },
-  "plan": {
-    "monthly_expenses": 6000,
-    "duration_months": 240
-  },
-  "income": [
-    {
-      "name": "Social Security",
-      "amount": 2800,
-      "start_month": 84
+  "example": {
+    "metadata": {
+      "title": "Early Retirement Bridge - Bond Tent Strategy",
+      "description": "Shift to conservative assets during early retirement to reduce sequence-of-returns risk. Bonds first, then stocks, preserve 401k growth."
+    },
+    "plan": {
+      "monthly_expenses": 6000,
+      "duration_months": 240,
+      "inflation_schedule": "example_no_inflation"
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 2800,
+        "start_month": 84
+      }
+    ],
+    "assets": [
+      {
+        "name": "Bond Ladder (5yr)",
+        "type": "taxable",
+        "balance": 200000,
+        "compounding": "monthly",
+        "return_schedule": "example_Bond_Ladder_(5yr)_returns"
+      },
+      {
+        "name": "Conservative Stocks",
+        "type": "taxable",
+        "balance": 300000,
+        "compounding": "monthly",
+        "return_schedule": "example_Conservative_Stocks_returns"
+      },
+      {
+        "name": "401k (Aggressive)",
+        "type": "taxable",
+        "balance": 200000,
+        "compounding": "monthly",
+        "return_schedule": "example_401k_(Aggressive)_returns"
+      }
+    ],
+    "order": [
+      {
+        "account": "Bond Ladder (5yr)",
+        "order": 1
+      },
+      {
+        "account": "Conservative Stocks",
+        "order": 2
+      },
+      {
+        "account": "401k (Aggressive)",
+        "order": 3
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_Bond_Ladder_(5yr)_returns": {
+        "type": "fixed",
+        "rate": 0.025
+      },
+      "example_Conservative_Stocks_returns": {
+        "type": "fixed",
+        "rate": 0.045
+      },
+      "example_401k_(Aggressive)_returns": {
+        "type": "fixed",
+        "rate": 0.07
+      }
     }
-  ],
-  "assets": [
-    {
-      "name": "Bond Ladder (5yr)",
-      "type": "taxable",
-      "balance": 200000,
-      "interest_rate": 0.025,
-      "compounding": "monthly"
-    },
-    {
-      "name": "Conservative Stocks",
-      "type": "taxable", 
-      "balance": 300000,
-      "interest_rate": 0.045,
-      "compounding": "monthly"
-    },
-    {
-      "name": "401k (Aggressive)",
-      "type": "taxable",
-      "balance": 200000,
-      "interest_rate": 0.07,
-      "compounding": "monthly"
-    }
-  ],
-  "order": [
-    {
-      "account": "Bond Ladder (5yr)",
-      "order": 1
-    },
-    {
-      "account": "Conservative Stocks",
-      "order": 2
-    },
-    {
-      "account": "401k (Aggressive)",
-      "order": 3
-    }
-  ]
+  }
 }
 ```
 
@@ -664,81 +885,112 @@ Let's put it all together with a realistic layoff situation.
 
 ```json
 {
-  "metadata": {
-    "title": "Real-World: Early Retirement After Layoff",
-    "notes": "Dave, 60, laid off 7 weeks ago. Evaluating early retirement vs job hunting. Includes bridge consulting, multiple asset types, future car expense."
-  },
-  "plan": {
-    "monthly_expenses": 7500,
-    "duration_months": 300
-  },
-  "income": [
-    {
-      "name": "Consulting Work",
-      "amount": 3000,
-      "start_month": 6,
-      "stop_month": 18
+  "example": {
+    "metadata": {
+      "title": "Real-World: Early Retirement After Layoff",
+      "description": "Dave, 60, laid off 7 weeks ago. Evaluating early retirement vs job hunting. Includes bridge consulting, multiple asset types, future car expense."
     },
-    {
-      "name": "Social Security",
-      "amount": 2400,
-      "start_month": 24
+    "plan": {
+      "monthly_expenses": 7500,
+      "duration_months": 300,
+      "inflation_schedule": "example_no_inflation"
+    },
+    "income": [
+      {
+        "name": "Consulting Work",
+        "amount": 3000,
+        "start_month": 6,
+        "stop_month": 18
+      },
+      {
+        "name": "Social Security",
+        "amount": 2400,
+        "start_month": 24
+      }
+    ],
+    "assets": [
+      {
+        "name": "Emergency Fund",
+        "type": "taxable",
+        "balance": 40000,
+        "compounding": "monthly",
+        "return_schedule": "example_Emergency_Fund_returns"
+      },
+      {
+        "name": "Taxable Investments",
+        "type": "taxable",
+        "balance": 450000,
+        "compounding": "monthly",
+        "return_schedule": "example_Taxable_Investments_returns"
+      },
+      {
+        "name": "Traditional 401k",
+        "type": "taxable",
+        "balance": 380000,
+        "compounding": "monthly",
+        "return_schedule": "example_Traditional_401k_returns"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 75000,
+        "compounding": "monthly",
+        "return_schedule": "example_Roth_IRA_returns"
+      },
+      {
+        "name": "Car Replacement",
+        "type": "taxable",
+        "balance": -35000,
+        "start_month": 84,
+        "return_schedule": "example_Car_Replacement_returns",
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Emergency Fund",
+        "order": 1
+      },
+      {
+        "account": "Taxable Investments",
+        "order": 2
+      },
+      {
+        "account": "Traditional 401k",
+        "order": 3
+      },
+      {
+        "account": "Roth IRA",
+        "order": 4
+      }
+    ],
+    "rate_schedules": {
+      "example_no_inflation": {
+        "type": "fixed",
+        "rate": 0.0
+      },
+      "example_Emergency_Fund_returns": {
+        "type": "fixed",
+        "rate": 0.01
+      },
+      "example_Taxable_Investments_returns": {
+        "type": "fixed",
+        "rate": 0.055
+      },
+      "example_Traditional_401k_returns": {
+        "type": "fixed",
+        "rate": 0.06
+      },
+      "example_Roth_IRA_returns": {
+        "type": "fixed",
+        "rate": 0.06
+      },
+      "example_Car_Replacement_returns": {
+        "type": "fixed",
+        "rate": 0.0
+      }
     }
-  ],
-  "assets": [
-    {
-      "name": "Emergency Fund",
-      "type": "taxable",
-      "balance": 40000,
-      "interest_rate": 0.01,
-      "compounding": "monthly"
-    },
-    {
-      "name": "Taxable Investments", 
-      "type": "taxable",
-      "balance": 450000,
-      "interest_rate": 0.055,
-      "compounding": "monthly"
-    },
-    {
-      "name": "Traditional 401k",
-      "type": "taxable",
-      "balance": 380000,
-      "interest_rate": 0.06,
-      "compounding": "monthly"
-    },
-    {
-      "name": "Roth IRA",
-      "type": "tax_free", 
-      "balance": 75000,
-      "interest_rate": 0.06,
-      "compounding": "monthly"
-    },
-    {
-      "name": "Car Replacement",
-      "type": "taxable",
-      "balance": -35000,
-      "start_month": 84
-    }
-  ],
-  "order": [
-    {
-      "account": "Emergency Fund",
-      "order": 1
-    },
-    {
-      "account": "Taxable Investments",
-      "order": 2
-    }, 
-    {
-      "account": "Traditional 401k",
-      "order": 3
-    },
-    {
-      "account": "Roth IRA",
-      "order": 4
-    }
-  ]
+  }
 }
 ```
 

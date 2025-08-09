@@ -3,7 +3,12 @@
     "metadata": {
       "title": "Personal Portfolio: Inflation Reality Check",
       "description": "Real portfolio with 3% inflation showing 9-year runway reduction",
-      "tags": ["inflation", "personal", "early-retirement", "portfolio-analysis"],
+      "tags": [
+        "inflation",
+        "personal",
+        "early-retirement",
+        "portfolio-analysis"
+      ],
       "discussion_file": "discussions/early-retirement.md"
     },
     "plan": {
@@ -27,7 +32,7 @@
         "compounding": "monthly"
       },
       {
-        "name": "Investment", 
+        "name": "Investment",
         "type": "taxable",
         "balance": 513000,
         "return_schedule": "investment_returns",
@@ -35,7 +40,7 @@
       },
       {
         "name": "Traditional IRA",
-        "type": "tax_deferred", 
+        "type": "tax_deferred",
         "balance": 323000,
         "return_schedule": "traditional_ira_returns",
         "compounding": "monthly"
@@ -49,10 +54,22 @@
       }
     ],
     "order": [
-      {"account": "Savings", "order": 1},
-      {"account": "Investment", "order": 2}, 
-      {"account": "Traditional IRA", "order": 3},
-      {"account": "Roth IRA", "order": 4}
+      {
+        "account": "Savings",
+        "order": 1
+      },
+      {
+        "account": "Investment",
+        "order": 2
+      },
+      {
+        "account": "Traditional IRA",
+        "order": 3
+      },
+      {
+        "account": "Roth IRA",
+        "order": 4
+      }
     ],
     "rate_schedules": {
       "inflation_3pct": {

@@ -1,37 +1,41 @@
+/**
+ * Time-Aware Simulation Engine - Prototype
+ * Supports variable rates over time using rate schedules
+ */
+
+import { RateScheduleManager } from './rate-schedules.js';
 import { getMonthlyIncome } from './utils.js';
 
-/**
- * Run the retirement simulation on the provided scenario.
- * Calculates income, expenses, shortfalls, asset withdrawals, and interest.
- * Now supports inflation modeling for expenses.
- * Returns both detailed logs and a CSV export string.
- *
- * @param {Object} scenario - The scenario config
- * @returns {{ results: Array, balanceHistory: Object, csvText: string, windfallUsedAtMonth: number|undefined }}
- */
-export function simulateScenario(scenario) {
+export function simulateScenarioAdvanced(scenario) {
+  console.log('🚀 Running Advanced Time-Aware Simulation');
+  
+  // Initialize rate schedule manager
+  const rateManager = new RateScheduleManager();
+  if (scenario.rate_schedules) {
+    rateManager.loadSchedules(scenario.rate_schedules);
+  }
+
+  // Deep copy assets to avoid mutation
   const assets = JSON.parse(JSON.stringify(scenario.assets));
-  const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) || assets.map((asset, index) => ({ account: asset.name, order: index + 1 }));
+  const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) || 
+                   assets.map((asset, index) => ({ account: asset.name, order: index + 1 }));
   const assetMap = Object.fromEntries(assets.map((a) => [a.name, a]));
   const assetNames = assets.map((a) => a.name);
   const incomeSources = scenario.income || [];
   const depositEvents = scenario.deposits || [];
   const results = [];
 
+  // Track balance history
   const balanceHistory = {};
   for (const name of assetNames) {
     balanceHistory[name] = [];
   }
 
-  // INFLATION SUPPORT: Parse inflation configuration
-  const inflationConfig = parseInflationConfig(scenario.plan);
-
-  // We'll build CSV AFTER the loop so the header includes dynamic assets
+  // Build CSV after simulation
   const csvRows = [];
 
-  // FIXED: Separate deposit processing from income processing
+  // Handle deposits (same as before)
   function applyDeposits(month) {
-    // Only process deposits, not income sources
     for (const event of depositEvents) {
       if (
         typeof event.start_month === "number" &&
@@ -61,25 +65,28 @@ export function simulateScenario(scenario) {
     }
   }
 
-  // NEW: Calculate inflation-adjusted expenses for a given month
+  // NEW: Get time-aware inflation-adjusted expenses
   function getInflationAdjustedExpenses(month) {
-    const yearsElapsed = Math.floor(month / 12);
-    const baseExpenses = inflationConfig.baseExpenses;
-    const inflationRate = inflationConfig.annualRate;
-    
-    // Apply compound inflation: base * (1 + rate)^years
-    return baseExpenses * Math.pow(1 + inflationRate, yearsElapsed);
+    const baseExpenses = scenario.plan.monthly_expenses;
+    const monthlyInflationRate = rateManager.getRate(scenario.plan.inflation_schedule, month) / 12;
+    const totalMonths = month;
+    return baseExpenses * Math.pow(1 + monthlyInflationRate, totalMonths);
   }
-
+  
+  // NEW: Get time-aware asset returns
+  // REMOVE the entire if/else and keep only the rate schedule version:
+  function getAssetReturns(asset, month) {
+    return rateManager.getRate(asset.return_schedule, month) / 12;
+  }
+  
   // ---- Main simulation loop ----
   for (let month = 0; month < scenario.plan.duration_months; month++) {
-    // FIXED: Only apply deposits, not income (income is handled by getMonthlyIncome)
     applyDeposits(month);
 
-    // FIXED: Use 1-based month indexing for income calculation to match JSON expectations
+    // Get income (same as before)
     const income = getMonthlyIncome(incomeSources, month + 1);
     
-    // NEW: Use inflation-adjusted expenses instead of fixed expenses
+    // NEW: Time-aware inflation-adjusted expenses
     const monthlyExpenses = getInflationAdjustedExpenses(month);
     const shortfall = monthlyExpenses - income;
     let remainingShortfall = shortfall;
@@ -87,12 +94,12 @@ export function simulateScenario(scenario) {
     const log = {
       month,
       income,
-      expenses: monthlyExpenses,  // Now inflation-adjusted
+      expenses: monthlyExpenses,
       withdrawals: [],
       shortfall: 0,
     };
 
-    // Withdraw to cover shortfall using draw order
+    // Withdraw to cover shortfall using draw order (same logic)
     for (const entry of drawOrder) {
       const asset = assetMap[entry.account];
       if (!asset || asset.balance <= 0) continue;
@@ -114,22 +121,28 @@ export function simulateScenario(scenario) {
       log.shortfall = remainingShortfall;
     }
 
-    // Monthly compounding - FUTURE: This is where variable returns will go
+    // NEW: Time-aware asset growth
     for (const asset of Object.values(assetMap)) {
-      if (asset.interest_rate && asset.compounding === "monthly") {
-        asset.balance *= 1 + asset.interest_rate / 12;
+      if (asset.compounding === "monthly") {
+        const monthlyReturn = getAssetReturns(asset, month);
+        asset.balance *= (1 + monthlyReturn);
+        
+        // Debug logging for first few months
+        if (month < 3) {
+          console.log(`Month ${month}: ${asset.name} return = ${(monthlyReturn * 12 * 100).toFixed(2)}% annually`);
+        }
       }
     }
 
     results.push(log);
 
-    // Snapshot balances for this month - FIXED: Only include actual assets, not income sources
+    // Snapshot balances for this month
     for (const asset of assets) {
       balanceHistory[asset.name].push(asset.balance);
     }
   }
 
-  // ---- Build CSV after the loop - FIXED: Only include actual asset balances, not income tracking ----
+  // Build CSV (same as before)
   const realAssetNames = assets.filter(a => !a.dynamic || a.balance > 0).map(a => a.name);
   csvRows.push(["Month", "Date", "Income", "Expenses", "Shortfall", ...realAssetNames]);
 
@@ -147,7 +160,7 @@ export function simulateScenario(scenario) {
       m + 1,
       date.toISOString().slice(0, 7),
       (r?.income ?? 0).toFixed(2),
-      (r?.expenses ?? 0).toFixed(2),  // Now shows inflation-adjusted expenses
+      (r?.expenses ?? 0).toFixed(2),
       (r?.shortfall ?? 0).toFixed(2),
       ...assetCells
     ]);
@@ -155,38 +168,13 @@ export function simulateScenario(scenario) {
 
   const csvText = csvRows.map(r => r.join(",")).join("\n");
 
+  console.log('✅ Advanced simulation completed');
+
   return {
     results,
     balanceHistory,
     csvText,
-    windfallUsedAtMonth: scenario._windfallUsedAtMonth
-  };
-}
-
-/**
- * NEW: Parse inflation configuration from scenario plan
- * Supports both simple and complex inflation modeling
- */
-function parseInflationConfig(plan) {
-  // Support legacy format (fixed monthly_expenses)
-  if (typeof plan.monthly_expenses === "number") {
-    return {
-      baseExpenses: plan.monthly_expenses,
-      annualRate: plan.inflation_rate || 0  // Default to no inflation if not specified
-    };
-  }
-
-  // Support new format (inflation-aware expenses)
-  if (typeof plan.monthly_expenses === "object") {
-    return {
-      baseExpenses: plan.monthly_expenses.base || 5000,
-      annualRate: plan.monthly_expenses.inflation_rate || 0
-    };
-  }
-
-  // Fallback
-  return {
-    baseExpenses: 5000,
-    annualRate: 0
+    windfallUsedAtMonth: scenario._windfallUsedAtMonth,
+    rateManager // Return for debugging/inspection
   };
 }

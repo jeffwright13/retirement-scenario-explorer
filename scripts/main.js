@@ -4,10 +4,10 @@
  * No direct DOM manipulation or data loading - pure coordination
  */
 
-import { simulateScenario } from './engine.js';
 import { renderChart, renderCsv } from './render.js';
 import { UIManager } from './ui.js';
 import { ScenarioManager } from './scenarios.js';
+import { simulateScenarioAdvanced } from './timeaware-engine.js';  
 
 class RetirementScenarioApp {
   constructor() {
@@ -131,8 +131,8 @@ class RetirementScenarioApp {
 
       // Run simulation
       console.log('Running simulation with scenario:', scenarioData);
-      const simulationResult = simulateScenario(scenarioData);
-      console.log('Simulation result:', simulationResult);
+	  const simulationResult = simulateScenarioAdvanced(scenarioData);
+	  console.log('Simulation result:', simulationResult);
 
       // Store result for debugging
       window._scenarioResult = simulationResult;

@@ -7,53 +7,95 @@
 export class ScenarioManager {
   constructor() {
     this.discoveredScenarios = {};
-    this.knownScenarioFiles = [
-      'inflation-3pct.json',
-      'inflation-none.json', 
-      'inflation-70s.json',
-      'personal-test.json',
-      'ssdi-approved.json',
-      'blank-template.json',
-      'full-template.json'
+    this.registeredFiles = new Set(); // Track what we've found
+    
+    // Smart discovery patterns - common scenario naming
+    this.discoveryPatterns = [
+      // Inflation scenarios
+      'inflation-none.json', 'inflation-0pct.json', 'inflation-zero.json',
+      'inflation-3pct.json', 'inflation-low.json', 'inflation-normal.json',
+      'inflation-70s.json', 'inflation-high.json', 'inflation-8pct.json',
+      
+      // Personal scenarios  
+      'personal.json', 'personal-test.json', 'my-scenario.json', 'portfolio.json',
+      
+      // Advanced scenarios
+      'sequence-crash-2008.json', 'sequence-returns.json', 'market-crash.json',
+      'ssdi-approved.json', 'disability.json', 'early-retirement.json',
+      
+      // Template scenarios
+      'template.json', 'blank-template.json', 'example.json', 'sample.json',
+      'basic.json', 'simple.json', 'starter.json'
     ];
   }
 
-  // Auto-discover scenarios by trying to load known files
+  // Smart auto-discovery with pattern matching and user registration
   async discoverScenarios() {
-    console.log('🔍 Auto-discovering scenarios...');
+    console.log('🔍 Smart scenario discovery starting...');
     this.discoveredScenarios = {};
     
-    for (const filename of this.knownScenarioFiles) {
-      try {
-        console.log(`Trying to load: ${filename}`);
-        const response = await fetch(`data/scenarios/${filename}`);
-        
-        if (response.ok) {
-          const scenarioData = await response.json();
-          
-          // Extract scenario key and data from self-contained file
-          const scenarioKey = Object.keys(scenarioData)[0];
-          const scenario = scenarioData[scenarioKey];
-          
-          if (scenario && scenario.metadata) {
-            this.discoveredScenarios[scenarioKey] = {
-              filename: filename,
-              ...scenario
-            };
-            console.log(`✅ Discovered: ${scenarioKey} (${scenario.metadata.title})`);
-          } else {
-            console.warn(`⚠️ Invalid format in ${filename}: missing metadata`);
-          }
-        } else {
-          console.log(`❌ Not found: ${filename}`);
-        }
-      } catch (error) {
-        console.log(`❌ Error loading ${filename}:`, error.message);
-      }
-    }
+    // Try all discovery patterns
+    await this.discoverByPatterns();
+    
+    // Try any user-registered files  
+    await this.discoverRegisteredFiles();
     
     console.log(`🎉 Discovery complete! Found ${Object.keys(this.discoveredScenarios).length} scenarios`);
+    console.log(`📁 Discovered files: ${Array.from(this.registeredFiles).join(', ')}`);
+    
     return this.discoveredScenarios;
+  }
+
+  // Try common scenario file patterns
+  async discoverByPatterns() {
+    for (const filename of this.discoveryPatterns) {
+      await this.tryLoadScenario(filename);
+    }
+  }
+
+  // Try any files the user has registered
+  async discoverRegisteredFiles() {
+    for (const filename of this.registeredFiles) {
+      if (!this.discoveryPatterns.includes(filename)) {
+        await this.tryLoadScenario(filename);
+      }
+    }
+  }
+
+  // Attempt to load a scenario file
+  async tryLoadScenario(filename) {
+    try {
+      console.log(`🔍 Trying: ${filename}`);
+      const response = await fetch(`data/scenarios/${filename}`);
+      
+      if (response.ok) {
+        const scenarioData = await response.json();
+        
+        // Extract scenario key and data from self-contained file
+        const scenarioKey = Object.keys(scenarioData)[0];
+        const scenario = scenarioData[scenarioKey];
+        
+        if (scenario && scenario.metadata) {
+          this.discoveredScenarios[scenarioKey] = {
+            filename: filename,
+            ...scenario
+          };
+          this.registeredFiles.add(filename);
+          console.log(`✅ Found: ${scenarioKey} (${scenario.metadata.title})`);
+          return true;
+        } else {
+          console.warn(`⚠️ Invalid format in ${filename}: missing metadata`);
+          return false;
+        }
+      } else {
+        // File doesn't exist - not an error, just debug info
+        console.log(`📁 Not found: ${filename}`);
+        return false;
+      }
+    } catch (error) {
+      console.log(`❌ Error loading ${filename}:`, error.message);
+      return false;
+    }
   }
 
   // Get all discovered scenarios
@@ -183,12 +225,27 @@ export class ScenarioManager {
     return scenarioData;
   }
 
+  // Public API: Register a new scenario file for discovery
+  registerScenarioFile(filename) {
+    if (!filename.endsWith('.json')) {
+      filename += '.json';
+    }
+    
+    this.registeredFiles.add(filename);
+    console.log(`📝 Registered new scenario file: ${filename}`);
+    console.log(`💡 Run refreshScenarios() to discover it!`);
+  }
+
+  // Public API: Re-run discovery (useful after adding new files)
+  async refreshDiscovery() {
+    console.log('🔄 Refreshing scenario discovery...');
+    return await this.discoverScenarios();
+  }
+
   // Add a new scenario file to the discovery list
   addScenarioFile(filename) {
-    if (!this.knownScenarioFiles.includes(filename)) {
-      this.knownScenarioFiles.push(filename);
-      console.log(`Added ${filename} to discovery list`);
-    }
+    console.warn('⚠️ addScenarioFile() is deprecated. Use registerScenarioFile() instead.');
+    return this.registerScenarioFile(filename);
   }
 
   // Get metadata for all scenarios (for listing/searching)

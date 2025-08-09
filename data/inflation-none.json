@@ -1,14 +1,18 @@
 {
-  "inflation-3pct": {
+  "inflation-none": {
     "metadata": {
-      "title": "3% Annual Inflation Impact",
-      "description": "Shows how typical 3% inflation grows $5,200/month to $9,400 over 20 years",
-      "tags": ["inflation", "beginner", "compound-interest"],
+      "title": "No Inflation (Unrealistic Baseline)",
+      "description": "Same scenario but no inflation - compare with 3% to see devastating impact",
+      "tags": [
+        "inflation",
+        "baseline",
+        "comparison"
+      ],
       "discussion_file": "discussions/inflation-basics.md"
     },
     "plan": {
       "monthly_expenses": 5200,
-      "inflation_schedule": "inflation_3pct",
+      "inflation_schedule": "no_inflation",
       "duration_months": 300
     },
     "assets": [
@@ -21,12 +25,15 @@
       }
     ],
     "order": [
-      {"account": "Savings", "order": 1}
+      {
+        "account": "Savings",
+        "order": 1
+      }
     ],
     "rate_schedules": {
-      "inflation_3pct": {
+      "no_inflation": {
         "type": "fixed",
-        "rate": 0.03
+        "rate": 0.0
       },
       "savings_returns": {
         "type": "fixed",

@@ -3,7 +3,11 @@
     "metadata": {
       "title": "3% Annual Inflation Impact",
       "description": "Shows how typical 3% inflation grows $5,200/month to $9,400 over 20 years",
-      "tags": ["inflation", "beginner", "compound-interest"],
+      "tags": [
+        "inflation",
+        "beginner",
+        "compound-interest"
+      ],
       "discussion_file": "discussions/inflation-basics.md"
     },
     "plan": {
@@ -21,7 +25,10 @@
       }
     ],
     "order": [
-      {"account": "Savings", "order": 1}
+      {
+        "account": "Savings",
+        "order": 1
+      }
     ],
     "rate_schedules": {
       "inflation_3pct": {
