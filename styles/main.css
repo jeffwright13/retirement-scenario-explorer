@@ -577,3 +577,55 @@ body {
     padding: 10px;
   }
 }
+
+/* ===== CHART WIDTH FIXES ===== */
+
+/* Ensure chart area takes full available width */
+#chart-area {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  margin: 20px 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* Force Plotly container to full width */
+#chart-area .plotly-graph-div {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+}
+
+/* Ensure the SVG inside takes full width */
+#chart-area .plotly-graph-div .svg-container {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Chart area when it has results */
+#chart-area.has-results {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px !important;
+  background-color: white;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Mobile chart fixes */
+@media (max-width: 768px) {
+  #chart-area {
+    margin: 20px -10px !important;
+    border-radius: 0;
+    width: calc(100% + 20px) !important;
+    margin-left: -10px !important;
+    margin-right: -10px !important;
+  }
+  
+  #chart-area.has-results {
+    padding: 10px !important;
+  }
+}

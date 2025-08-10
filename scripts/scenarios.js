@@ -10,23 +10,24 @@ export class ScenarioManager {
     this.registeredFiles = new Set(); // Track what we've found
     
     // Smart discovery patterns - common scenario naming
-    this.discoveryPatterns = [
-      // Inflation scenarios
-      'inflation-none.json', 'inflation-0pct.json', 'inflation-zero.json',
-      'inflation-3pct.json', 'inflation-low.json', 'inflation-normal.json',
-      'inflation-70s.json', 'inflation-high.json', 'inflation-8pct.json',
-      
-      // Personal scenarios  
-      'personal.json', 'personal-test.json', 'my-scenario.json', 'portfolio.json',
-      
-      // Advanced scenarios
-      'sequence-crash-2008.json', 'sequence-returns.json', 'market-crash.json',
-      'ssdi-approved.json', 'disability.json', 'early-retirement.json',
-      
-      // Template scenarios
-      'template.json', 'blank-template.json', 'example.json', 'sample.json',
-      'basic.json', 'simple.json', 'starter.json'
-    ];
+	this.discoveryPatterns = [
+	  // Inflation scenarios
+	  'inflation-none.json', 'inflation-0pct.json', 'inflation-zero.json',
+	  'inflation-3pct.json', 'inflation-low.json', 'inflation-normal.json',
+	  'inflation-70s.json', 'inflation-high.json', 'inflation-8pct.json',
+  
+	  // Personal scenarios  
+	  'personal.json', 'personal-test.json', 'my-scenario.json', 'portfolio.json',
+	  'personal-portfolio-scenarios.json', // ← ADD THIS LINE
+  
+	  // Advanced scenarios
+	  'sequence-crash-2008.json', 'sequence-returns.json', 'market-crash.json',
+	  'ssdi-approved.json', 'disability.json', 'early-retirement.json',
+  
+	  // Template scenarios
+	  'template.json', 'blank-template.json', 'example.json', 'sample.json',
+	  'basic.json', 'simple.json', 'starter.json'
+	];
   }
 
   // Smart auto-discovery with pattern matching and user registration

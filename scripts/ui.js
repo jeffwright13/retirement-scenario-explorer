@@ -308,15 +308,36 @@ export class UIManager {
     }
   }
 
-  // NEW: Show chart area with results class
+  // ENHANCED: Show chart area with full width enforcement
   showChartArea() {
     const chartArea = document.getElementById('chart-area');
     if (chartArea) {
       chartArea.classList.add('has-results');
       chartArea.style.display = 'block';
+    
+      // Force full width styles
+      chartArea.style.width = '100%';
+      chartArea.style.maxWidth = '100%';
+      chartArea.style.minWidth = '100%';
+      chartArea.style.boxSizing = 'border-box';
+    
+      // Force immediate width update
+      setTimeout(() => {
+        const plotlyDiv = chartArea.querySelector('.plotly-graph-div');
+        if (plotlyDiv) {
+          plotlyDiv.style.width = '100%';
+          plotlyDiv.style.maxWidth = '100%';
+        
+          // Trigger Plotly resize if available
+          if (window.Plotly) {
+            Plotly.Plots.resize(chartArea);
+            console.log('✅ Chart area shown and resized to full width');
+          }
+        }
+      }, 100);
     }
   }
-
+  
   // NEW: Show simulation insights after results
   showSimulationInsights(results, scenarioData) {
     if (!this.elements.simulationInsights || !results || results.length === 0) return;
@@ -335,19 +356,18 @@ export class UIManager {
     this.elements.simulationInsights.style.display = 'block';
   }
 
-  // NEW: Generate contextual insights based on results
+  // ENHANCED: Generate insights with personal portfolio messaging
   generateInsights(results, scenarioData) {
     const insights = [];
-    
+  
     // Find when money runs out
-    const lastResult = results[results.length - 1];
     const balanceHistory = window._scenarioResult?.balanceHistory || {};
-    
+  
     // Check if any assets have money left
     const totalFinalBalance = Object.values(balanceHistory).reduce((total, balances) => {
       return total + (balances[balances.length - 1] || 0);
     }, 0);
-    
+  
     if (totalFinalBalance < 1000) {
       // Find approximately when money ran out
       let monthRunOut = results.length;
@@ -365,32 +385,60 @@ export class UIManager {
     } else {
       insights.push(`Your money lasts the full ${Math.round(results.length / 12)} years with $${Math.round(totalFinalBalance).toLocaleString()} remaining`);
     }
-    
-    // Inflation insights
+  
+    // Title-specific insights with personal storytelling
     const title = scenarioData.title || '';
+  
     if (title.includes('No Inflation')) {
       insights.push('This assumes 0% inflation, which never happens in reality');
-      insights.push('Even this unrealistic scenario shows the challenge of retirement funding: the steady drip of monthly bills and costs');
-    } else if (title.includes('3%')) {
+      insights.push('Even this unrealistic scenario shows the challenge of retirement funding');
+    } 
+    else if (title.includes('3% Annual Inflation')) {
       insights.push('3% inflation is the historical average - your expenses nearly double in 20 years');
       insights.push('Notice how much earlier your money runs out compared to 0% inflation');
-    } else if (title.includes('8%')) {
+    } 
+    else if (title.includes('8% Annual Inflation')) {
       insights.push('8% inflation occurred in the 1970s - expenses quadruple in 18 years');
       insights.push('This shows why inflation is called the "silent killer" of retirement');
     }
-    
+    else if (title.includes('My Personal Portfolio: The Baseline')) {
+      insights.push('This is my actual portfolio - $918K total with diverse allocation');
+      insights.push('With 0% inflation, I could retire comfortably with Social Security at 62');
+      insights.push('But 0% inflation is completely unrealistic - see what happens next...');
+    }
+    else if (title.includes('My Personal Portfolio: The Inflation Reality Check')) {
+      insights.push('SAME portfolio, SAME expenses, but with realistic 3.5% inflation');
+      insights.push('This is the moment I realized I wasn\'t as prepared as I thought');
+      insights.push('Inflation cuts my retirement timeline by YEARS - this is why I built this tool');
+    }
+    else if (title.includes('Sequence of Returns')) {
+      insights.push('Market timing during retirement is devastating - this is sequence of returns risk');
+      insights.push('The same average returns in different order can destroy a portfolio');
+      insights.push('This is why you need more than just "the market averages 10%"');
+    }
+    else if (title.includes('SSDI')) {
+      insights.push('Guaranteed income like SSDI or pensions dramatically improve security');
+      insights.push('Notice how much less portfolio pressure there is with steady income');
+      insights.push('This is why Social Security timing and pension decisions are critical');
+    }
+  
     // Withdrawal rate insights
     const monthlyExpenses = scenarioData.plan?.monthly_expenses || 0;
     const initialBalance = Object.values(balanceHistory).reduce((total, balances) => {
       return total + (balances[0] || 0);
     }, 0);
-    
+  
     if (monthlyExpenses && initialBalance) {
       const annualWithdrawal = monthlyExpenses * 12;
       const withdrawalRate = (annualWithdrawal / initialBalance * 100).toFixed(1);
-      insights.push(`Your initial withdrawal rate is ${withdrawalRate}% annually (4% rule suggests you need much more money)`);
-    }
     
+      if (title.includes('My Personal Portfolio')) {
+        insights.push(`My initial withdrawal rate: ${withdrawalRate}% annually (well above the 4% "safe" rate)`);
+      } else {
+        insights.push(`Initial withdrawal rate: ${withdrawalRate}% annually (4% rule suggests you need much more money)`);
+      }
+    }
+  
     return insights;
   }
 
@@ -423,7 +471,7 @@ export class UIManager {
     }
   }
 
-  // NEW: Get next scenario recommendation based on learning progression
+  // UPDATED: Get next scenario recommendation with personal portfolio flow
   getNextScenarioSuggestion(currentTitle) {
     const suggestions = {
       'No Inflation (Unrealistic Baseline)': {
@@ -437,13 +485,18 @@ export class UIManager {
         buttonText: 'Load "8% Annual Inflation Impact"'
       },
       '8% Annual Inflation Impact': {
-        scenarioKey: 'personal-test',
-        description: 'See a realistic multi-asset portfolio with Social Security',
-        buttonText: 'Load "Personal Portfolio" Example'
+        scenarioKey: 'personal-portfolio-baseline',
+        description: 'See my actual retirement portfolio - first without inflation to establish the baseline',
+        buttonText: 'Load "My Personal Portfolio: The Baseline"'
       },
-      'Personal Portfolio: Inflation Reality Check': {
+      'My Personal Portfolio: The Baseline (No Inflation)': {
+        scenarioKey: 'personal-portfolio-reality',
+        description: 'NOW see the exact same portfolio with realistic 3.5% inflation - this is my "holy shit" moment',
+        buttonText: 'Load "My Personal Portfolio: The Reality Check"'
+      },
+      'My Personal Portfolio: The Inflation Reality Check': {
         scenarioKey: 'sequence-crash-2008',
-        description: 'Learn about the devastating impact of sequence of returns risk',
+        description: 'Learn about sequence of returns risk - the final piece of the retirement puzzle',
         buttonText: 'Load "2008 Crash Scenario"'
       },
       'Sequence of Returns: 2008 Crash Scenario': {
@@ -452,7 +505,7 @@ export class UIManager {
         buttonText: 'Load "SSDI Approved" Scenario'
       }
     };
-    
+  
     return suggestions[currentTitle] || null;
   }
 

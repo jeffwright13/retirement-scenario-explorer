@@ -5,7 +5,7 @@
  */
 
 /**
- * Render the CSV output into the CSV container and show the section.
+ * Render the CSV output into the CSV container with proper show/hide management.
  */
 export function renderCsv(csvText) {
   const container = document.getElementById("csv-container");
@@ -20,11 +20,12 @@ export function renderCsv(csvText) {
   container.textContent = csvText;
   
   // DON'T automatically show the CSV section - keep it hidden by default
+  // Users can manually open it via the Advanced Options if needed
   console.log('✅ CSV data prepared (hidden by default)');
 }
 
 /**
- * Render the simulation chart using Plotly.
+ * Render the simulation chart using Plotly with full width optimization.
  */
 export function renderChart(results, balanceHistory, title = "Retirement Simulation", scenarioMeta = {}) {
   const chartArea = document.getElementById("chart-area");
@@ -123,10 +124,17 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
     });
   }
 
-  // Configure chart layout
+  // ENHANCED: Configure chart layout for full width
   const layout = {
-    title,
+    title: {
+      text: title,
+      font: { size: 18 }
+    },
     hoverdistance: 50,
+    autosize: true,
+    responsive: true,
+    width: null, // Let it auto-size
+    height: 500, // Set reasonable height
     xaxis: {
       title: "Date",
       tickangle: -45,
@@ -135,25 +143,70 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
       ticktext: filteredTicks,
       showgrid: true,
       gridcolor: "#ddd",
-      zeroline: false
+      zeroline: false,
+      automargin: true
     },
     yaxis: {
       title: "Amount ($)",
       showgrid: true,
       gridcolor: "#ddd",
-      zeroline: false
+      zeroline: false,
+      automargin: true
     },
     shapes: windfallLine ? [windfallLine] : [],
     annotations: windfallAnnotation ? [windfallAnnotation] : [],
     barmode: "overlay",
     margin: {
-      l: 60, r: 30, t: 60, b: 80
+      l: 80, r: 20, t: 60, b: 100, // Adequate margins but not excessive
+      autoexpand: true
+    },
+    showlegend: true,
+    legend: {
+      orientation: "h",
+      x: 0,
+      y: -0.2,
+      bgcolor: "rgba(255,255,255,0.8)"
     }
   };
 
-  // Render the chart
+  // ENHANCED: Configure Plotly for full width responsiveness
+  const config = {
+    responsive: true,
+    displayModeBar: true,
+    modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d', 'autoScale2d'],
+    displaylogo: false,
+    toImageButtonOptions: {
+      format: 'png',
+      filename: 'retirement_scenario',
+      height: 500,
+      width: 1000,
+      scale: 2
+    }
+  };
+
+  // Clear any existing chart first
+  chartArea.innerHTML = '';
+
+  // ENHANCED: Render with explicit sizing
   try {
-    Plotly.newPlot("chart-area", traces, layout);
+    Plotly.newPlot(chartArea, traces, layout, config).then(() => {
+      // Force resize after initial render
+      Plotly.Plots.resize(chartArea);
+      
+      // Add window resize handler
+      const resizeHandler = () => {
+        if (chartArea.style.display !== 'none') {
+          Plotly.Plots.resize(chartArea);
+        }
+      };
+      
+      // Remove existing handler if any
+      window.removeEventListener('resize', window._chartResizeHandler);
+      window._chartResizeHandler = resizeHandler;
+      window.addEventListener('resize', resizeHandler);
+      
+      console.log('✅ Chart rendered successfully with full width');
+    });
   } catch (error) {
     console.error('Failed to render chart:', error);
   }
