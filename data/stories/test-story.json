@@ -1,0 +1,33 @@
+{
+  "simple-test": {
+    "metadata": {
+      "title": "Simple Test Story",
+      "description": "Basic test to see if story discovery works",
+      "author": "Test",
+      "estimated_duration": "2 minutes",
+      "difficulty": "test",
+      "tags": ["test"]
+    },
+    "chapters": [
+      {
+        "title": "Test Chapter",
+        "scenario_key": "inflation-3pct",
+        "narrative": {
+          "introduction": "This is a test story using an existing scenario.",
+          "setup": "Testing if story discovery and loading works.",
+          "insights": [
+            "This is a test insight"
+          ],
+          "key_takeaway": "If you see this, story mode is working!",
+          "completion_message": "Test completed successfully."
+        }
+      }
+    ],
+    "story_settings": {
+      "auto_advance": false,
+      "show_chapter_progress": true,
+      "allow_chapter_jumping": true,
+      "reset_ui_between_chapters": true
+    }
+  }
+}

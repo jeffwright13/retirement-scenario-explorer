@@ -1,0 +1,140 @@
+{
+  "comprehensive-feature-tour": {
+    "metadata": {
+      "title": "Complete Feature Tour: Everything Your Tool Can Do",
+      "description": "A systematic walkthrough of every JSON capability, from basic scenarios to advanced rate schedules and time-varying deposits",
+      "author": "Retirement Scenario Explorer Deep Dive",
+      "estimated_duration": "45 minutes",
+      "difficulty": "comprehensive",
+      "tags": ["tutorial", "complete", "advanced", "all-features"],
+      "version": "1.0"
+    },
+    "chapters": [
+      {
+        "title": "Chapter 1: Basic Structure - Plan & Single Asset",
+        "scenario_key": "tour-basic-structure",
+        "narrative": {
+          "introduction": "Let's start with the absolute basics. Every scenario has a 'plan' (your retirement parameters) and 'assets' (your money). This shows the minimal viable scenario.",
+          "setup": "We'll examine: monthly_expenses (how much you spend), duration_months (how long to simulate), inflation_schedule (price increases), and a single asset with fixed returns.",
+          "insights": [
+            "Plan.monthly_expenses: ${{monthly_expenses}} defines your spending needs",
+            "Plan.duration_months: 300 months = 25 years of simulation",
+            "Assets: Starting with $500K in a basic savings account",
+            "Rate_schedules: Using 'fixed' type with 3% annual returns",
+            "Money runs out in year {{duration_years}} with this basic setup"
+          ],
+          "key_takeaway": "Every scenario needs: plan (expenses/duration), assets (your money), and rate_schedules (growth rates). This is your tool's foundation.",
+          "transition": "Now let's add multiple asset types to see portfolio diversification..."
+        }
+      },
+      {
+        "title": "Chapter 2: Multiple Asset Types - Tax Treatment Matters",
+        "scenario_key": "tour-multiple-assets",
+        "narrative": {
+          "introduction": "Real portfolios have multiple account types with different tax treatments. Let's explore taxable, tax_deferred (401k/IRA), and tax_free (Roth) accounts.",
+          "setup": "Three accounts: $200K taxable (immediate access), $250K traditional IRA (tax-deferred), $100K Roth IRA (tax-free). Each with different return rates and tax implications.",
+          "insights": [
+            "Asset types: 'taxable' (regular accounts), 'tax_deferred' (401k/IRA), 'tax_free' (Roth)",
+            "Balance: Starting amounts in each account type",
+            "Return_schedule: Each asset can have different growth rates",
+            "Compounding: 'monthly' means returns compound every month",
+            "Tax treatment affects withdrawal strategies in real life"
+          ],
+          "key_takeaway": "Your tool models realistic portfolio diversification across different account types, each with its own growth rate and tax treatment.",
+          "transition": "Now let's add income sources to reduce the pressure on your assets..."
+        }
+      },
+      {
+        "title": "Chapter 3: Income Sources - Social Security & Pensions",
+        "scenario_key": "tour-income-sources",
+        "narrative": {
+          "introduction": "Income reduces your reliance on asset withdrawals. Let's add Social Security (starting at a specific time) and a pension to see the dramatic impact.",
+          "setup": "Same portfolio as before, but now with $2,500 Social Security starting at month 24 (age 62) and a $1,200 pension starting at month 120 (10 years in).",
+          "insights": [
+            "Income sources reduce monthly shortfalls before touching assets",
+            "Start_month: Social Security begins at month {{social_security_start}}",
+            "Stop_month: Income can be temporary or permanent (no stop_month = forever)",
+            "Multiple income sources: You can have Social Security + pension + part-time work",
+            "Income timing is critical - every month of delay costs money from assets"
+          ],
+          "key_takeaway": "Income sources are game-changers. Guaranteed income like Social Security dramatically extends how long your assets last.",
+          "transition": "But what if you want to ADD money to your assets? That's where deposits come in..."
+        }
+      },
+      {
+        "title": "Chapter 4: Deposits - Adding Money Over Time",
+        "scenario_key": "tour-deposits",
+        "narrative": {
+          "introduction": "Deposits let you add money to specific assets over time. This could be ongoing contributions, inheritance, or one-time windfalls.",
+          "setup": "Starting with the income scenario, but now adding $500/month to your Roth IRA for the first 5 years, plus a $50K inheritance at year 10.",
+          "insights": [
+            "Deposits target specific assets: 'target' field directs money to exact accounts",
+            "Recurring deposits: start_month to stop_month for ongoing contributions",
+            "One-time deposits: single month for inheritance, bonus, tax refund",
+            "Dynamic asset creation: If target asset doesn't exist, it gets created automatically",
+            "Deposits happen BEFORE growth calculations each month"
+          ],
+          "key_takeaway": "Deposits are incredibly flexible - ongoing contributions, one-time windfalls, or complex timing patterns. They go to specific assets.",
+          "transition": "Now let's get sophisticated with withdrawal order - which assets get tapped first..."
+        }
+      },
+      {
+        "title": "Chapter 5: Withdrawal Order - Asset Priority Strategy",
+        "scenario_key": "tour-withdrawal-order",
+        "narrative": {
+          "introduction": "When you need money, which assets should be tapped first? The 'order' section defines your withdrawal strategy - critical for tax optimization.",
+          "setup": "Same complex scenario, but now with strategic withdrawal order: Taxable first (no penalties), then Traditional IRA, finally Roth (preserve tax-free growth).",
+          "insights": [
+            "Order determines withdrawal sequence when income < expenses",
+            "Order 1 = first choice, Order 2 = second choice, etc.",
+            "Tax strategy: Typically taxable → tax_deferred → tax_free",
+            "Each month: Try income first, then withdraw from assets in order",
+            "Strategic ordering can save thousands in taxes and penalties"
+          ],
+          "key_takeaway": "Withdrawal order is your tax strategy. Smart sequencing preserves tax-advantaged growth and minimizes penalties.",
+          "transition": "Now for the real power - time-varying rates that change over time..."
+        }
+      },
+      {
+        "title": "Chapter 6: Advanced Rate Schedules - Beyond Fixed Rates",
+        "scenario_key": "tour-advanced-rates",
+        "narrative": {
+          "introduction": "Real life isn't constant 7% returns. Your tool supports sophisticated rate schedules: sequences (changing over time), maps (different periods), and even pipelines.",
+          "setup": "Variable inflation (3% → 5% → 2%), market returns that change over decades, and complex rate interactions.",
+          "insights": [
+            "Rate schedule types: 'fixed' (constant), 'sequence' (year-by-year), 'map' (time periods)",
+            "Sequence type: Array of rates by year - perfect for planned changes",
+            "Map type: Different rates for different time periods (boom/bust cycles)",
+            "Pipeline type: Complex calculations with multiple steps (advanced)",
+            "Each asset and plan component can reference different rate schedules"
+          ],
+          "key_takeaway": "Your tool models realistic rate complexity - inflation cycles, market volatility, economic periods. Way beyond simple fixed percentages.",
+          "transition": "Let's put it all together in a final comprehensive scenario..."
+        }
+      },
+      {
+        "title": "Chapter 7: Everything Combined - Real-World Complexity",
+        "scenario_key": "tour-everything-combined",
+        "narrative": {
+          "introduction": "Here's your tool's full power: Multiple assets, time-varying income, strategic deposits, complex rate schedules, and intelligent withdrawal ordering all working together.",
+          "setup": "Kitchen sink scenario: 5 asset types, 3 income sources with different timing, ongoing and one-time deposits, variable inflation and returns, strategic withdrawal order.",
+          "insights": [
+            "Your tool handles incredible complexity while remaining mathematically precise",
+            "Every month: Apply deposits → Calculate income → Cover expenses → Withdraw if needed → Apply growth",
+            "Time-aware: Everything can change month by month, year by year",
+            "Realistic modeling: This mirrors how retirement actually works",
+            "Scenario power: You can model virtually any financial situation"
+          ],
+          "key_takeaway": "Your Retirement Scenario Explorer is remarkably sophisticated. It can model complex real-world situations with mathematical precision.",
+          "completion_message": "You now understand every capability of your tool. From basic plan+assets to complex time-varying scenarios with multiple income sources, deposits, and strategic withdrawal ordering. This is a powerful financial modeling system."
+        }
+      }
+    ],
+    "story_settings": {
+      "auto_advance": false,
+      "show_chapter_progress": true,
+      "allow_chapter_jumping": true,
+      "reset_ui_between_chapters": true
+    }
+  }
+}

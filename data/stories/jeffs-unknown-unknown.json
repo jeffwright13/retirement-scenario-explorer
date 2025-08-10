@@ -1,0 +1,55 @@
+{
+  "jeffs-unknown-unknown": {
+    "metadata": {
+      "title": "Jeff's Unknown Unknown",
+      "description": "How I went from thinking I had retirement figured out to discovering what I didn't know I didn't know - told through the four stages of competence",
+      "author": "Jeff Wright",
+      "estimated_duration": "20 minutes", 
+      "difficulty": "intermediate",
+      "tags": ["personal", "real-data", "awakening"],
+      "version": "1.0"
+    },
+    "chapters": [
+      {
+        "title": "Stage 1: Unconscious Incompetence",
+        "scenario_key": "personal-portfolio-baseline",
+        "narrative": {
+          "introduction": "I was in Stage 1 of the competence model - I didn't know what I didn't know. Looking at my $918K portfolio, I felt pretty confident about retirement. Classic unconscious incompetence.",
+          "setup": "This uses my real data: $70K in savings, $513K in investments, $323K in Traditional IRA, and $12K in Roth IRA. I'll show you the 0% inflation scenario that made me feel secure - back when I didn't know inflation was the silent killer.",
+          "insights": [
+            "Stage 1: I didn't know what I didn't know about inflation",
+            "This is my actual portfolio: $918K felt like 'enough' until I did the math",
+            "My withdrawal rate: {{withdrawal_rate}}% annually (didn't know this was dangerously high)",
+            "Money runs out in year {{duration_years}} even with 0% inflation (impossible scenario)",
+            "I was confident in my preparation while missing a fundamental risk"
+          ],
+          "key_takeaway": "Unconscious incompetence is dangerous - I felt prepared while completely ignoring inflation. Even in this impossible 0% scenario, the numbers were shakier than I thought.",
+          "transition": "But then I added realistic inflation to the exact same portfolio..."
+        }
+      },
+      {
+        "title": "Stage 2: Conscious Incompetence",
+        "scenario_key": "personal-portfolio-reality", 
+        "narrative": {
+          "introduction": "Adding realistic 3.5% inflation to the exact same portfolio launched me into Stage 2 - suddenly I knew what I didn't know. This was my conscious incompetence moment.",
+          "setup": "Same portfolio, same expenses, same returns - but now with 3.5% inflation. Nothing else changed. This is when I realized I had a massive blind spot in my retirement planning.",
+          "insights": [
+            "Stage 2: Now I knew what I didn't know - inflation risk was real",
+            "SAME portfolio but realistic inflation - money runs out in year {{duration_years}}",
+            "Inflation cuts my retirement timeline by YEARS, not months",
+            "By year 10, my $8,500 expenses become $12,000+ per month",
+            "This conscious incompetence moment forced me to learn more"
+          ],
+          "key_takeaway": "Conscious incompetence is painful but necessary - realizing I didn't understand inflation risk was the first step to actually preparing for retirement.",
+          "completion_message": "This tool was born from my Stage 1→Stage 2 transition. Now I'm working toward Stage 3 (conscious competence) in retirement planning. You can use this to skip my painful 'unknown unknown' discovery and stress-test your own assumptions before it's too late."
+        }
+      }
+    ],
+    "story_settings": {
+      "auto_advance": false,
+      "show_chapter_progress": true,
+      "allow_chapter_jumping": false,
+      "reset_ui_between_chapters": true
+    }
+  }
+}

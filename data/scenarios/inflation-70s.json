@@ -3,13 +3,19 @@
     "metadata": {
       "title": "8% Annual Inflation Impact",
       "description": "Shows how 8% inflation eats away at funded retirement over the years",
-      "tags": ["inflation", "beginner", "compound-interest", "purchasing-power"],
+      "tags": [
+        "inflation",
+        "beginner",
+        "compound-interest",
+        "purchasing-power"
+      ],
       "discussion_file": "discussions/inflation-basics.md"
     },
     "plan": {
       "monthly_expenses": 5200,
       "inflation_schedule": "inflation_70s",
-      "duration_months": 240
+      "duration_months": 240,
+      "stop_on_shortfall": true
     },
     "assets": [
       {
@@ -21,7 +27,10 @@
       }
     ],
     "order": [
-      {"account": "Savings", "order": 1}
+      {
+        "account": "Savings",
+        "order": 1
+      }
     ],
     "rate_schedules": {
       "inflation_70s": {

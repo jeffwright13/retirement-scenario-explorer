@@ -1,7 +1,8 @@
 /**
- * UI Management Module
+ * UI Management Module - Cleaned up for Storyteller Mode
  * Handles all DOM manipulation and UI state changes
  * No business logic - pure presentation layer
+ * REMOVED: All hardcoded storytelling content (moved to story JSON files)
  */
 
 export class UIManager {
@@ -10,7 +11,7 @@ export class UIManager {
     this.setupEventListeners();
   }
 
-  // Cache all DOM elements for performance - ENHANCED with Phase 1 elements
+  // Cache all DOM elements for performance
   cacheElements() {
     return {
       // Existing panels
@@ -37,7 +38,7 @@ export class UIManager {
       csvContainer: document.getElementById('csv-container'),
       chartArea: document.getElementById('chart-area'),
       
-      // NEW Phase 1 elements
+      // Phase 1 elements
       keyAssumptions: document.getElementById('key-assumptions'),
       keyAssumptionsList: document.getElementById('key-assumptions-list'),
       simulationInsights: document.getElementById('simulation-insights'),
@@ -110,7 +111,6 @@ export class UIManager {
   loadJsonIntoEditor(jsonText) {
     console.log(`Loading JSON into editor: ${jsonText.substring(0, 100)}...`);
     this.elements.jsonInput.value = jsonText;
-    // Keep editor collapsed - user must explicitly toggle to edit
   }
 
   getJsonFromEditor() {
@@ -121,7 +121,7 @@ export class UIManager {
     this.elements.jsonInput.value = '';
   }
 
-  // ENHANCED: CSV results management with show/hide classes
+  // CSV results management
   toggleCsvResults() {
     const isVisible = this.elements.csvSection.classList.contains('show');
     
@@ -167,7 +167,7 @@ export class UIManager {
     }
   }
 
-  // NEW: Reset UI to default state when new scenario selected
+  // Reset UI to default state when new scenario selected
   resetToDefaultState() {
     console.log('🔄 Resetting UI to default state');
     
@@ -191,7 +191,7 @@ export class UIManager {
     });
   }
 
-  // ENHANCED: Scenario preview with state reset and key assumptions
+  // Scenario preview with state reset and key assumptions
   showScenarioPreview(metadata, simulationData) {
     console.log('=== showScenarioPreview Enhanced ===');
     
@@ -230,7 +230,7 @@ export class UIManager {
     }
   }
 
-  // NEW: Show key assumptions in a user-friendly way
+  // Show key assumptions in a user-friendly way
   showKeyAssumptions(simulationData) {
     if (!simulationData || !this.elements.keyAssumptions) return;
     
@@ -282,7 +282,7 @@ export class UIManager {
     this.elements.keyAssumptions.style.display = assumptions.length > 0 ? 'block' : 'none';
   }
 
-  // ENHANCED: Hide scenario preview with state management
+  // Hide scenario preview with state management
   hideScenarioPreview() {
     this.elements.scenarioPreview.style.display = 'none';
     this.elements.scenarioDescription.textContent = '';
@@ -308,7 +308,7 @@ export class UIManager {
     }
   }
 
-  // ENHANCED: Show chart area with full width enforcement
+  // Show chart area with full width enforcement
   showChartArea() {
     const chartArea = document.getElementById('chart-area');
     if (chartArea) {
@@ -338,11 +338,13 @@ export class UIManager {
     }
   }
   
-  // NEW: Show simulation insights after results
+  // CLEANED UP: Show simulation insights (removed hardcoded story content)
   showSimulationInsights(results, scenarioData) {
     if (!this.elements.simulationInsights || !results || results.length === 0) return;
     
-    const insights = this.generateInsights(results, scenarioData);
+    // REMOVED: All hardcoded story-specific insights 
+    // Now generates only generic, data-driven insights
+    const insights = this.generateGenericInsights(results, scenarioData);
     
     // Populate insights list
     this.elements.insightsList.innerHTML = '';
@@ -356,18 +358,18 @@ export class UIManager {
     this.elements.simulationInsights.style.display = 'block';
   }
 
-  // ENHANCED: Generate insights with personal portfolio messaging
-  generateInsights(results, scenarioData) {
+  // CLEANED UP: Generate only generic, data-driven insights (no hardcoded stories)
+  generateGenericInsights(results, scenarioData) {
     const insights = [];
-  
-    // Find when money runs out
+
+    // Generic financial insights based purely on simulation data
     const balanceHistory = window._scenarioResult?.balanceHistory || {};
-  
+
     // Check if any assets have money left
     const totalFinalBalance = Object.values(balanceHistory).reduce((total, balances) => {
       return total + (balances[balances.length - 1] || 0);
     }, 0);
-  
+
     if (totalFinalBalance < 1000) {
       // Find approximately when money ran out
       let monthRunOut = results.length;
@@ -381,156 +383,57 @@ export class UIManager {
         }
       }
       const yearRunOut = Math.round(monthRunOut / 12);
-      insights.push(`Your money runs out around month ${monthRunOut} (year ${yearRunOut})`);
+      insights.push(`Money runs out around month ${monthRunOut} (year ${yearRunOut})`);
     } else {
-      insights.push(`Your money lasts the full ${Math.round(results.length / 12)} years with $${Math.round(totalFinalBalance).toLocaleString()} remaining`);
+      insights.push(`Money lasts the full ${Math.round(results.length / 12)} years with $${Math.round(totalFinalBalance).toLocaleString()} remaining`);
     }
-  
-    // Title-specific insights with personal storytelling
-    const title = scenarioData.title || '';
-  
-    if (title.includes('No Inflation')) {
-      insights.push('This assumes 0% inflation, which never happens in reality');
-      insights.push('Even this unrealistic scenario shows the challenge of retirement funding');
-    } 
-    else if (title.includes('3% Annual Inflation')) {
-      insights.push('3% inflation is the historical average - your expenses nearly double in 20 years');
-      insights.push('Notice how much earlier your money runs out compared to 0% inflation');
-    } 
-    else if (title.includes('8% Annual Inflation')) {
-      insights.push('8% inflation occurred in the 1970s - expenses quadruple in 18 years');
-      insights.push('This shows why inflation is called the "silent killer" of retirement');
-    }
-    else if (title.includes('My Personal Portfolio: The Baseline')) {
-      insights.push('This is my actual portfolio - $918K total with diverse allocation');
-      insights.push('With 0% inflation, I could retire comfortably with Social Security at 62');
-      insights.push('But 0% inflation is completely unrealistic - see what happens next...');
-    }
-    else if (title.includes('My Personal Portfolio: The Inflation Reality Check')) {
-      insights.push('SAME portfolio, SAME expenses, but with realistic 3.5% inflation');
-      insights.push('This is the moment I realized I wasn\'t as prepared as I thought');
-      insights.push('Inflation cuts my retirement timeline by YEARS - this is why I built this tool');
-    }
-    else if (title.includes('Sequence of Returns')) {
-      insights.push('Market timing during retirement is devastating - this is sequence of returns risk');
-      insights.push('The same average returns in different order can destroy a portfolio');
-      insights.push('This is why you need more than just "the market averages 10%"');
-    }
-    else if (title.includes('SSDI')) {
-      insights.push('Guaranteed income like SSDI or pensions dramatically improve security');
-      insights.push('Notice how much less portfolio pressure there is with steady income');
-      insights.push('This is why Social Security timing and pension decisions are critical');
-    }
-  
-    // Withdrawal rate insights
+
+    // Generic withdrawal rate insight
     const monthlyExpenses = scenarioData.plan?.monthly_expenses || 0;
     const initialBalance = Object.values(balanceHistory).reduce((total, balances) => {
       return total + (balances[0] || 0);
     }, 0);
-  
+
     if (monthlyExpenses && initialBalance) {
       const annualWithdrawal = monthlyExpenses * 12;
       const withdrawalRate = (annualWithdrawal / initialBalance * 100).toFixed(1);
-    
-      if (title.includes('My Personal Portfolio')) {
-        insights.push(`My initial withdrawal rate: ${withdrawalRate}% annually (well above the 4% "safe" rate)`);
-      } else {
-        insights.push(`Initial withdrawal rate: ${withdrawalRate}% annually (4% rule suggests you need much more money)`);
-      }
+      insights.push(`Initial withdrawal rate: ${withdrawalRate}% annually (4% rule suggests ${Math.round(annualWithdrawal / 0.04).toLocaleString()} needed)`);
     }
-  
+
     return insights;
   }
 
-  // ENHANCED: Show next scenario suggestion with proper event handling
+  // CLEANED UP: Next scenario suggestion (removed hardcoded story progressions)
   showNextScenarioSuggestion(currentScenarioTitle) {
     if (!this.elements.nextScenarioSuggestion) return;
     
-    const suggestion = this.getNextScenarioSuggestion(currentScenarioTitle);
+    // REMOVED: All hardcoded story progression logic
+    // Now shows generic suggestion or hides the section
+    this.elements.nextScenarioSuggestion.style.display = 'none';
     
-    if (suggestion) {
-      this.elements.nextScenarioDescription.textContent = suggestion.description;
-      this.elements.loadNextScenarioBtn.textContent = suggestion.buttonText;
-      
-      // ENHANCED: Better event handling for next scenario button
-      this.elements.loadNextScenarioBtn.onclick = (e) => {
-        e.preventDefault();
-        console.log('🔄 Loading next scenario:', suggestion.scenarioKey);
-        
-        // Reset to default state first
-        this.resetToDefaultState();
-        
-        // Small delay to let UI reset, then change scenario
-        setTimeout(() => {
-          this.elements.scenarioDropdown.value = suggestion.scenarioKey;
-          this.elements.scenarioDropdown.dispatchEvent(new Event('change'));
-        }, 100);
-      };
-      
-      this.elements.nextScenarioSuggestion.style.display = 'block';
-    }
+    // Could add generic "Try another scenario" suggestion here if desired
+    // But for clean separation, this is now handled by story mode
   }
 
-  // UPDATED: Get next scenario recommendation with personal portfolio flow
-  getNextScenarioSuggestion(currentTitle) {
-    const suggestions = {
-      'No Inflation (Unrealistic Baseline)': {
-        scenarioKey: 'inflation-3pct',
-        description: 'See how realistic 3% inflation affects this same scenario',
-        buttonText: 'Load "3% Annual Inflation Impact"'
-      },
-      '3% Annual Inflation Impact': {
-        scenarioKey: 'inflation-70s',
-        description: 'Experience the devastating impact of 1970s-level inflation',
-        buttonText: 'Load "8% Annual Inflation Impact"'
-      },
-      '8% Annual Inflation Impact': {
-        scenarioKey: 'personal-portfolio-baseline',
-        description: 'See my actual retirement portfolio - first without inflation to establish the baseline',
-        buttonText: 'Load "My Personal Portfolio: The Baseline"'
-      },
-      'My Personal Portfolio: The Baseline (No Inflation)': {
-        scenarioKey: 'personal-portfolio-reality',
-        description: 'NOW see the exact same portfolio with realistic 3.5% inflation - this is my "holy shit" moment',
-        buttonText: 'Load "My Personal Portfolio: The Reality Check"'
-      },
-      'My Personal Portfolio: The Inflation Reality Check': {
-        scenarioKey: 'sequence-crash-2008',
-        description: 'Learn about sequence of returns risk - the final piece of the retirement puzzle',
-        buttonText: 'Load "2008 Crash Scenario"'
-      },
-      'Sequence of Returns: 2008 Crash Scenario': {
-        scenarioKey: 'ssdi-approved',
-        description: 'See how guaranteed income changes everything',
-        buttonText: 'Load "SSDI Approved" Scenario'
-      }
-    };
-  
-    return suggestions[currentTitle] || null;
-  }
-
-  // ENHANCED: Post-simulation UI updates with better state management
+  // Post-simulation UI updates (cleaned up)
   handleSimulationComplete(scenarioData, results) {
-    // Don't collapse getting started panel - let user see their selection
-    // this.collapseGettingStartedPanel();
-    
     // Collapse JSON editor if it's open
     this.collapseJsonEditor();
     
     // Show chart area
     this.showChartArea();
     
-    // Show insights
+    // Show generic insights (no story-specific content)
     this.showSimulationInsights(results, scenarioData);
     
-    // Show next scenario suggestion  
+    // Generic next scenario suggestion (now cleaned up)
     this.showNextScenarioSuggestion(scenarioData.title);
     
     // Scroll to results
     this.elements.chartArea.scrollIntoView({ behavior: 'smooth' });
   }
 
-  // NEW: Hide insights and suggestions when new scenario selected
+  // Hide insights and suggestions when new scenario selected
   hideSimulationResults() {
     if (this.elements.simulationInsights) {
       this.elements.simulationInsights.style.display = 'none';

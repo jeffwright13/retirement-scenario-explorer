@@ -47,7 +47,8 @@ Here’s a simple “toy” plan:
   },
   "plan": {
     "monthly_expenses": 2500,
-    "duration_months": 120
+    "duration_months": 120,
+    "stop_on_shortfall": true
   },
   "income": [
     {

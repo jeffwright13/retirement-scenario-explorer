@@ -1,48 +1,95 @@
 /**
- * Main Application Controller
- * Orchestrates interactions between UI, scenarios, and simulation
- * No direct DOM manipulation or data loading - pure coordination
+ * Main Application Controller - Enhanced with Storyteller Mode
+ * Shows how to integrate StoryManager and StorytellerUI without breaking existing functionality
+ * Maintains clean separation of concerns
  */
 
 import { renderChart, renderCsv } from './render.js';
 import { UIManager } from './ui.js';
 import { ScenarioManager } from './scenarios.js';
-import { simulateScenarioAdvanced } from './timeaware-engine.js';  
+import { simulateScenarioAdvanced } from './timeaware-engine.js';
+import { StoryManager } from './story-manager.js';        // NEW IMPORT
+import { StorytellerUI } from './storyteller-ui.js';      // NEW IMPORT
 
 class RetirementScenarioApp {
   constructor() {
     this.ui = new UIManager();
     this.scenarios = new ScenarioManager();
+    this.stories = new StoryManager();                     // NEW: Story management
+    this.storytellerUI = new StorytellerUI(this.ui);      // NEW: Story UI
     this.currentDiscussion = null;
     
     this.initialize();
   }
 
-  // UPDATED: Initialize with Phase 1 enhancements
+  // ENHANCED: Initialize with storyteller support
   async initialize() {
-    console.log('🚀 Initializing Retirement Scenario Explorer...');
+    console.log('🚀 Initializing Retirement Scenario Explorer with Storyteller Mode...');
     
-    // Setup event handlers
+    // Setup existing event handlers
     this.setupEventHandlers();
     
-    // Auto-discover scenarios and populate UI
-    await this.loadScenarios();
+    // NEW: Setup storyteller event handlers  
+    this.setupStorytellerHandlers();
     
-    console.log('✅ Application initialized');
+    // Load scenarios and stories in parallel
+    await Promise.all([
+      this.loadScenarios(),
+      this.loadStories()                                   // NEW: Parallel story loading
+    ]);
+    
+    console.log('✅ Application initialized with storyteller support');
   }
 
+  // EXISTING: Event handlers (unchanged - but story-mode aware)
   setupEventHandlers() {
-    // Scenario selection handler
     this.ui.onScenarioChange(async (e) => {
-      await this.handleScenarioSelection(e.target.value);
+      // Only handle if not in story mode
+      if (!this.stories.isInStoryMode()) {
+        await this.handleScenarioSelection(e.target.value);
+      }
     });
 
-    // Simulation execution handler
     this.ui.onRunSimulation(() => {
       this.handleSimulationExecution();
     });
   }
 
+  // NEW: Storyteller-specific event handlers
+  setupStorytellerHandlers() {
+    // Story mode toggle
+    this.storytellerUI.onStoryModeToggle(() => {
+      this.toggleStoryMode();
+    });
+
+    // Story selection
+    this.storytellerUI.onStorySelection((e) => {
+      this.handleStorySelection(e.target.value);
+    });
+
+    // Set story navigation callbacks
+    this.storytellerUI.setStoryCallbacks({
+      onStoryStart: () => this.handleStoryStart(),
+      onStoryNext: () => this.handleStoryNext(),
+      onStoryPrevious: () => this.handleStoryPrevious(),
+      onStoryExit: () => this.handleStoryExit()
+    });
+  }
+
+  // NEW: Load available stories
+  async loadStories() {
+    try {
+      const discoveredStories = await this.stories.discoverStories();
+      const storyList = this.stories.getStoryList();
+      this.storytellerUI.populateStorySelector(storyList);
+      console.log(`✅ Loaded ${Object.keys(discoveredStories).length} stories`);
+    } catch (error) {
+      console.error('Failed to load stories:', error);
+      // Don't break the app if stories fail to load - storyteller is optional
+    }
+  }
+
+  // EXISTING: Scenario loading (unchanged)
   async loadScenarios() {
     try {
       const discoveredScenarios = await this.scenarios.discoverScenarios();
@@ -54,13 +101,106 @@ class RetirementScenarioApp {
     }
   }
 
-  // UPDATED: Enhanced scenario selection with Phase 1 UX improvements
+  // NEW: Toggle between normal and story mode
+  toggleStoryMode() {
+    if (this.stories.isInStoryMode()) {
+      this.exitStoryMode();
+    } else {
+      this.enterStoryMode();
+    }
+  }
+
+  // NEW: Enter story mode
+  enterStoryMode() {
+    console.log('🎭 Entering story mode');
+    this.storytellerUI.enterStoryMode();
+  }
+
+  // NEW: Exit story mode
+  exitStoryMode() {
+    console.log('🎭 Exiting story mode');
+    this.stories.exitStory();
+    this.storytellerUI.exitStoryMode();
+  }
+
+  // NEW: Handle story selection
+  async handleStorySelection(storyKey) {
+    if (!storyKey) return;
+
+    try {
+      console.log(`📚 Starting story: ${storyKey}`);
+      const chapter = this.stories.startStory(storyKey);
+      
+      if (chapter) {
+        this.storytellerUI.updateChapterDisplay(chapter);
+        await this.loadStoryChapterScenario(chapter);
+      }
+    } catch (error) {
+      console.error('Failed to start story:', error);
+      this.ui.showError(`Failed to start story: ${error.message}`);
+    }
+  }
+
+  // NEW: Load scenario for current story chapter
+  async loadStoryChapterScenario(chapter) {
+    console.log(`📖 Loading chapter scenario: ${chapter.scenario_key}`);
+    
+    // Load the scenario normally
+    await this.handleScenarioSelection(chapter.scenario_key);
+    
+    // Update UI to reflect story context
+    this.storytellerUI.updateChapterDisplay(chapter);
+  }
+
+  // NEW: Advance to next story chapter
+  async handleStoryNext() {
+    const nextChapter = this.stories.nextChapter();
+    
+    if (nextChapter) {
+      this.storytellerUI.updateChapterDisplay(nextChapter);
+      await this.loadStoryChapterScenario(nextChapter);
+    } else {
+      // Story completed
+      this.handleStoryComplete();
+    }
+  }
+
+  // NEW: Go to previous story chapter  
+  async handleStoryPrevious() {
+    const prevChapter = this.stories.previousChapter();
+    
+    if (prevChapter) {
+      this.storytellerUI.updateChapterDisplay(prevChapter);
+      await this.loadStoryChapterScenario(prevChapter);
+    }
+  }
+
+  // NEW: Handle story completion
+  handleStoryComplete() {
+    console.log('📚 Story completed!');
+    
+    // Could show completion screen, suggest new stories, etc.
+    const shouldExit = confirm('Story completed! Exit story mode?');
+    if (shouldExit) {
+      this.exitStoryMode();
+    }
+  }
+
+  // NEW: Handle story exit
+  handleStoryExit() {
+    const shouldExit = confirm('Are you sure you want to exit the story?');
+    if (shouldExit) {
+      this.exitStoryMode();
+    }
+  }
+
+  // ENHANCED: Scenario selection with story mode awareness (replaces your existing method)
   async handleScenarioSelection(scenarioKey) {
     if (!scenarioKey) {
       // Clear selection
       this.ui.hideScenarioPreview();
       this.ui.clearJsonEditor();
-      this.ui.hideSimulationResults(); // NEW: Hide previous results
+      this.ui.hideSimulationResults();
       this.currentDiscussion = null;
       return;
     }
@@ -91,15 +231,19 @@ class RetirementScenarioApp {
         throw new Error('Scenario missing plan section');
       }
       
-      // Use enhanced preview with key assumptions
-      this.ui.showScenarioPreview(scenario.metadata, simulationData);
+      // Show scenario preview ONLY in normal mode (not story mode)
+      if (!this.stories.isInStoryMode()) {
+        this.ui.showScenarioPreview(scenario.metadata, simulationData);
+      }
       
       // Load JSON into editor
       const jsonText = JSON.stringify(simulationData, null, 2);
       this.ui.loadJsonIntoEditor(jsonText);
       
-      // Load discussion content for future use
-      this.currentDiscussion = await this.scenarios.loadDiscussion(scenario);
+      // Load discussion content for normal mode only
+      if (!this.stories.isInStoryMode()) {
+        this.currentDiscussion = await this.scenarios.loadDiscussion(scenario);
+      }
       
       console.log(`✅ Successfully loaded scenario: ${scenarioKey}`);
       
@@ -110,6 +254,7 @@ class RetirementScenarioApp {
     }
   }
 
+  // EXISTING: Simulation execution (unchanged)
   handleSimulationExecution() {
     this.ui.setRunButtonLoading(true);
 
@@ -123,7 +268,7 @@ class RetirementScenarioApp {
     }, 100);
   }
 
-  // UPDATED: Enhanced simulation execution with Phase 1 insights
+  // ENHANCED: Simulation execution with story mode support
   executeSimulation() {
     try {
       // Get scenario data from JSON editor
@@ -154,14 +299,17 @@ class RetirementScenarioApp {
 
       // Run simulation
       console.log('Running simulation with scenario:', scenarioData);
-	  const simulationResult = simulateScenarioAdvanced(scenarioData);
-	  console.log('Simulation result:', simulationResult);
+      const simulationResult = simulateScenarioAdvanced(scenarioData);
+      console.log('Simulation result:', simulationResult);
 
       // Store result for debugging
       window._scenarioResult = simulationResult;
 
       // Render results
       const { results, balanceHistory, csvText, windfallUsedAtMonth } = simulationResult;
+      
+      // FIXED: Calculate story metrics AFTER destructuring results
+      window._storyMetrics = this.calculateStoryMetrics(results, scenarioData, simulationResult);
       
       renderCsv(csvText);
       renderChart(
@@ -171,8 +319,12 @@ class RetirementScenarioApp {
         { windfallUsedAtMonth }
       );
 
-      // UPDATED: Use enhanced post-simulation UI updates with insights
-      this.ui.handleSimulationComplete(scenarioData, results);
+      // ENHANCED: Handle post-simulation with story mode awareness
+      if (this.stories.isInStoryMode()) {
+        this.handleStorySimulationComplete(scenarioData, results);
+      } else {
+        this.ui.handleSimulationComplete(scenarioData, results);
+      }
 
       console.log('✅ Simulation completed successfully');
 
@@ -182,17 +334,130 @@ class RetirementScenarioApp {
     }
   }
 
-  // Public API for debugging/extensions
+  // NEW: Handle simulation completion in story mode
+  handleStorySimulationComplete(scenarioData, results) {
+    // Hide story narrative during results view
+    this.storytellerUI.hideStoryElements();
+    
+    // Show chart area
+    this.ui.showChartArea();
+    
+    // Use story-driven insights instead of hardcoded ones
+    const storyInsights = this.stories.getStoryInsights(results, scenarioData);
+    this.storytellerUI.showStoryInsights(storyInsights, this.stories.getCurrentChapter());
+    
+    // Show story-driven next action
+    const nextAction = this.stories.getStoryNextAction();
+    this.storytellerUI.showStoryNextAction(nextAction);
+    
+    // Show story elements again after a brief delay
+    setTimeout(() => {
+      this.storytellerUI.showStoryElements();
+    }, 1000);
+    
+    // Scroll to results
+    this.ui.elements.chartArea.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // NEW: Calculate story metrics (PROPER place for calculations)
+  calculateStoryMetrics(results, scenarioData, simulationResult) {
+    const metrics = {};
+    
+    // Calculate when money runs out (for retirement scenarios)
+    if (results && results.length > 0) {
+      let moneyRunsOutYear = null;
+      for (let i = 0; i < results.length; i++) {
+        if (results[i].shortfall > 0) {
+          moneyRunsOutYear = Math.round((i + 1) / 12);
+          break;
+        }
+      }
+      
+      // If no shortfall found, money lasts the full duration
+      if (moneyRunsOutYear === null) {
+        moneyRunsOutYear = Math.round(results.length / 12);
+      }
+      
+      metrics.duration_years = moneyRunsOutYear;
+      metrics.money_runs_out_year = moneyRunsOutYear;
+    }
+    
+    // Calculate monthly expenses
+    if (scenarioData.plan?.monthly_expenses) {
+      metrics.monthly_expenses = scenarioData.plan.monthly_expenses.toLocaleString();
+    }
+    
+    // Calculate withdrawal rate (for retirement scenarios)
+    if (scenarioData.plan?.monthly_expenses && simulationResult?.balanceHistory) {
+      const monthlyExpenses = scenarioData.plan.monthly_expenses;
+      const initialBalance = Object.values(simulationResult.balanceHistory).reduce((total, balances) => {
+        return total + (balances[0] || 0);
+      }, 0);
+      
+      if (initialBalance > 0) {
+        const annualWithdrawal = monthlyExpenses * 12;
+        const withdrawalRate = (annualWithdrawal / initialBalance * 100).toFixed(1);
+        metrics.withdrawal_rate = withdrawalRate;
+      }
+    }
+    
+    // Calculate compound interest metrics (for accumulation scenarios)
+    if (simulationResult?.balanceHistory && scenarioData.deposits) {
+      const balanceHistory = simulationResult.balanceHistory;
+      
+      // Get final balance from the investment portfolio
+      const investmentBalances = balanceHistory['Investment Portfolio'] || [];
+      const finalBalance = investmentBalances[investmentBalances.length - 1] || 0;
+      
+      // Calculate total deposits
+      let totalDeposits = 0;
+      scenarioData.deposits.forEach(deposit => {
+        const months = (deposit.stop_month || results.length) - (deposit.start_month - 1);
+        totalDeposits += deposit.amount * months;
+      });
+      
+      if (finalBalance > 0 && totalDeposits > 0) {
+        const profit = finalBalance - totalDeposits;
+        const multiplier = finalBalance / totalDeposits;
+        
+        metrics.final_balance_formatted = `${Math.round(finalBalance).toLocaleString()}`;
+        metrics.profit_formatted = `${Math.round(profit).toLocaleString()}`;
+        metrics.multiplier_formatted = multiplier.toFixed(1);
+        metrics.total_invested_formatted = `${totalDeposits.toLocaleString()}`;
+      }
+    }
+    
+    return metrics;
+  }
+
+  // EXISTING: Public API - Enhanced with story support
   getScenarios() {
     return this.scenarios.getDiscoveredScenarios();
+  }
+
+  // NEW: Story support in public API
+  getStories() {
+    return this.stories.getDiscoveredStories();
+  }
+
+  getCurrentStoryProgress() {
+    return this.stories.getStoryProgress();
+  }
+
+  isInStoryMode() {
+    return this.stories.isInStoryMode();
   }
 
   getCurrentDiscussion() {
     return this.currentDiscussion;
   }
 
-  refreshScenarios() {
-    return this.loadScenarios();
+  async refreshScenarios() {
+    return await this.loadScenarios();
+  }
+
+  async refreshStories() {
+    return await this.loadStories();
   }
 }
 

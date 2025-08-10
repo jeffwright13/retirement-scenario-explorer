@@ -3,13 +3,19 @@
     "metadata": {
       "title": "My Personal Portfolio: The Baseline (No Inflation)",
       "description": "My actual retirement portfolio with $8,500 monthly expenses - but with 0% inflation to establish the baseline reality",
-      "tags": ["personal", "inflation", "baseline", "real-portfolio"],
+      "tags": [
+        "personal",
+        "inflation",
+        "baseline",
+        "real-portfolio"
+      ],
       "discussion_file": "discussions/personal-portfolio.md"
     },
     "plan": {
       "monthly_expenses": 8500,
       "inflation_schedule": "no_inflation_baseline",
-      "duration_months": 300
+      "duration_months": 300,
+      "stop_on_shortfall": true
     },
     "income": [
       {
@@ -89,18 +95,23 @@
       }
     }
   },
-
   "personal-portfolio-reality": {
     "metadata": {
       "title": "My Personal Portfolio: The Inflation Reality Check",
       "description": "The EXACT same portfolio and expenses, but with realistic 3.5% inflation - this is what made me realize I needed to take control",
-      "tags": ["personal", "inflation", "reality-check", "real-portfolio"],
+      "tags": [
+        "personal",
+        "inflation",
+        "reality-check",
+        "real-portfolio"
+      ],
       "discussion_file": "discussions/personal-portfolio.md"
     },
     "plan": {
       "monthly_expenses": 8500,
       "inflation_schedule": "inflation_3_5_pct",
-      "duration_months": 300
+      "duration_months": 300,
+      "stop_on_shortfall": true
     },
     "income": [
       {

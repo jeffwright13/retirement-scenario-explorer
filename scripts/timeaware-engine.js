@@ -1,14 +1,15 @@
 /**
- * Time-Aware Simulation Engine - Prototype
+ * Time-Aware Simulation Engine - Enhanced with Auto-Stop
  * Supports variable rates over time using rate schedules
+ * NEW: Auto-stops simulation when shortfalls begin (configurable)
  */
 
 import { RateScheduleManager } from './rate-schedules.js';
 import { getMonthlyIncome } from './utils.js';
 
 export function simulateScenarioAdvanced(scenario) {
-  console.log('🚀 Running Advanced Time-Aware Simulation');
-  
+  console.log('🚀 Running Advanced Time-Aware Simulation with Auto-Stop');
+
   // Initialize rate schedule manager
   const rateManager = new RateScheduleManager();
   if (scenario.rate_schedules) {
@@ -17,13 +18,20 @@ export function simulateScenarioAdvanced(scenario) {
 
   // Deep copy assets to avoid mutation
   const assets = JSON.parse(JSON.stringify(scenario.assets));
-  const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) || 
+  const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) ||
                    assets.map((asset, index) => ({ account: asset.name, order: index + 1 }));
   const assetMap = Object.fromEntries(assets.map((a) => [a.name, a]));
   const assetNames = assets.map((a) => a.name);
   const incomeSources = scenario.income || [];
   const depositEvents = scenario.deposits || [];
   const results = [];
+
+  // NEW: Auto-stop configuration
+  const maxDuration = scenario.plan.duration_months;
+  const stopOnShortfall = scenario.plan.stop_on_shortfall !== false; // Default: true
+  const minDuration = Math.min(12, maxDuration); // Minimum 12 months or total duration
+
+  console.log(`Auto-stop enabled: ${stopOnShortfall}, Min duration: ${minDuration}, Max duration: ${maxDuration}`);
 
   // Track balance history
   const balanceHistory = {};
@@ -65,28 +73,29 @@ export function simulateScenarioAdvanced(scenario) {
     }
   }
 
-  // NEW: Get time-aware inflation-adjusted expenses
+  // Get time-aware inflation-adjusted expenses
   function getInflationAdjustedExpenses(month) {
     const baseExpenses = scenario.plan.monthly_expenses;
     const monthlyInflationRate = rateManager.getRate(scenario.plan.inflation_schedule, month) / 12;
     const totalMonths = month;
     return baseExpenses * Math.pow(1 + monthlyInflationRate, totalMonths);
   }
-  
-  // NEW: Get time-aware asset returns
-  // REMOVE the entire if/else and keep only the rate schedule version:
+
+  // Get time-aware asset returns
   function getAssetReturns(asset, month) {
     return rateManager.getRate(asset.return_schedule, month) / 12;
   }
-  
-  // ---- Main simulation loop ----
-  for (let month = 0; month < scenario.plan.duration_months; month++) {
+
+  // ---- Main simulation loop with AUTO-STOP ----
+  let actualDuration = maxDuration; // Track actual simulation length
+
+  for (let month = 0; month < maxDuration; month++) {
     applyDeposits(month);
 
-    // Get income (same as before)
+    // Get income
     const income = getMonthlyIncome(incomeSources, month + 1);
-    
-    // NEW: Time-aware inflation-adjusted expenses
+
+    // Time-aware inflation-adjusted expenses
     const monthlyExpenses = getInflationAdjustedExpenses(month);
     const shortfall = monthlyExpenses - income;
     let remainingShortfall = shortfall;
@@ -99,7 +108,7 @@ export function simulateScenarioAdvanced(scenario) {
       shortfall: 0,
     };
 
-    // Withdraw to cover shortfall using draw order (same logic)
+    // Withdraw to cover shortfall using draw order
     for (const entry of drawOrder) {
       const asset = assetMap[entry.account];
       if (!asset || asset.balance <= 0) continue;
@@ -121,12 +130,12 @@ export function simulateScenarioAdvanced(scenario) {
       log.shortfall = remainingShortfall;
     }
 
-    // NEW: Time-aware asset growth
+    // Time-aware asset growth
     for (const asset of Object.values(assetMap)) {
       if (asset.compounding === "monthly") {
         const monthlyReturn = getAssetReturns(asset, month);
         asset.balance *= (1 + monthlyReturn);
-        
+
         // Debug logging for first few months
         if (month < 3) {
           console.log(`Month ${month}: ${asset.name} return = ${(monthlyReturn * 12 * 100).toFixed(2)}% annually`);
@@ -140,13 +149,20 @@ export function simulateScenarioAdvanced(scenario) {
     for (const asset of assets) {
       balanceHistory[asset.name].push(asset.balance);
     }
+
+    // NEW: Auto-stop logic
+    if (stopOnShortfall && month >= minDuration && remainingShortfall > 0) {
+      actualDuration = month + 1;
+      console.log(`🛑 Auto-stopping simulation at month ${actualDuration} due to shortfall of $${remainingShortfall.toFixed(2)}`);
+      break;
+    }
   }
 
-  // Build CSV (same as before)
+  // Build CSV using actual duration
   const realAssetNames = assets.filter(a => !a.dynamic || a.balance > 0).map(a => a.name);
   csvRows.push(["Month", "Date", "Income", "Expenses", "Shortfall", ...realAssetNames]);
 
-  for (let m = 0; m < scenario.plan.duration_months; m++) {
+  for (let m = 0; m < actualDuration; m++) {
     const now = new Date();
     const date = new Date(now.getFullYear(), now.getMonth() + m);
     const r = results[m];
@@ -168,13 +184,14 @@ export function simulateScenarioAdvanced(scenario) {
 
   const csvText = csvRows.map(r => r.join(",")).join("\n");
 
-  console.log('✅ Advanced simulation completed');
+  console.log(`✅ Advanced simulation completed - Duration: ${actualDuration} months (${stopOnShortfall ? 'auto-stop enabled' : 'fixed duration'})`);
 
   return {
     results,
     balanceHistory,
     csvText,
     windfallUsedAtMonth: scenario._windfallUsedAtMonth,
+    actualDuration, // NEW: Return actual simulation length
     rateManager // Return for debugging/inspection
   };
 }

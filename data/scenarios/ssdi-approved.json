@@ -14,7 +14,8 @@
     "plan": {
       "monthly_expenses": 6500,
       "inflation_schedule": "no_inflation",
-      "duration_months": 300
+      "duration_months": 300,
+      "stop_on_shortfall": true
     },
     "income": [
       {

@@ -448,34 +448,34 @@ body {
   body {
     padding: 10px;
   }
-  
+
   .header {
     padding: 30px 20px;
   }
-  
+
   .header h1 {
     font-size: 2rem;
   }
-  
+
   .getting-started-content {
     padding: 0 20px 20px 20px;
   }
-  
+
   .main-content {
     padding: 20px;
   }
-  
+
   .advanced-button-group {
     flex-direction: column;
   }
-  
+
   .scenario-insights,
   .key-assumptions,
   .next-scenario-suggestion {
     margin: 15px -10px;
     padding: 15px;
   }
-  
+
   .button-group {
     flex-direction: column;
     align-items: stretch;
@@ -572,7 +572,7 @@ body {
     margin: 20px -10px; /* Extend to edges on mobile */
     border-radius: 0;
   }
-  
+
   #chart-area.has-results {
     padding: 10px;
   }
@@ -624,8 +624,746 @@ body {
     margin-left: -10px !important;
     margin-right: -10px !important;
   }
-  
+
   #chart-area.has-results {
     padding: 10px !important;
+  }
+}
+
+/*
+ * Storyteller Mode CSS
+ * Add these styles to your existing styles/main.css file
+ */
+
+/* Story Mode Toggle */
+.story-mode-toggle {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.btn-story-toggle {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.btn-story-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+
+.btn-story-toggle:active {
+  transform: translateY(0);
+}
+
+/* Story Panel */
+.story-panel {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.story-panel.story-active {
+  animation: storyPanelSlideIn 0.5s ease-out;
+}
+
+@keyframes storyPanelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.story-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.story-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.btn-exit-story {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.btn-exit-story:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Story Selector */
+.story-selector-section {
+  margin-bottom: 1.5rem;
+}
+
+.story-selector-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.story-dropdown {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+}
+
+.story-dropdown option {
+  background: #2d3748;
+  color: white;
+}
+
+/* Progress Bar */
+.story-progress-section {
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  transition: width 0.5s ease;
+  border-radius: 4px;
+  width: 0%;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Story Content */
+.story-content {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chapter-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.chapter-title {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #fbbf24;
+}
+
+.story-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border-left: 4px solid #fbbf24;
+}
+
+.story-section h5 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  color: #fbbf24;
+}
+
+.story-section p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.takeaway-section {
+  border-left-color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.takeaway-section h5 {
+  color: #4ade80;
+}
+
+.key-takeaway-text {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+/* Story Navigation */
+.story-navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.btn-story-nav {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.btn-story-nav:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-story-nav:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-story-nav.btn-complete {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  border-color: #22c55e;
+}
+
+.btn-story-nav.btn-complete:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+/* Story Mode Body Class */
+body.story-mode .getting-started-panel {
+  display: none !important;
+}
+
+body.story-mode .story-panel {
+  display: block !important;
+}
+
+/* Story-specific insights styling */
+.simulation-insights.story-insights {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.simulation-insights.story-insights h3 {
+  color: #fbbf24;
+  margin-top: 0;
+}
+
+.simulation-insights.story-insights ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.simulation-insights.story-insights li {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+/* Story action styling */
+.next-scenario-suggestion.story-action {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.next-scenario-suggestion.story-action h4 {
+  color: #fbbf24;
+  margin-top: 0;
+}
+
+.next-scenario-suggestion.story-action button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.next-scenario-suggestion.story-action button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Hide story elements during simulation */
+.story-content.hidden-during-simulation {
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+/* Loading states */
+.story-panel.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.story-panel.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+/* Responsive adjustments for story mode */
+@media (max-width: 768px) {
+  .story-navigation {
+    flex-direction: column;
+  }
+  
+  .btn-story-nav {
+    flex: none;
+  }
+  
+  .progress-bar-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .progress-text {
+    align-self: center;
+  }
+  
+  .story-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+
+/* Animation for story transitions */
+.story-content {
+  animation: fadeInStory 0.5s ease-in;
+}
+
+@keyframes fadeInStory {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/*
+ * Storyteller Mode CSS
+ * Add these styles to your existing styles/main.css file
+ */
+
+/* Story Mode Toggle */
+.story-mode-toggle {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.btn-story-toggle {
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.btn-story-toggle:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(108, 92, 231, 0.3);
+}
+
+.btn-story-toggle:active {
+  transform: translateY(0);
+}
+
+/* Story Panel */
+.story-panel {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.story-panel * {
+  color: white !important; /* Force all text in story panel to be white */
+}
+
+.story-panel .story-dropdown {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.story-panel .story-dropdown option {
+  background: #2d3748;
+  color: white !important;
+}
+
+.story-panel.story-active {
+  animation: storyPanelSlideIn 0.5s ease-out;
+}
+
+@keyframes storyPanelSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.story-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.story-header h3 {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.btn-exit-story {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.9rem;
+}
+
+.btn-exit-story:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Story Selector */
+.story-selector-section {
+  margin-bottom: 1.5rem;
+}
+
+.story-selector-section label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 1rem;
+}
+
+.story-dropdown {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+}
+
+.story-dropdown option {
+  background: #2d3748;
+  color: white;
+}
+
+/* Progress Bar */
+.story-progress-section {
+  margin-bottom: 1.5rem;
+}
+
+.progress-bar-container {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.progress-bar {
+  flex: 1;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4ade80, #22c55e);
+  transition: width 0.5s ease;
+  border-radius: 4px;
+  width: 0%;
+}
+
+.progress-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+/* Story Content */
+.story-content {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chapter-header {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.chapter-title {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #fbbf24;
+}
+
+.story-section {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  border-left: 4px solid #fbbf24;
+}
+
+.story-section h5 {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+  color: #fbbf24;
+}
+
+.story-section p {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.takeaway-section {
+  border-left-color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+}
+
+.takeaway-section h5 {
+  color: #4ade80;
+}
+
+.key-takeaway-text {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+/* Story Navigation */
+.story-navigation {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.btn-story-nav {
+  flex: 1;
+  padding: 0.75rem 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.btn-story-nav:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.btn-story-nav:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-story-nav.btn-complete {
+  background: linear-gradient(135deg, #4ade80, #22c55e);
+  border-color: #22c55e;
+}
+
+.btn-story-nav.btn-complete:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+}
+
+/* Story Mode Body Class */
+body.story-mode .getting-started-panel {
+  display: none !important;
+}
+
+body.story-mode .story-panel {
+  display: block !important;
+}
+
+/* Story-specific insights styling */
+.simulation-insights.story-insights {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.simulation-insights.story-insights h3 {
+  color: #fbbf24;
+  margin-top: 0;
+}
+
+.simulation-insights.story-insights ul {
+  margin: 0;
+  padding-left: 1.5rem;
+}
+
+.simulation-insights.story-insights li {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
+/* Story action styling */
+.next-scenario-suggestion.story-action {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.next-scenario-suggestion.story-action h4 {
+  color: #fbbf24;
+  margin-top: 0;
+}
+
+.next-scenario-suggestion.story-action button {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+}
+
+.next-scenario-suggestion.story-action button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Hide story elements during simulation */
+.story-content.hidden-during-simulation {
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
+}
+
+/* Loading states */
+.story-panel.loading {
+  position: relative;
+  pointer-events: none;
+}
+
+.story-panel.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+}
+
+/* Responsive adjustments for story mode */
+@media (max-width: 768px) {
+  .story-navigation {
+    flex-direction: column;
+  }
+
+  .btn-story-nav {
+    flex: none;
+  }
+
+  .progress-bar-container {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .progress-text {
+    align-self: center;
+  }
+
+  .story-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}
+
+/* Animation for story transitions */
+.story-content {
+  animation: fadeInStory 0.5s ease-in;
+}
+
+@keyframes fadeInStory {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

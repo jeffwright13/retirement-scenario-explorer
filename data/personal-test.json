@@ -14,7 +14,8 @@
     "plan": {
       "monthly_expenses": 5200,
       "inflation_schedule": "inflation_3pct",
-      "duration_months": 360
+      "duration_months": 360,
+      "stop_on_shortfall": true
     },
     "income": [
       {

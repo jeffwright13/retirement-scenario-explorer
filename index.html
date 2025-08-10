@@ -13,9 +13,79 @@
     <div class="header">
       <h1>💰 Retirement Scenario Explorer</h1>
       <p>Model your financial future with interactive scenarios</p>
+      
+      <!-- NEW: Story Mode Toggle -->
+      <div class="story-mode-toggle">
+        <button id="story-mode-toggle" class="btn-story-toggle">
+          📚 Story Mode
+        </button>
+      </div>
     </div>
 
-    <!-- Getting Started Panel -->
+    <!-- NEW: Story Panel (hidden by default) -->
+    <div class="story-panel" id="story-panel" style="display: none;">
+      <div class="story-header">
+        <h3>📚 Storyteller Mode</h3>
+        <button id="story-exit-btn" class="btn-exit-story">Exit Story</button>
+      </div>
+      
+      <!-- Story Selection -->
+      <div class="story-selector-section">
+        <label for="story-selector"><strong>Choose Your Journey:</strong></label>
+        <select id="story-selector" class="story-dropdown">
+          <option value="">Choose a Story...</option>
+          <!-- Options populated dynamically -->
+        </select>
+      </div>
+
+      <!-- Story Progress -->
+      <div class="story-progress-section" id="story-progress" style="display: none;">
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="chapter-progress"></div>
+          </div>
+          <span class="progress-text" id="chapter-counter">Chapter 1 of 3</span>
+        </div>
+      </div>
+
+      <!-- Story Content -->
+      <div class="story-content" id="story-narrative" style="display: none;">
+        <!-- Chapter Title -->
+        <div class="chapter-header">
+          <h4 class="chapter-title" id="story-chapter-title">Chapter Title</h4>
+        </div>
+
+        <!-- Introduction -->
+        <div class="story-section intro-section">
+          <h5>🎯 What We're Exploring</h5>
+          <p id="story-introduction">Chapter introduction text...</p>
+        </div>
+
+        <!-- Setup -->
+        <div class="story-section setup-section">
+          <h5>⚙️ The Scenario</h5>
+          <p id="story-setup">Scenario setup explanation...</p>
+        </div>
+
+        <!-- Key Takeaway (shown after simulation) -->
+        <div class="story-section takeaway-section" id="story-takeaway-section" style="display: none;">
+          <h5>💡 Key Takeaway</h5>
+          <p id="story-key-takeaway" class="key-takeaway-text">Main lesson from this chapter...</p>
+        </div>
+      </div>
+
+      <!-- Story Navigation -->
+      <div class="story-navigation" id="story-navigation" style="display: none;">
+        <button id="story-prev-btn" class="btn-story-nav btn-prev" disabled>
+          ← Previous
+        </button>
+        <button id="story-next-btn" class="btn-story-nav btn-next">
+          Next Chapter →
+        </button>
+      </div>
+    </div>
+
+    <!-- EXISTING: Getting Started Panel -->
     <div class="getting-started-panel" id="getting-started-panel">
       <div class="getting-started-header" id="getting-started-header">
         <h3>📊 Scenario Explorer</h3>
@@ -33,7 +103,7 @@
           <h4>📋 Scenario Details:</h4>
           <p id="scenario-description"></p>
           
-          <!-- NEW: Key Assumptions Section -->
+          <!-- Key Assumptions Section -->
           <div class="key-assumptions" id="key-assumptions" style="display: none;">
             <h4>🔑 Key Assumptions</h4>
             <ul id="key-assumptions-list">
@@ -61,10 +131,10 @@
         </div>
       </div>
 
-      <!-- Chart Area - NOW HIDDEN BY DEFAULT -->
+      <!-- Chart Area - HIDDEN BY DEFAULT -->
       <div id="chart-area"></div>
 
-      <!-- NEW: Simulation Insights (appears after simulation) -->
+      <!-- Simulation Insights (appears after simulation) -->
       <div class="scenario-insights" id="simulation-insights" style="display: none;">
         <h3>💡 Key Insights</h3>
         <ul id="insights-list">
@@ -72,7 +142,7 @@
         </ul>
       </div>
 
-      <!-- NEW: Next Scenario Suggestion (appears after simulation) -->
+      <!-- Next Scenario Suggestion (appears after simulation) -->
       <div class="next-scenario-suggestion" id="next-scenario-suggestion" style="display: none;">
         <h4>📈 Recommended Next Step</h4>
         <p id="next-scenario-description"></p>
@@ -81,7 +151,7 @@
         </button>
       </div>
 
-      <!-- MOVED: Advanced Options (was scattered before) -->
+      <!-- Advanced Options -->
       <details class="advanced-options" id="advanced-options">
         <summary>Advanced Options</summary>
         <div class="advanced-options-content">
@@ -94,7 +164,7 @@
         </div>
       </details>
 
-      <!-- JSON Section (now part of advanced) -->
+      <!-- JSON Section -->
       <div class="json-section">
         <div id="json-container" class="collapsed">
           <div class="json-header">
@@ -107,7 +177,7 @@
         </div>
       </div>
 
-      <!-- CSV Section (now part of advanced) -->
+      <!-- CSV Section -->
       <div class="csv-section collapsed" id="csv-section">
         <div class="csv-header">
           <h3>📊 Detailed Results (CSV)</h3>

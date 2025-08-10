@@ -1,0 +1,72 @@
+{
+  "compound-interest-magic": {
+    "metadata": {
+      "title": "The Compound Interest Trap",
+      "description": "Why starting 10 years late costs you hundreds of thousands of dollars - even if you save twice as much",
+      "author": "Retirement Scenario Explorer",
+      "estimated_duration": "12 minutes",
+      "difficulty": "beginner",
+      "tags": ["compound-interest", "beginner", "timing"],
+      "version": "1.0"
+    },
+    "chapters": [
+      {
+        "title": "The Early Bird: Start at 25",
+        "scenario_key": "compound-early-start",
+        "narrative": {
+          "introduction": "Meet Sarah. She starts saving $400/month at age 25. Nothing fancy - just consistent investing in index funds returning 7% annually.",
+          "setup": "Sarah saves $400/month ($4,800/year) starting at 25. She does this for 40 years until retirement at 65. Total invested: $192,000 of her own money.",
+          "insights": [
+            "Sarah invests $400/month for 40 years = $192,000 total",
+            "With 7% annual returns, her money grows to ${{final_balance_formatted}}",
+            "That's ${{profit_formatted}} in compound interest gains",
+            "Her money multiplied by {{multiplier_formatted}}x over 40 years",
+            "Starting early gave her 40 years of exponential growth"
+          ],
+          "key_takeaway": "Sarah's secret weapon isn't how much she saves - it's TIME. 40 years of compound growth turns $192K into over $1 million.",
+          "transition": "Now let's see what happens if you wait just 10 years..."
+        }
+      },
+      {
+        "title": "The Procrastinator: Start at 35",
+        "scenario_key": "compound-late-start",
+        "narrative": {
+          "introduction": "Meet Mike. He waits until 35 to start saving. To 'catch up,' he saves $800/month - DOUBLE what Sarah saves. Surely he'll end up with more money, right?",
+          "setup": "Mike saves $800/month ($9,600/year) starting at 35. Same 7% returns, but only 30 years until retirement. Total invested: $288,000 of his own money.",
+          "insights": [
+            "Mike invests $800/month for 30 years = $288,000 total",
+            "With 7% annual returns, his money grows to ${{final_balance_formatted}}",
+            "That's ${{profit_formatted}} in compound interest gains",
+            "Mike invested $96,000 MORE than Sarah but ends up with LESS money",
+            "Those 10 lost years of compound growth are impossible to recover"
+          ],
+          "key_takeaway": "Mike saved 50% more money than Sarah but ended up with less. You cannot out-contribute the power of starting early.",
+          "transition": "But wait - what if someone waits even longer and tries to panic-save their way out?"
+        }
+      },
+      {
+        "title": "The Panic Saver: Start at 45",
+        "scenario_key": "compound-panic-start",
+        "narrative": {
+          "introduction": "Meet Jessica. She waits until 45, then panics and saves $1,500/month - nearly 4x what Sarah saves. Can throwing money at the problem work?",
+          "setup": "Jessica saves $1,500/month ($18,000/year) starting at 45. Same 7% returns, but only 20 years until retirement. Total invested: $360,000 of her own money.",
+          "insights": [
+            "Jessica invests $1,500/month for 20 years = $360,000 total",
+            "With 7% returns, her money grows to ${{final_balance_formatted}}",
+            "That's ${{profit_formatted}} in compound interest gains",
+            "Jessica invested $168,000 MORE than Sarah but still ends up with less",
+            "Even tripling the savings rate couldn't overcome the lost time"
+          ],
+          "key_takeaway": "The math is brutal: Jessica saved $360K vs Sarah's $192K, but compound interest gave Sarah the win. Time beats money every time.",
+          "completion_message": "This is why Einstein allegedly called compound interest 'the eighth wonder of the world.' Those who understand it, earn it. Those who don't, pay it. Start now, start small, but START."
+        }
+      }
+    ],
+    "story_settings": {
+      "auto_advance": false,
+      "show_chapter_progress": true,
+      "allow_chapter_jumping": true,
+      "reset_ui_between_chapters": true
+    }
+  }
+}

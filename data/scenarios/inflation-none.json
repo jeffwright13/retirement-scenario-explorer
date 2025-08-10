@@ -3,13 +3,18 @@
     "metadata": {
       "title": "No Inflation (Unrealistic Baseline)",
       "description": "Same scenario but no inflation - compare with 3% to see devastating impact",
-      "tags": ["inflation", "baseline", "comparison"],
+      "tags": [
+        "inflation",
+        "baseline",
+        "comparison"
+      ],
       "discussion_file": "discussions/inflation-basics.md"
     },
     "plan": {
       "monthly_expenses": 5200,
       "inflation_schedule": "no_inflation",
-      "duration_months": 300
+      "duration_months": 300,
+      "stop_on_shortfall": true
     },
     "assets": [
       {
@@ -21,7 +26,10 @@
       }
     ],
     "order": [
-      {"account": "Savings", "order": 1}
+      {
+        "account": "Savings",
+        "order": 1
+      }
     ],
     "rate_schedules": {
       "no_inflation": {
