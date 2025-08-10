@@ -18,6 +18,7 @@ class RetirementScenarioApp {
     this.initialize();
   }
 
+  // UPDATED: Initialize with Phase 1 enhancements
   async initialize() {
     console.log('🚀 Initializing Retirement Scenario Explorer...');
     
@@ -53,12 +54,13 @@ class RetirementScenarioApp {
     }
   }
 
-  // FIXED VERSION - Handles scenario selection properly
+  // UPDATED: Enhanced scenario selection with Phase 1 UX improvements
   async handleScenarioSelection(scenarioKey) {
     if (!scenarioKey) {
       // Clear selection
       this.ui.hideScenarioPreview();
       this.ui.clearJsonEditor();
+      this.ui.hideSimulationResults(); // NEW: Hide previous results
       this.currentDiscussion = null;
       return;
     }
@@ -73,6 +75,9 @@ class RetirementScenarioApp {
       console.log(`Loading scenario: ${scenarioKey}`);
       console.log('Raw scenario data:', scenario);
       
+      // Hide previous simulation results
+      this.ui.hideSimulationResults();
+      
       // Get simulation data with error checking
       const simulationData = this.scenarios.getSimulationData(scenarioKey);
       console.log('Simulation data:', simulationData);
@@ -86,7 +91,7 @@ class RetirementScenarioApp {
         throw new Error('Scenario missing plan section');
       }
       
-      // Show preview with simulation data
+      // Use enhanced preview with key assumptions
       this.ui.showScenarioPreview(scenario.metadata, simulationData);
       
       // Load JSON into editor
@@ -118,6 +123,7 @@ class RetirementScenarioApp {
     }, 100);
   }
 
+  // UPDATED: Enhanced simulation execution with Phase 1 insights
   executeSimulation() {
     try {
       // Get scenario data from JSON editor
@@ -165,8 +171,8 @@ class RetirementScenarioApp {
         { windfallUsedAtMonth }
       );
 
-      // Update UI post-simulation
-      this.ui.handleSimulationComplete();
+      // UPDATED: Use enhanced post-simulation UI updates with insights
+      this.ui.handleSimulationComplete(scenarioData, results);
 
       console.log('✅ Simulation completed successfully');
 

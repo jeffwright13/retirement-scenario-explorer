@@ -10,32 +10,42 @@ export class UIManager {
     this.setupEventListeners();
   }
 
-  // Cache all DOM elements for performance
+  // Cache all DOM elements for performance - ENHANCED with Phase 1 elements
   cacheElements() {
     return {
-      // Panels
+      // Existing panels
       gettingStartedPanel: document.getElementById('getting-started-panel'),
       gettingStartedHeader: document.getElementById('getting-started-header'),
       
-      // Scenario selection
+      // Existing scenario selection
       scenarioDropdown: document.getElementById('scenario-dropdown'),
       scenarioPreview: document.getElementById('scenario-preview'),
       scenarioDescription: document.getElementById('scenario-description'),
       scenarioJsonPreview: document.getElementById('scenario-json-preview'),
       
-      // Controls
+      // Existing controls
       runBtn: document.getElementById('run-btn'),
       toggleJsonBtn: document.getElementById('toggle-json-btn'),
       toggleCsvBtn: document.getElementById('toggle-csv-btn'),
       selectJsonBtn: document.getElementById('select-json-btn'),
       selectCsvBtn: document.getElementById('select-csv-btn'),
       
-      // Content areas
+      // Existing content areas
       jsonContainer: document.getElementById('json-container'),
       jsonInput: document.getElementById('json-input'),
       csvSection: document.getElementById('csv-section'),
       csvContainer: document.getElementById('csv-container'),
-      chartArea: document.getElementById('chart-area')
+      chartArea: document.getElementById('chart-area'),
+      
+      // NEW Phase 1 elements
+      keyAssumptions: document.getElementById('key-assumptions'),
+      keyAssumptionsList: document.getElementById('key-assumptions-list'),
+      simulationInsights: document.getElementById('simulation-insights'),
+      insightsList: document.getElementById('insights-list'),
+      nextScenarioSuggestion: document.getElementById('next-scenario-suggestion'),
+      nextScenarioDescription: document.getElementById('next-scenario-description'),
+      loadNextScenarioBtn: document.getElementById('load-next-scenario'),
+      shareScenarioBtn: document.getElementById('share-scenario-btn')
     };
   }
 
@@ -148,33 +158,34 @@ export class UIManager {
     }
   }
 
+  // ENHANCED: Scenario preview with key assumptions
   showScenarioPreview(metadata, simulationData) {
-    console.log('=== showScenarioPreview ===');
-    console.log('metadata:', metadata);
-    console.log('simulationData:', simulationData);
-  
+    console.log('=== showScenarioPreview Enhanced ===');
+    
     try {
       this.elements.scenarioPreview.style.display = 'block';
-    
+      
       // Set description
       if (metadata && metadata.description) {
         this.elements.scenarioDescription.textContent = metadata.description;
       } else {
         this.elements.scenarioDescription.textContent = 'No description available';
       }
-    
-      // Handle simulation data
+      
+      // Show key assumptions
+      this.showKeyAssumptions(simulationData);
+      
+      // Handle JSON preview
       if (!simulationData) {
         this.elements.scenarioJsonPreview.textContent = 'No simulation data available';
         return;
       }
-    
-      // Convert to JSON
+      
       const jsonText = JSON.stringify(simulationData, null, 2);
       this.elements.scenarioJsonPreview.textContent = jsonText;
-    
-      console.log('✅ Preview updated successfully');
-    
+      
+      console.log('✅ Enhanced preview updated successfully');
+      
     } catch (error) {
       console.error('Error in showScenarioPreview:', error);
       if (this.elements.scenarioJsonPreview) {
@@ -183,10 +194,65 @@ export class UIManager {
     }
   }
 
+  // NEW: Show key assumptions in a user-friendly way
+  showKeyAssumptions(simulationData) {
+    if (!simulationData || !this.elements.keyAssumptions) return;
+    
+    const assumptions = [];
+    
+    // Extract key assumptions from scenario data
+    if (simulationData.plan) {
+      assumptions.push(`Monthly expenses: $${simulationData.plan.monthly_expenses?.toLocaleString() || 'Not specified'}`);
+      assumptions.push(`Duration: ${Math.round((simulationData.plan.duration_months || 0) / 12)} years`);
+      
+      // Get inflation info from rate schedules
+      const inflationSchedule = simulationData.plan.inflation_schedule;
+      if (inflationSchedule && simulationData.rate_schedules && simulationData.rate_schedules[inflationSchedule]) {
+        const inflationRate = simulationData.rate_schedules[inflationSchedule];
+        if (inflationRate.type === 'fixed') {
+          const rate = (inflationRate.rate * 100).toFixed(1);
+          assumptions.push(`Inflation: ${rate}% annually${rate === '0.0' ? ' (unrealistic baseline)' : ''}`);
+        } else {
+          assumptions.push(`Inflation: Variable (${inflationRate.type} schedule)`);
+        }
+      }
+    }
+    
+    // Extract asset return assumptions
+    if (simulationData.assets && simulationData.rate_schedules) {
+      simulationData.assets.forEach(asset => {
+        const returnSchedule = asset.return_schedule;
+        if (returnSchedule && simulationData.rate_schedules[returnSchedule]) {
+          const rateInfo = simulationData.rate_schedules[returnSchedule];
+          if (rateInfo.type === 'fixed') {
+            const rate = (rateInfo.rate * 100).toFixed(1);
+            assumptions.push(`${asset.name}: ${rate}% annual return`);
+          } else {
+            assumptions.push(`${asset.name}: Variable returns (${rateInfo.type})`);
+          }
+        }
+      });
+    }
+    
+    // Populate the assumptions list
+    this.elements.keyAssumptionsList.innerHTML = '';
+    assumptions.forEach(assumption => {
+      const li = document.createElement('li');
+      li.textContent = assumption;
+      this.elements.keyAssumptionsList.appendChild(li);
+    });
+    
+    // Show the assumptions section
+    this.elements.keyAssumptions.style.display = assumptions.length > 0 ? 'block' : 'none';
+  }
+
   hideScenarioPreview() {
     this.elements.scenarioPreview.style.display = 'none';
     this.elements.scenarioDescription.textContent = '';
     this.elements.scenarioJsonPreview.textContent = '';
+    if (this.elements.keyAssumptions) {
+      this.elements.keyAssumptions.style.display = 'none';
+    }
   }
 
   // Run button state management
@@ -202,11 +268,177 @@ export class UIManager {
     }
   }
 
-  // Post-simulation UI updates
-  handleSimulationComplete() {
+  // NEW: Show chart area with results class
+  showChartArea() {
+    const chartArea = document.getElementById('chart-area');
+    if (chartArea) {
+      chartArea.classList.add('has-results');
+      chartArea.style.display = 'block';
+    }
+  }
+
+  // NEW: Show simulation insights after results
+  showSimulationInsights(results, scenarioData) {
+    if (!this.elements.simulationInsights || !results || results.length === 0) return;
+    
+    const insights = this.generateInsights(results, scenarioData);
+    
+    // Populate insights list
+    this.elements.insightsList.innerHTML = '';
+    insights.forEach(insight => {
+      const li = document.createElement('li');
+      li.textContent = insight;
+      this.elements.insightsList.appendChild(li);
+    });
+    
+    // Show insights section
+    this.elements.simulationInsights.style.display = 'block';
+  }
+
+  // NEW: Generate contextual insights based on results
+  generateInsights(results, scenarioData) {
+    const insights = [];
+    
+    // Find when money runs out
+    const lastResult = results[results.length - 1];
+    const balanceHistory = window._scenarioResult?.balanceHistory || {};
+    
+    // Check if any assets have money left
+    const totalFinalBalance = Object.values(balanceHistory).reduce((total, balances) => {
+      return total + (balances[balances.length - 1] || 0);
+    }, 0);
+    
+    if (totalFinalBalance < 1000) {
+      // Find approximately when money ran out
+      let monthRunOut = results.length;
+      for (let i = 0; i < results.length; i++) {
+        const monthTotal = Object.values(balanceHistory).reduce((total, balances) => {
+          return total + (balances[i] || 0);
+        }, 0);
+        if (monthTotal < 1000) {
+          monthRunOut = i + 1;
+          break;
+        }
+      }
+      const yearRunOut = Math.round(monthRunOut / 12);
+      insights.push(`Your money runs out around month ${monthRunOut} (year ${yearRunOut})`);
+    } else {
+      insights.push(`Your money lasts the full ${Math.round(results.length / 12)} years with $${Math.round(totalFinalBalance).toLocaleString()} remaining`);
+    }
+    
+    // Inflation insights
+    const title = scenarioData.title || '';
+    if (title.includes('No Inflation')) {
+      insights.push('This assumes 0% inflation, which never happens in reality');
+      insights.push('Even this unrealistic scenario shows the challenge of retirement funding');
+    } else if (title.includes('3%')) {
+      insights.push('3% inflation is the historical average - your expenses nearly double in 20 years');
+      insights.push('Notice how much earlier your money runs out compared to 0% inflation');
+    } else if (title.includes('8%')) {
+      insights.push('8% inflation occurred in the 1970s - expenses quadruple in 18 years');
+      insights.push('This shows why inflation is called the "silent killer" of retirement');
+    }
+    
+    // Withdrawal rate insights
+    const monthlyExpenses = scenarioData.plan?.monthly_expenses || 0;
+    const initialBalance = Object.values(balanceHistory).reduce((total, balances) => {
+      return total + (balances[0] || 0);
+    }, 0);
+    
+    if (monthlyExpenses && initialBalance) {
+      const annualWithdrawal = monthlyExpenses * 12;
+      const withdrawalRate = (annualWithdrawal / initialBalance * 100).toFixed(1);
+      insights.push(`Your initial withdrawal rate is ${withdrawalRate}% annually (4% rule suggests you need much more money)`);
+    }
+    
+    return insights;
+  }
+
+  // NEW: Show next scenario suggestion
+  showNextScenarioSuggestion(currentScenarioTitle) {
+    if (!this.elements.nextScenarioSuggestion) return;
+    
+    const suggestion = this.getNextScenarioSuggestion(currentScenarioTitle);
+    
+    if (suggestion) {
+      this.elements.nextScenarioDescription.textContent = suggestion.description;
+      this.elements.loadNextScenarioBtn.textContent = suggestion.buttonText;
+      this.elements.loadNextScenarioBtn.onclick = () => {
+        // Trigger scenario change
+        this.elements.scenarioDropdown.value = suggestion.scenarioKey;
+        this.elements.scenarioDropdown.dispatchEvent(new Event('change'));
+      };
+      
+      this.elements.nextScenarioSuggestion.style.display = 'block';
+    }
+  }
+
+  // NEW: Get next scenario recommendation based on learning progression
+  getNextScenarioSuggestion(currentTitle) {
+    const suggestions = {
+      'No Inflation (Unrealistic Baseline)': {
+        scenarioKey: 'inflation-3pct',
+        description: 'See how realistic 3% inflation affects this same scenario',
+        buttonText: 'Load "3% Annual Inflation Impact"'
+      },
+      '3% Annual Inflation Impact': {
+        scenarioKey: 'inflation-70s',
+        description: 'Experience the devastating impact of 1970s-level inflation',
+        buttonText: 'Load "8% Annual Inflation Impact"'
+      },
+      '8% Annual Inflation Impact': {
+        scenarioKey: 'personal-test',
+        description: 'See a realistic multi-asset portfolio with Social Security',
+        buttonText: 'Load "Personal Portfolio" Example'
+      },
+      'Personal Portfolio: Inflation Reality Check': {
+        scenarioKey: 'sequence-crash-2008',
+        description: 'Learn about the devastating impact of sequence of returns risk',
+        buttonText: 'Load "2008 Crash Scenario"'
+      },
+      'Sequence of Returns: 2008 Crash Scenario': {
+        scenarioKey: 'ssdi-approved',
+        description: 'See how guaranteed income changes everything',
+        buttonText: 'Load "SSDI Approved" Scenario'
+      }
+    };
+    
+    return suggestions[currentTitle] || null;
+  }
+
+  // ENHANCED: Post-simulation UI updates with Phase 1 features
+  handleSimulationComplete(scenarioData, results) {
+    // Do existing behavior
     this.collapseGettingStartedPanel();
     this.collapseJsonEditor();
+    
+    // Show chart area
+    this.showChartArea();
+    
+    // Show insights
+    this.showSimulationInsights(results, scenarioData);
+    
+    // Show next scenario suggestion  
+    this.showNextScenarioSuggestion(scenarioData.title);
+    
+    // Scroll to results
     this.elements.chartArea.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // NEW: Hide insights and suggestions when new scenario selected
+  hideSimulationResults() {
+    if (this.elements.simulationInsights) {
+      this.elements.simulationInsights.style.display = 'none';
+    }
+    if (this.elements.nextScenarioSuggestion) {
+      this.elements.nextScenarioSuggestion.style.display = 'none';
+    }
+    
+    const chartArea = document.getElementById('chart-area');
+    if (chartArea) {
+      chartArea.classList.remove('has-results');
+      chartArea.style.display = 'none';
+    }
   }
 
   // Text selection utility
@@ -243,4 +475,4 @@ export class UIManager {
   showWarning(message) {
     console.warn(`Warning: ${message}`);
   }
-} 
+}

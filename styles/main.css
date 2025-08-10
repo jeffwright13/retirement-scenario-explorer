@@ -1,15 +1,11 @@
-/* Modern, clean styling with performance improvements */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/* ===== EXISTING BASE STYLES ===== */
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  margin: 0;
+  padding: 20px;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
-  padding: 20px;
   color: #333;
 }
 
@@ -18,59 +14,47 @@ body {
   margin: 0 auto;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
-/* Header */
 .header {
-  background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
   color: white;
-  padding: 30px;
+  padding: 40px;
   text-align: center;
 }
 
 .header h1 {
+  margin: 0 0 10px 0;
   font-size: 2.5rem;
-  margin-bottom: 10px;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .header p {
+  margin: 0;
   font-size: 1.1rem;
   opacity: 0.9;
 }
 
-/* Getting Started Panel - collapsible */
 .getting-started-panel {
   background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
   color: white;
-  padding: 25px 30px;
-  border-bottom: none;
-  transition: max-height 0.3s ease, padding 0.3s ease;
-  overflow: hidden;
-}
-
-.getting-started-panel.collapsed {
-  max-height: 60px;
-  padding: 15px 30px;
-}
-
-.getting-started-panel.collapsed .getting-started-content {
-  display: none;
+  transition: all 0.3s ease;
 }
 
 .getting-started-header {
+  padding: 20px 40px;
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer;
+  user-select: none;
 }
 
 .getting-started-header h3 {
-  font-size: 1.4rem;
   margin: 0;
-  font-weight: 600;
+  font-size: 1.3rem;
 }
 
 .collapse-indicator {
@@ -79,360 +63,50 @@ body {
 }
 
 .getting-started-panel.collapsed .collapse-indicator {
-  transform: rotate(180deg);
+  transform: rotate(-90deg);
 }
 
 .getting-started-content {
-  margin-top: 15px;
+  padding: 0 40px 30px 40px;
+  transition: all 0.3s ease;
 }
 
-/* Scenario Selector Styling */
+.getting-started-panel.collapsed .getting-started-content {
+  display: none;
+}
+
 .scenario-selector {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin: 20px 0;
-  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.scenario-selector label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
 }
 
 .scenario-dropdown {
-  background: white;
-  border: 2px solid #e2e8f0;
+  width: 100%;
+  padding: 12px;
+  border: none;
   border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.95rem;
-  color: #2d3748;
-  min-width: 250px;
-  cursor: pointer;
-}
-
-.scenario-dropdown:focus {
-  outline: none;
-  border-color: #4299e1;
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+  font-size: 1rem;
+  background: white;
+  color: #333;
 }
 
 .scenario-preview {
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  padding: 15px;
-  margin-top: 15px;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
 }
 
 .scenario-preview h4 {
-  margin: 0 0 8px 0;
-  font-size: 1rem;
-}
-
-.scenario-preview p {
-  margin: 0 0 12px 0;
-  font-size: 0.95rem;
-}
-
-.scenario-preview details {
-  margin-top: 10px;
-}
-
-.scenario-preview summary {
-  cursor: pointer;
-  font-weight: 500;
-  margin-bottom: 8px;
-}
-
-.scenario-preview pre {
-  background: rgba(0, 0, 0, 0.2);
-  padding: 12px;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  line-height: 1.4;
-  overflow-x: auto;
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.getting-started-panel a {
-  color: #e6fffa;
-  text-decoration: underline;
-  font-weight: 500;
-}
-
-.getting-started-panel a:hover {
+  margin-top: 0;
   color: white;
 }
 
-/* Main content area */
-.main-content {
-  padding: 30px;
-}
-
-/* Control panel */
-.control-panel {
-  background: #f7fafc;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 30px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.control-group {
-  margin-bottom: 20px;
-}
-
-.control-group:last-child {
-  margin-bottom: 0;
-}
-
-.control-group h3 {
-  color: #2d3748;
-  margin-bottom: 12px;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.button-group {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-/* Beautiful buttons with faster transitions */
-button {
-  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
-  color: white;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 6px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.1s ease;
-  font-size: 0.95rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-  background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-/* Special button colors */
-.btn-success {
-  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-}
-
-.btn-success:hover {
-  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
-}
-
-.btn-secondary {
-  background: linear-gradient(135deg, #a0aec0 0%, #718096 100%);
-}
-
-.btn-secondary:hover {
-  background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
-}
-
-.btn-small {
-  padding: 8px 16px;
-  font-size: 0.85rem;
-}
-
-/* JSON Toggle Section */
-.json-toggle-section {
-  margin-bottom: 20px;
-  text-align: left;
-}
-
-/* JSON input area */
-.json-section {
-  margin-bottom: 30px;
-}
-
-#json-container {
-  background: #1a202c;
-  border-radius: 8px;
-  overflow: hidden;
-  transition: max-height 0.2s ease;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-#json-container.collapsed {
-  max-height: 0;
-  margin-bottom: 0;
-}
-
-#json-container.expanded {
-  max-height: 600px;
-  margin-bottom: 20px;
-}
-
-.json-header {
-  background: #2d3748;
-  color: white;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.json-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-}
-
-.json-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-#json-input {
-  width: 100%;
-  background: #1a202c;
-  color: #e2e8f0;
-  border: none;
-  padding: 20px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
-  line-height: 1.5;
-  resize: vertical;
-  min-height: 400px;
-  outline: none;
-}
-
-/* Chart area */
-#chart-area {
-  background: white;
-  border-radius: 8px;
-  border: 2px solid #e2e8f0;
-  min-height: 500px;
-  margin-bottom: 30px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-/* CSV Toggle Section */
-.csv-toggle-section {
-  margin-bottom: 20px;
-  text-align: left;
-}
-
-/* CSV output */
-.csv-section {
-  margin-bottom: 30px;
-}
-
-.csv-header {
-  background: #f7fafc;
-  border: 2px solid #e2e8f0;
-  border-bottom: none;
-  border-radius: 8px 8px 0 0;
-  padding: 15px 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.csv-header h3 {
-  margin: 0;
-  color: #2d3748;
-  font-size: 1.1rem;
-}
-
-#csv-container {
-  background: #f7fafc;
-  border: 2px solid #e2e8f0;
-  border-top: none;
-  border-radius: 0 0 8px 8px;
-  padding: 20px;
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 12px;
-  line-height: 1.4;
-  max-height: 400px;
-  overflow: auto;
-  white-space: pre;
-  transition: all 0.2s ease;
-}
-
-#csv-container.collapsed {
-  display: none;
-}
-
-.csv-section.collapsed .csv-header {
-  display: none;
-}
-
-/* Loading state */
-.loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
-.loading::after {
-  content: " ⏳";
-}
-
-/* Responsive design */
-@media (max-width: 768px) {
-  .button-group {
-    flex-direction: column;
-  }
-  
-  button {
-    width: 100%;
-  }
-  
-  .header h1 {
-    font-size: 2rem;
-  }
-  
-  body {
-    padding: 10px;
-  }
-  
-  .main-content {
-    padding: 20px;
-  }
-
-  .json-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .json-actions {
-    width: 100%;
-  }
-}
-
-/* Hidden class */
-.hidden {
-  display: none;
-}
-
-/* JSON Preview styling */
-#scenario-json-preview {
-  max-height: 60vh; /* Use viewport height for responsiveness */
-  min-height: 300px; /* Minimum height to show decent content */
-  overflow-y: auto !important; /* Scroll when content is too long */
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 4px;
-  padding: 12px;
-  font-family: 'Courier New', Consolas, 'Lucida Console', monospace;
-  font-size: 12px;
-  line-height: 1.4;
-  white-space: break-word
-  display: block !important;
-}
-
-/* Style the details/summary for better UX */
 .scenario-preview details {
   margin-top: 15px;
 }
@@ -441,22 +115,144 @@ button:active {
   cursor: pointer;
   font-weight: bold;
   padding: 8px 0;
-  border-bottom: 1px solid #dee2e6;
-  margin-bottom: 10px;
+  color: white;
+  user-select: none;
 }
 
-.scenario-preview summary:hover {
-  color: #0056b3;
+.main-content {
+  padding: 40px;
 }
 
-/* When details is open, add some spacing */
-.scenario-preview details[open] summary {
-  margin-bottom: 15px;
+.control-panel {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 30px;
 }
 
-/* Add these styles to the END of your styles/main.css file */
+.control-group h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #495057;
+}
 
-/* JSON Preview styling - Tall and scrollable */
+.button-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+}
+
+.btn-success:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-success.loading {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.json-section, .csv-section {
+  margin: 30px 0;
+}
+
+.json-header, .csv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.json-header h3, .csv-header h3 {
+  margin: 0;
+  color: #495057;
+}
+
+#json-container {
+  transition: all 0.3s ease;
+}
+
+#json-container.collapsed {
+  display: none;
+}
+
+#json-container.expanded {
+  display: block;
+}
+
+#json-input {
+  width: 100%;
+  min-height: 300px;
+  padding: 16px;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 14px;
+  line-height: 1.4;
+  resize: vertical;
+  background-color: #f8f9fa;
+}
+
+.csv-section.collapsed {
+  display: none;
+}
+
+#csv-container {
+  background-color: #f8f9fa;
+  border: 1px solid #ced4da;
+  border-radius: 6px;
+  padding: 16px;
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.3;
+  white-space: pre;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+#csv-container.collapsed {
+  display: none;
+}
+
+/* JSON Preview styling - Make text visible */
 .scenario-preview #scenario-json-preview {
   max-height: 60vh !important;
   min-height: 400px !important;
@@ -472,36 +268,231 @@ button:active {
   white-space: pre-wrap;
   word-wrap: break-word;
   display: block !important;
-  color: #212529 !important; /* DARK TEXT - This was missing! */
+  color: #212529 !important;
 }
 
-/* Style the details/summary for better UX */
-.scenario-preview details {
-  margin-top: 15px;
+/* ===== PHASE 1 UX IMPROVEMENTS ===== */
+
+/* Hide chart area until results are available */
+#chart-area {
+  display: none;
+  margin-bottom: 20px;
 }
 
-.scenario-preview summary {
-  cursor: pointer;
-  font-weight: bold;
-  padding: 8px 0;
-  border-bottom: 1px solid #dee2e6;
-  margin-bottom: 10px;
-  user-select: none;
+#chart-area.has-results {
+  display: block;
+  animation: fadeIn 0.3s ease-in;
 }
 
-.scenario-preview summary:hover {
-  color: #0056b3;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Advanced options styling */
+.advanced-options {
+  margin-top: 30px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
   background-color: #f8f9fa;
 }
 
-/* When details is open, add some spacing */
-.scenario-preview details[open] summary {
-  margin-bottom: 15px;
+.advanced-options summary {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  color: #6c757d;
+  user-select: none;
+  list-style: none;
 }
 
-/* Ensure the preview area has proper spacing */
-.scenario-preview {
-  margin-bottom: 20px;
+.advanced-options summary::-webkit-details-marker {
+  display: none;
+}
+
+.advanced-options summary::before {
+  content: "⚙️ ";
+  margin-right: 8px;
+}
+
+.advanced-options summary:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.advanced-options-content {
+  padding: 0 16px 16px 16px;
+  border-top: 1px solid #dee2e6;
+}
+
+.advanced-button-group {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.btn-advanced {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.btn-advanced:hover {
+  background-color: #5a6268;
+}
+
+/* Scenario insights styling */
+.scenario-insights {
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border: 1px solid #bbdefb;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.scenario-insights h3 {
+  color: #1976d2;
+  margin-top: 0;
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
+.scenario-insights ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+.scenario-insights li {
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+/* Key assumptions styling */
+.key-assumptions {
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 6px;
+  padding: 16px;
+  margin: 15px 0;
+}
+
+.key-assumptions h4 {
+  color: #856404;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.key-assumptions ul {
+  margin: 0;
+  padding-left: 18px;
+}
+
+.key-assumptions li {
+  margin-bottom: 6px;
+  color: #856404;
+  font-size: 14px;
+}
+
+/* Next scenario suggestion */
+.next-scenario-suggestion {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  border: 1px solid #c3e6cb;
+  border-radius: 8px;
+  padding: 18px;
+  margin: 20px 0;
+}
+
+.next-scenario-suggestion h4 {
+  color: #155724;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.next-scenario-suggestion p {
+  color: #155724;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.btn-next-scenario {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-next-scenario:hover {
+  background-color: #218838;
+}
+
+/* Post-simulation layout improvements */
+.simulation-complete-layout {
+  display: grid;
+  gap: 20px;
+}
+
+/* Mobile responsiveness for new elements */
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+  
+  .header {
+    padding: 30px 20px;
+  }
+  
+  .header h1 {
+    font-size: 2rem;
+  }
+  
+  .getting-started-content {
+    padding: 0 20px 20px 20px;
+  }
+  
+  .main-content {
+    padding: 20px;
+  }
+  
+  .advanced-button-group {
+    flex-direction: column;
+  }
+  
+  .scenario-insights,
+  .key-assumptions,
+  .next-scenario-suggestion {
+    margin: 15px -10px;
+    padding: 15px;
+  }
+  
+  .button-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* Better visual hierarchy */
+.main-content > * + * {
+  margin-top: 20px;
+}
+
+/* Improved focus states for accessibility */
+.advanced-options summary:focus,
+.btn-advanced:focus,
+.btn-next-scenario:focus {
+  outline: 2px solid #0056b3;
+  outline-offset: 2px;
 }
 
 /* Style scrollbar for webkit browsers */

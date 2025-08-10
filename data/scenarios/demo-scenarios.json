@@ -1,0 +1,263 @@
+{
+  "data-viz-demo": {
+    "metadata": {
+      "title": "Data Visualization Professional's Portfolio",
+      "description": "High-income professional with complex portfolio - shows advanced visualization capabilities and multi-asset class modeling",
+      "tags": ["professional", "advanced", "demo", "high-income"],
+      "discussion_file": "discussions/professional-portfolio.md"
+    },
+    "plan": {
+      "monthly_expenses": 12500,
+      "inflation_schedule": "variable_inflation_demo",
+      "duration_months": 360
+    },
+    "income": [
+      {
+        "name": "Consulting (Years 1-5)",
+        "amount": 15000,
+        "start_month": 1,
+        "stop_month": 60
+      },
+      {
+        "name": "Social Security",
+        "amount": 4200,
+        "start_month": 84
+      },
+      {
+        "name": "Pension",
+        "amount": 2800,
+        "start_month": 84
+      }
+    ],
+    "assets": [
+      {
+        "name": "Emergency Fund",
+        "type": "taxable",
+        "balance": 150000,
+        "return_schedule": "money_market_rates",
+        "compounding": "monthly"
+      },
+      {
+        "name": "Taxable Investments",
+        "type": "taxable", 
+        "balance": 850000,
+        "return_schedule": "aggressive_portfolio",
+        "compounding": "monthly"
+      },
+      {
+        "name": "401k",
+        "type": "tax_deferred",
+        "balance": 1200000,
+        "return_schedule": "balanced_portfolio",
+        "compounding": "monthly"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 180000,
+        "return_schedule": "growth_portfolio",
+        "compounding": "monthly"
+      },
+      {
+        "name": "Real Estate Investment",
+        "type": "taxable",
+        "balance": 400000,
+        "return_schedule": "real_estate_returns",
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {"account": "Emergency Fund", "order": 1},
+      {"account": "Taxable Investments", "order": 2},
+      {"account": "401k", "order": 3},
+      {"account": "Real Estate Investment", "order": 4},
+      {"account": "Roth IRA", "order": 5}
+    ],
+    "rate_schedules": {
+      "variable_inflation_demo": {
+        "pipeline": [
+          {"start_with": 0.025},
+          {"add_cycles": {"period": 8, "amplitude": 0.015}},
+          {"add_noise": {"std_dev": 0.008}},
+          {"overlay_sequence": {
+            "2029": 0.06,
+            "2030": 0.045,
+            "2031": 0.025
+          }},
+          {"clamp": {"min": 0.001, "max": 0.08}}
+        ]
+      },
+      "money_market_rates": {
+        "pipeline": [
+          {"start_with": 0.035},
+          {"add_trend": {"annual_change": 0.002}},
+          {"add_noise": {"std_dev": 0.005}},
+          {"floor": 0.01}
+        ]
+      },
+      "aggressive_portfolio": {
+        "type": "sequence",
+        "start_year": 2025,
+        "values": [0.12, -0.08, 0.18, 0.02, -0.12, 0.22, 0.08, -0.05, 0.15, 0.06],
+        "default_rate": 0.08
+      },
+      "balanced_portfolio": {
+        "pipeline": [
+          {"start_with": 0.065},
+          {"add_cycles": {"period": 6, "amplitude": 0.03}},
+          {"add_noise": {"std_dev": 0.02}},
+          {"clamp": {"min": -0.15, "max": 0.20}}
+        ]
+      },
+      "growth_portfolio": {
+        "type": "sequence", 
+        "start_year": 2025,
+        "values": [0.15, -0.10, 0.25, 0.05, -0.18, 0.28, 0.12, -0.08, 0.20],
+        "default_rate": 0.09
+      },
+      "real_estate_returns": {
+        "pipeline": [
+          {"start_with": 0.045},
+          {"add_trend": {"annual_change": 0.001}},
+          {"add_cycles": {"period": 12, "amplitude": 0.02}},
+          {"add_noise": {"std_dev": 0.015}},
+          {"clamp": {"min": -0.05, "max": 0.12}}
+        ]
+      }
+    }
+  },
+  
+  "simple-demo": {
+    "metadata": {
+      "title": "Simple Demo: The 4% Rule Reality Check",
+      "description": "Clean, simple scenario perfect for demonstrating basic concepts - $1M portfolio with $4K monthly expenses",
+      "tags": ["demo", "beginner", "4-percent-rule", "baseline"],
+      "discussion_file": "discussions/four-percent-rule.md"
+    },
+    "plan": {
+      "monthly_expenses": 4000,
+      "inflation_schedule": "steady_inflation",
+      "duration_months": 360
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 2000,
+        "start_month": 60
+      }
+    ],
+    "assets": [
+      {
+        "name": "Retirement Portfolio",
+        "type": "taxable",
+        "balance": 1000000,
+        "return_schedule": "market_returns_7pct",
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {"account": "Retirement Portfolio", "order": 1}
+    ],
+    "rate_schedules": {
+      "steady_inflation": {
+        "type": "fixed",
+        "rate": 0.03
+      },
+      "market_returns_7pct": {
+        "type": "fixed",
+        "rate": 0.07
+      }
+    }
+  },
+
+  "market-volatility-showcase": {
+    "metadata": {
+      "title": "Market Volatility Showcase",
+      "description": "Demonstrates complex market cycles, crashes, and recoveries - perfect for showing visualization capabilities",
+      "tags": ["demo", "advanced", "volatility", "market-cycles"],
+      "discussion_file": "discussions/market-volatility.md"
+    },
+    "plan": {
+      "monthly_expenses": 8000,
+      "inflation_schedule": "volatile_inflation",
+      "duration_months": 240
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 3200,
+        "start_month": 72
+      }
+    ],
+    "assets": [
+      {
+        "name": "Stock Portfolio",
+        "type": "taxable",
+        "balance": 600000,
+        "return_schedule": "volatile_stocks",
+        "compounding": "monthly"
+      },
+      {
+        "name": "Bond Portfolio", 
+        "type": "taxable",
+        "balance": 300000,
+        "return_schedule": "bond_cycle",
+        "compounding": "monthly"
+      },
+      {
+        "name": "Alternative Investments",
+        "type": "taxable",
+        "balance": 200000,
+        "return_schedule": "alternative_returns",
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {"account": "Bond Portfolio", "order": 1},
+      {"account": "Alternative Investments", "order": 2},
+      {"account": "Stock Portfolio", "order": 3}
+    ],
+    "rate_schedules": {
+      "volatile_inflation": {
+        "pipeline": [
+          {"start_with": 0.02},
+          {"add_cycles": {"period": 5, "amplitude": 0.025}},
+          {"add_noise": {"std_dev": 0.012}},
+          {"overlay_sequence": {
+            "2027": 0.07,
+            "2028": 0.055,
+            "2029": 0.035,
+            "2030": 0.02
+          }},
+          {"clamp": {"min": 0.005, "max": 0.09}}
+        ]
+      },
+      "volatile_stocks": {
+        "type": "sequence",
+        "start_year": 2025,
+        "values": [
+          0.18, -0.25, -0.15, 0.35, 0.12, -0.08, 0.22, 0.05, -0.18, 0.28,
+          0.08, -0.12, 0.15, 0.03, -0.22, 0.32, 0.06, -0.05, 0.19, 0.11
+        ],
+        "default_rate": 0.08
+      },
+      "bond_cycle": {
+        "pipeline": [
+          {"start_with": 0.04},
+          {"add_cycles": {"period": 8, "amplitude": 0.02}},
+          {"add_noise": {"std_dev": 0.008}},
+          {"clamp": {"min": 0.01, "max": 0.08}}
+        ]
+      },
+      "alternative_returns": {
+        "pipeline": [
+          {"start_with": 0.055},
+          {"add_trend": {"annual_change": 0.003}},
+          {"add_cycles": {"period": 10, "amplitude": 0.015}},
+          {"add_noise": {"std_dev": 0.02}},
+          {"clamp": {"min": -0.10, "max": 0.15}}
+        ]
+      }
+    }
+  }
+}

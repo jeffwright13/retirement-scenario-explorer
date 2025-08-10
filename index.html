@@ -32,6 +32,15 @@
         <div class="scenario-preview" id="scenario-preview" style="display: none;">
           <h4>📋 Scenario Details:</h4>
           <p id="scenario-description"></p>
+          
+          <!-- NEW: Key Assumptions Section -->
+          <div class="key-assumptions" id="key-assumptions" style="display: none;">
+            <h4>🔑 Key Assumptions</h4>
+            <ul id="key-assumptions-list">
+              <!-- Populated dynamically -->
+            </ul>
+          </div>
+          
           <details>
             <summary>👀 Peek at JSON Configuration</summary>
             <pre id="scenario-json-preview"></pre>
@@ -52,12 +61,40 @@
         </div>
       </div>
 
-      <!-- JSON Toggle Button -->
-      <div class="json-toggle-section">
-        <button id="toggle-json-btn" class="btn-secondary">Toggle JSON Editor</button>
+      <!-- Chart Area - NOW HIDDEN BY DEFAULT -->
+      <div id="chart-area"></div>
+
+      <!-- NEW: Simulation Insights (appears after simulation) -->
+      <div class="scenario-insights" id="simulation-insights" style="display: none;">
+        <h3>💡 Key Insights</h3>
+        <ul id="insights-list">
+          <!-- Populated dynamically based on scenario results -->
+        </ul>
       </div>
 
-      <!-- JSON Section --> 
+      <!-- NEW: Next Scenario Suggestion (appears after simulation) -->
+      <div class="next-scenario-suggestion" id="next-scenario-suggestion" style="display: none;">
+        <h4>📈 Recommended Next Step</h4>
+        <p id="next-scenario-description"></p>
+        <button class="btn-next-scenario" id="load-next-scenario">
+          <!-- Text set dynamically -->
+        </button>
+      </div>
+
+      <!-- MOVED: Advanced Options (was scattered before) -->
+      <details class="advanced-options" id="advanced-options">
+        <summary>Advanced Options</summary>
+        <div class="advanced-options-content">
+          <p>For power users and detailed analysis:</p>
+          <div class="advanced-button-group">
+            <button id="toggle-json-btn" class="btn-advanced">Edit JSON</button>
+            <button id="toggle-csv-btn" class="btn-advanced">Export CSV Data</button>
+            <button id="share-scenario-btn" class="btn-advanced">Share Scenario</button>
+          </div>
+        </div>
+      </details>
+
+      <!-- JSON Section (now part of advanced) -->
       <div class="json-section">
         <div id="json-container" class="collapsed">
           <div class="json-header">
@@ -70,15 +107,7 @@
         </div>
       </div>
 
-      <!-- Chart Area -->
-      <div id="chart-area"></div>
-
-      <!-- CSV Toggle Button -->
-      <div class="csv-toggle-section">
-        <button id="toggle-csv-btn" class="btn-secondary">Toggle CSV Results</button>
-      </div>
-
-      <!-- CSV Section -->
+      <!-- CSV Section (now part of advanced) -->
       <div class="csv-section collapsed" id="csv-section">
         <div class="csv-header">
           <h3>📊 Detailed Results (CSV)</h3>
