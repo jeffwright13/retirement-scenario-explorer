@@ -53,6 +53,7 @@ class RetirementScenarioApp {
     }
   }
 
+  // FIXED VERSION - Handles scenario selection properly
   async handleScenarioSelection(scenarioKey) {
     if (!scenarioKey) {
       // Clear selection
@@ -69,21 +70,37 @@ class RetirementScenarioApp {
     }
 
     try {
-      // Show preview with metadata
+      console.log(`Loading scenario: ${scenarioKey}`);
+      console.log('Raw scenario data:', scenario);
+      
+      // Get simulation data with error checking
       const simulationData = this.scenarios.getSimulationData(scenarioKey);
+      console.log('Simulation data:', simulationData);
+      
+      if (!simulationData) {
+        throw new Error('Failed to extract simulation data from scenario');
+      }
+      
+      // Validate that we have the essential parts
+      if (!simulationData.plan) {
+        throw new Error('Scenario missing plan section');
+      }
+      
+      // Show preview with simulation data
       this.ui.showScenarioPreview(scenario.metadata, simulationData);
       
-      // Load JSON into editor (collapsed)
+      // Load JSON into editor
       const jsonText = JSON.stringify(simulationData, null, 2);
       this.ui.loadJsonIntoEditor(jsonText);
       
       // Load discussion content for future use
       this.currentDiscussion = await this.scenarios.loadDiscussion(scenario);
       
-      console.log(`Loaded scenario: ${scenarioKey}`);
+      console.log(`✅ Successfully loaded scenario: ${scenarioKey}`);
       
     } catch (error) {
-      console.error(`Error loading scenario ${scenarioKey}:`, error);
+      console.error(`❌ Error loading scenario ${scenarioKey}:`, error);
+      console.error('Error stack:', error.stack);
       this.ui.showError(`Failed to load scenario: ${error.message}`);
     }
   }

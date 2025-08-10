@@ -148,11 +148,39 @@ export class UIManager {
     }
   }
 
-  // Scenario preview management
-  showScenarioPreview(metadata, jsonData) {
-    this.elements.scenarioPreview.style.display = 'block';
-    this.elements.scenarioDescription.textContent = metadata.description;
-    this.elements.scenarioJsonPreview.textContent = JSON.stringify(jsonData, null, 2);
+  showScenarioPreview(metadata, simulationData) {
+    console.log('=== showScenarioPreview ===');
+    console.log('metadata:', metadata);
+    console.log('simulationData:', simulationData);
+  
+    try {
+      this.elements.scenarioPreview.style.display = 'block';
+    
+      // Set description
+      if (metadata && metadata.description) {
+        this.elements.scenarioDescription.textContent = metadata.description;
+      } else {
+        this.elements.scenarioDescription.textContent = 'No description available';
+      }
+    
+      // Handle simulation data
+      if (!simulationData) {
+        this.elements.scenarioJsonPreview.textContent = 'No simulation data available';
+        return;
+      }
+    
+      // Convert to JSON
+      const jsonText = JSON.stringify(simulationData, null, 2);
+      this.elements.scenarioJsonPreview.textContent = jsonText;
+    
+      console.log('✅ Preview updated successfully');
+    
+    } catch (error) {
+      console.error('Error in showScenarioPreview:', error);
+      if (this.elements.scenarioJsonPreview) {
+        this.elements.scenarioJsonPreview.textContent = `Error displaying preview: ${error.message}`;
+      }
+    }
   }
 
   hideScenarioPreview() {
@@ -215,4 +243,4 @@ export class UIManager {
   showWarning(message) {
     console.warn(`Warning: ${message}`);
   }
-}
+} 

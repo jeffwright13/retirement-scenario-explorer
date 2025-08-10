@@ -415,3 +415,110 @@ button:active {
 .hidden {
   display: none;
 }
+
+/* JSON Preview styling */
+#scenario-json-preview {
+  max-height: 60vh; /* Use viewport height for responsiveness */
+  min-height: 300px; /* Minimum height to show decent content */
+  overflow-y: auto !important; /* Scroll when content is too long */
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 12px;
+  font-family: 'Courier New', Consolas, 'Lucida Console', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: break-word
+  display: block !important;
+}
+
+/* Style the details/summary for better UX */
+.scenario-preview details {
+  margin-top: 15px;
+}
+
+.scenario-preview summary {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 8px 0;
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 10px;
+}
+
+.scenario-preview summary:hover {
+  color: #0056b3;
+}
+
+/* When details is open, add some spacing */
+.scenario-preview details[open] summary {
+  margin-bottom: 15px;
+}
+
+/* Add these styles to the END of your styles/main.css file */
+
+/* JSON Preview styling - Tall and scrollable */
+.scenario-preview #scenario-json-preview {
+  max-height: 60vh !important;
+  min-height: 400px !important;
+  height: auto !important;
+  overflow-y: auto !important;
+  background-color: #f8f9fa !important;
+  border: 1px solid #e9ecef !important;
+  border-radius: 4px;
+  padding: 12px;
+  font-family: 'Courier New', Consolas, 'Lucida Console', monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  display: block !important;
+  color: #212529 !important; /* DARK TEXT - This was missing! */
+}
+
+/* Style the details/summary for better UX */
+.scenario-preview details {
+  margin-top: 15px;
+}
+
+.scenario-preview summary {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 8px 0;
+  border-bottom: 1px solid #dee2e6;
+  margin-bottom: 10px;
+  user-select: none;
+}
+
+.scenario-preview summary:hover {
+  color: #0056b3;
+  background-color: #f8f9fa;
+}
+
+/* When details is open, add some spacing */
+.scenario-preview details[open] summary {
+  margin-bottom: 15px;
+}
+
+/* Ensure the preview area has proper spacing */
+.scenario-preview {
+  margin-bottom: 20px;
+}
+
+/* Style scrollbar for webkit browsers */
+.scenario-preview #scenario-json-preview::-webkit-scrollbar {
+  width: 8px;
+}
+
+.scenario-preview #scenario-json-preview::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.scenario-preview #scenario-json-preview::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.scenario-preview #scenario-json-preview::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}

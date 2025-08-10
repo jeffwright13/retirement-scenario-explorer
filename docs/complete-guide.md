@@ -1,1075 +1,603 @@
-# 🎓 Complete Retirement Scenario Modeling Guide
+# The Complete Retirement Scenario Explorer Guide
 
-*A comprehensive step-by-step guide from basic concepts to advanced real-world modeling*
-
----
-
-## 📚 Retirement Scenario Explorer Learning Path
-
-### Level 0 — Orientation
-1. **[Chapter 1 — Welcome & Orientation](../data/discussions/01-intro.md)**  
-   Get familiar with the tool’s interface and run your first positive-cash-flow scenario.  
-   - Introduces JSON structure  
-   - Runs with no inflation, one asset, fixed salary  
-
-2. **[Chapter 2 — Budgeting 101](../data/discussions/02-budgeting.md)**  
-   Learn fixed vs. variable expenses and simulate realistic monthly budgets.
+*Taking Control of Your Financial Destiny Through Simulation*
 
 ---
 
-### Level 1 — Core Financial Concepts
-3. **Inflation Basics** — `/data/discussions/inflation-basics.md`  
-   Model how inflation affects purchasing power over decades.
+## Introduction: Why I Built This Tool (And Why You Need It)
 
-4. **Assets & Growth**  
-   Add investment accounts and see how compounding works with different return rates.
+I'm not a financial advisor. I'm not a certified planner with alphabet soup after my name. What I am is someone who looked at the retirement planning industry and realized something disturbing: **most of the tools and advice out there are dangerously oversimplified**.
 
-5. **Income Streams**  
-   Add Social Security, pensions, or part-time work with defined start/stop months.
+"Do you have enough?" they ask, as if retirement is a simple yes/no question. But retirement isn't about having a magic number in your account. It's about understanding cash flow, inflation, market volatility, and the brutal mathematics of **sequence of returns risk**. It's about taking control instead of hoping someone else has your best interests at heart.
 
----
+This tool exists because I needed to see the numbers for myself. Not projections. Not probabilities. **Actual month-by-month simulations** showing exactly what happens when you withdraw money during a market crash, when inflation spikes, when your carefully laid plans meet the chaos of reality.
 
-### Level 2 — Planning for Real Life
-6. **One-Time Events**  
-   Inheritances, large purchases, or medical bills.
-
-7. **Sequence of Returns Risk** — `/data/discussions/sequence-returns.md`  
-   How market timing affects your plan even if average returns look fine.
-
-8. **Early Retirement** — `/data/discussions/early-retirement.md`  
-   Simulate retiring years earlier than planned and see the effects.
+If you're approaching retirement or already there, this guide will teach you to think like someone who controls their own destiny rather than someone who hopes for the best.
 
 ---
 
-### Level 3 — Advanced Modeling
-9. **Tax-Aware Withdrawals**  
-   Compare taxable-first vs. tax-deferred-first drawdown strategies.
+## Chapter 1: First Principles - The Brutal Mathematics of Withdrawal
 
-10. **Multi-Scenario Comparisons**  
-    Clone and tweak scenarios to run side-by-side.
+Let's start with the most basic question: How long does money last when you're spending it?
 
-11. **Stress Testing**  
-    Simulate recessions, high-inflation decades, or unexpected expenses.
+### Your First Simulation: The Simple Burn Rate
+
+Load the **"No Inflation (Unrealistic Baseline)"** scenario. Here's what you'll see:
+
+- **Monthly expenses**: $5,200
+- **Assets**: $500,000 in savings earning 5% annually
+- **Duration**: 25 years (300 months)
+- **Inflation**: 0% (completely unrealistic, but we'll get there)
+
+**Run this simulation.** 
+
+What you're seeing is the mathematical foundation of retirement: **you're liquidating your life's work to pay for your remaining years**. Even with a respectable 5% return, even with zero inflation (which never happens), your money disappears in about 12-13 years.
+
+This is your baseline. Everything else we discuss is about extending this timeline or managing the risks that make it shorter.
+
+### Key Insight: The 4% Rule is Broken
+
+You've probably heard of the "4% rule" - withdraw 4% of your portfolio annually and it should last 30 years. With our $500,000, that would be $20,000 annually, or about $1,667 monthly.
+
+But you're spending $5,200 monthly. That's over 12% annually. **This is why most retirement advice doesn't work for real people with real expenses.**
+
+The 4% rule assumes you can live on about $1,600/month. Can you? If not, you need either more money or a different strategy.
 
 ---
 
-**Tip:** Every chapter links to:
-- A `.json` scenario in `/data/scenarios/`
-- A `.md` discussion in `/data/discussions/`
-So you can **read → run → modify** for each concept.
+## Chapter 2: The Silent Killer - Understanding Inflation
+
+Now load the **"3% Annual Inflation Impact"** scenario. Same everything, except now inflation is 3% annually.
+
+**Run this simulation.**
+
+Notice anything? Your money runs out about **3 years earlier**. Three percent doesn't sound like much, but it compounds relentlessly:
+
+- Year 1: $5,200/month
+- Year 10: $6,985/month  
+- Year 20: $9,393/month
+
+**This is why inflation is called the "silent killer" of retirement.** While you're sleeping, it's stealing your purchasing power. Your $5,200 of expenses today becomes nearly $10,000 in 20 years. Your portfolio must not only grow to cover withdrawals - it must grow faster than inflation just to break even.
+
+### The Federal Reserve's Role in Your Retirement
+
+The Federal Reserve targets 2% inflation, but rarely achieves exactly 2%. They've printed trillions of dollars since 2008, and inflation has been "transitory" for years. As someone planning your retirement, you need to understand: **the Fed's policies directly impact your financial survival**.
+
+When they print money, your savings lose value. When they raise rates, your bond investments suffer but your savings accounts improve. You can't control Fed policy, but you can plan for it.
+
+### Historical Reality Check
+
+Load the **"8% Annual Inflation Impact"** scenario. This represents 1970s-style inflation - not some theoretical nightmare, but actual historical reality.
+
+**Run this simulation.**
+
+Your money doesn't last 10 years. This is what happened to retirees in the 1970s who thought 3% inflation was the worst case. This is why you need multiple scenarios, not wishful thinking.
 
 ---
-## 🧠 How the Simulation Works
 
-Every month, the simulation follows this simple process:
+## Chapter 3: Multiple Assets and Withdrawal Strategy
+
+So far we've used one savings account. Real retirement involves multiple account types with different characteristics:
+
+- **Taxable accounts** (immediate access, but taxes on gains)
+- **Tax-deferred accounts** (401k, traditional IRA - pay taxes on withdrawal)  
+- **Tax-free accounts** (Roth IRA - no taxes on withdrawal)
+
+Load the **"Personal Portfolio: Inflation Reality Check"** scenario. This shows a realistic multi-asset retirement:
+
+- **Savings**: $70,000 (emergency fund, immediate access)
+- **Investment**: $513,000 (taxable brokerage account)
+- **Traditional IRA**: $323,000 (tax-deferred)
+- **Roth IRA**: $12,000 (tax-free)
+
+Notice the **withdrawal order**:
+1. Savings first (preserve growth accounts)
+2. Investment account second (taxable)
+3. Traditional IRA third (defer taxes)
+4. Roth IRA last (preserve tax-free growth)
+
+This isn't arbitrary. This is **tax-efficient withdrawal strategy** - taking money in an order that minimizes total taxes and preserves your most valuable accounts longest.
+
+### Different Return Rates by Asset Type
+
+Notice each asset has different return assumptions:
+- Savings: 3.7% (high-yield savings)
+- Investment: 6.5% (diversified portfolio)
+- Traditional IRA: 6.25% (conservative allocation)
+- Roth IRA: 7% (aggressive growth)
+
+These reflect reality: different account types typically have different risk/return profiles based on time horizon and tax treatment.
+
+---
+
+## Chapter 4: The Engine - How Simulations Actually Work
+
+Understanding how the simulation engine works is crucial for interpreting results and building your own scenarios.
+
+### Monthly Simulation Loop
+
+The engine runs month by month, for every month of your retirement:
 
 ```
-📅 Month N:
-1️⃣ Add any income for this month (Social Security, part-time work, etc.)
-2️⃣ Calculate shortfall: monthly_expenses - income
-3️⃣ If shortfall > 0: withdraw from assets (in priority order) to cover it
-4️⃣ Apply monthly interest growth to all remaining asset balances
-5️⃣ Record everything (income, expenses, withdrawals, new balances)
-6️⃣ Move to next month and repeat
+For each month:
+1. Calculate income (Social Security, pensions, part-time work)
+2. Calculate inflation-adjusted expenses 
+3. Determine shortfall (expenses - income)
+4. Withdraw from assets in order to cover shortfall
+5. Apply growth/returns to remaining asset balances
+6. Record all transactions
+7. Move to next month
 ```
 
-This loop runs for however many months you specify (`duration_months`), creating a complete financial projection.
+### Rate Schedule System
 
----
+This is where the tool gets powerful. Instead of assuming fixed rates forever, the engine uses **rate schedules** that can vary over time.
 
-## 📖 Level 1: The Simplest Case
-
-**Scenario**: Sarah has $120,000 in savings earning 2% annually. She needs $3,000/month to live.
-
+#### Fixed Rate Schedules
 ```json
-{
-  "example": {
-    "metadata": {
-      "title": "Level 1: Simple Drawdown",
-      "description": "Sarah has $120k in savings earning 2% annually. She needs $3,000/month to live. How long will her money last?"
-    },
-    "plan": {
-      "monthly_expenses": 3000,
-      "duration_months": 48,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [],
-    "assets": [
-      {
-        "name": "Savings",
-        "type": "taxable",
-        "balance": 120000,
-        "compounding": "monthly",
-        "return_schedule": "example_Savings_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Savings",
-        "order": 1
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_Savings_returns": {
-        "type": "fixed",
-        "rate": 0.02
-      }
-    }
-  }
+"no_inflation": {
+  "type": "fixed", 
+  "rate": 0.0
 }
 ```
+Simple: same rate every month.
 
-**What happens month by month:**
-- **Month 1**: Income = $0, Shortfall = $3,000 → Withdraw $3,000 → Balance: $117,000 → Apply interest: $117,195
-- **Month 2**: Income = $0, Shortfall = $3,000 → Withdraw $3,000 → Balance: $114,195 → Apply interest: $114,385
-- **And so on...**
-
-**Key Insight**: Even with 2% growth, Sarah withdraws $3,000 but only earns ~$190/month in interest. Net loss: ~$2,810/month.
-
-**Expected Outcome**: Money lasts about 43-44 months (not quite 4 years).
-
----
-
-## 📖 Level 2: Income Changes Everything
-
-Same Sarah, but Social Security starts in month 12.
-
+#### Sequence Rate Schedules  
 ```json
-{
-  "example": {
-    "metadata": {
-      "title": "Level 2: Adding Social Security",
-      "description": "Same Sarah, but Social Security of $1,800/month starts in month 6. Watch the dramatic change in sustainability!"
-    },
-    "plan": {
-      "monthly_expenses": 3000,
-      "duration_months": 104,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [
-      {
-        "name": "Social Security",
-        "amount": 1800,
-        "start_month": 6
-      }
-    ],
-    "assets": [
-      {
-        "name": "Savings",
-        "type": "taxable",
-        "balance": 120000,
-        "compounding": "monthly",
-        "return_schedule": "example_Savings_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Savings",
-        "order": 1
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_Savings_returns": {
-        "type": "fixed",
-        "rate": 0.02
-      }
-    }
-  }
+"market_crash_sequence": {
+  "type": "sequence",
+  "start_year": 2025,
+  "values": [-0.37, -0.22, 0.26, 0.15, 0.02, 0.16],
+  "default_rate": 0.07
 }
 ```
+Specific returns for specific years, then defaults. Perfect for modeling historical sequences like 2008.
 
-**What changes:**
-- **Months 1-11**: Same as before - withdrawing $3,000/month
-- **Month 12 onward**: Income = $1,800, Shortfall = only $1,200 → Withdrawing $1,200/month instead of $3,000
-
-**Expected Outcome**: Money lasts 8+ years instead of 3.5 years.
-
----
-
-## 📖 Level 3: Multiple Assets and Withdrawal Strategy
-
-Real retirees have multiple accounts with different characteristics.
-
+#### Pipeline Rate Schedules
 ```json
-{
-  "example": {
-    "metadata": {
-      "title": "Level 3: Multiple Assets and Withdrawal Priority",
-      "description": "Bob has savings and investments. He wants to preserve the higher-growth investments as long as possible by spending savings first."
-    },
-    "plan": {
-      "monthly_expenses": 4000,
-      "duration_months": 168,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [
-      {
-        "name": "Social Security",
-        "amount": 2200,
-        "start_month": 24
-      }
-    ],
-    "assets": [
-      {
-        "name": "Savings",
-        "type": "taxable",
-        "balance": 50000,
-        "compounding": "monthly",
-        "return_schedule": "example_Savings_returns"
-      },
-      {
-        "name": "Investment Account",
-        "type": "taxable",
-        "balance": 200000,
-        "compounding": "monthly",
-        "return_schedule": "example_Investment_Account_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Savings",
-        "order": 1
-      },
-      {
-        "account": "Investment Account",
-        "order": 2
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_Savings_returns": {
-        "type": "fixed",
-        "rate": 0.015
-      },
-      "example_Investment_Account_returns": {
-        "type": "fixed",
-        "rate": 0.06
-      }
-    }
-  }
-}
-```
-
-**What happens:**
-- **Months 1-23**: Need $4,000/month, no income
-  - **Priority 1**: Drain "Savings" first ($50k ÷ $4k = ~12.5 months)
-  - **Priority 2**: Then start hitting "Investment Account"
-- **Month 24+**: Social Security kicks in → shortfall drops to $1,800/month
-
-**Key Insight**: The `order` array implements withdrawal strategies:
-- Spend cash/savings first (lower growth potential)
-- Preserve high-growth investments longer
-- Tax-optimized strategies (taxable before tax-deferred, Roth IRA last)
-
----
-
-## 📖 Level 4: Modeling Large Expenses
-
-If you you want to nodel large future expenses, use individual `income` entries, and give them a `stop_month` after defining their `start_month`.
-
-```json
-{
-  "metadata": {
-    "title": "Level 4: Two Large Expenses",
-    "notes": "Carol anticipates a major home repair in years 3 (-$15k for a new kichen, paid all at once) and 5 (-$45k for a new roof, paid over three months)."
-  },
-  "plan": { 
-    "monthly_expenses": 5000, 
-    "duration_months": 180 
-  },
-  "income": [
-    {
-      "name": "Social Security",
-      "amount": 2800, 
-      "start_month": 12
-    },
-    {
-      "name": "Kitchen",
-      "amount": -15000,
-      "start_month": 36,
-      "stop_month": 36
-    },
-    {
-      "name": "Roof",
-      "amount": -15000,
-      "start_month": 60,
-      "stop_month": 62
-    }
-  ],
-  "assets": [
-    {
-      "name": "Brokerage",
-      "type": "taxable",
-      "balance": 300000,
-      "interest_rate": 0.05,
-      "compounding": "monthly"
-    }
-    // {
-    //   "name": "Roof Replacement",
-    //   "type": "taxable", 
-    //   "balance": -25000,
-    //   "start_month": 36
-    // },
-    // {
-    //   "name": "Inheritance",
-    //   "type": "taxable",
-    //   "balance": 150000,
-    //   "start_month": 60,
-    //   "interest_rate": 0.04,
-    //   "compounding": "monthly"
-    // }
-  ],
-  "order": [
-    {
-      "account": "Brokerage",
-      "order": 1
-    }
-    // {
-    //   "account": "Inheritance",
-    //   "order": 2
-    // }
+"realistic_inflation": {
+  "pipeline": [
+    {"start_with": 0.03},
+    {"add_cycles": {"period": 7, "amplitude": 0.01}},
+    {"add_noise": {"std_dev": 0.005}},
+    {"clamp": {"min": 0.0, "max": 0.1}}
   ]
 }
 ```
+Complex multi-step calculations: start with 3%, add economic cycles, add random variation, cap between 0-10%.
 
-**What happens:**
-- **Months 1-35**: Withdrawing $5,000/month from Brokerage
-- **Month 36**: 
-  - Social Security starts (+$2,800 income)
-  - Roof replacement hits (-$25,000 one-time expense)
-  - **Net shortfall this month**: $5,000 - $2,800 + $25,000 = $27,200
-- **Months 37-59**: Normal $2,200/month shortfall
-- **Month 60**: Inheritance arrives (+$150,000 available for withdrawal)
-- **Month 61+**: Two growing assets to draw from
+### Withdrawal Order Logic
 
-**Key Insights**: 
-- **Negative balances** model one-time expenses
-- **`start_month`** times events precisely
-- **Multiple assets** can have different growth rates
+The engine withdraws money based on your specified order:
+
+```json
+"order": [
+  {"account": "Savings", "order": 1},
+  {"account": "Investment", "order": 2},
+  {"account": "Traditional IRA", "order": 3},
+  {"account": "Roth IRA", "order": 4}
+]
+```
+
+It tries account 1 first, taking as much as needed (or as much as available). If there's still a shortfall, it moves to account 2, and so on. **This order can make or break your retirement.**
+
+### Asset Growth Calculation
+
+After withdrawals, each asset grows according to its return schedule:
+
+```
+New Balance = (Old Balance - Withdrawal) × (1 + Monthly Return Rate)
+```
+
+The monthly return rate comes from the annual rate in the asset's rate schedule. If the schedule says 6% annually, the monthly rate is approximately 0.5%.
 
 ---
 
-## 💰 Social Security Strategy Analysis
+## Chapter 5: Sequence of Returns Risk - The Retirement Killer
 
-One of the biggest retirement decisions is **when to claim Social Security**. Let's model the three main strategies:
+This is the big one. The concept that can destroy decades of careful saving.
 
-### Strategy A: Claim Early at Age 62 (75% of full benefit)
+**Sequence of returns risk** means the order of your investment returns matters enormously when you're withdrawing money. Getting poor returns early in retirement is catastrophic; getting the same poor returns later is manageable.
 
-```json
-{
-  "example": {
-    "metadata": {
-      "title": "SS Strategy A: Claim at Age 62",
-      "description": "Maria claims early: $2,100/month (75% of full benefit) starting at age 62. Lower monthly benefit but immediate cash flow."
-    },
-    "plan": {
-      "monthly_expenses": 6500,
-      "duration_months": 360,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [
-      {
-        "name": "Social Security (Early)",
-        "amount": 2100,
-        "start_month": 24
-      }
-    ],
-    "assets": [
-      {
-        "name": "401k/IRA",
-        "type": "taxable",
-        "balance": 450000,
-        "compounding": "monthly",
-        "return_schedule": "example_401k/IRA_returns"
-      },
-      {
-        "name": "Taxable Investments",
-        "type": "taxable",
-        "balance": 200000,
-        "compounding": "monthly",
-        "return_schedule": "example_Taxable_Investments_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Taxable Investments",
-        "order": 1
-      },
-      {
-        "account": "401k/IRA",
-        "order": 2
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_401k/IRA_returns": {
-        "type": "fixed",
-        "rate": 0.06
-      },
-      "example_Taxable_Investments_returns": {
-        "type": "fixed",
-        "rate": 0.055
-      }
-    }
-  }
-}
-```
+### The 2008 Scenario
 
-### Strategy B: Wait Until Full Retirement Age (67)
+Load **"Sequence of Returns: 2008 Crash Scenario"**. This simulates retiring right before the financial crisis:
 
-```json
-{
-  "example": {
-    "metadata": {
-      "title": "SS Strategy B: Claim at Full Retirement Age (67)",
-      "description": "Maria waits for full benefit: $2,800/month (100%) starting at age 67. More asset depletion early, but higher lifetime benefit."
-    },
-    "plan": {
-      "monthly_expenses": 6500,
-      "duration_months": 360,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [
-      {
-        "name": "Social Security (Full)",
-        "amount": 2800,
-        "start_month": 84
-      }
-    ],
-    "assets": [
-      {
-        "name": "401k/IRA",
-        "type": "taxable",
-        "balance": 450000,
-        "compounding": "monthly",
-        "return_schedule": "example_401k/IRA_returns"
-      },
-      {
-        "name": "Taxable Investments",
-        "type": "taxable",
-        "balance": 200000,
-        "compounding": "monthly",
-        "return_schedule": "example_Taxable_Investments_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Taxable Investments",
-        "order": 1
-      },
-      {
-        "account": "401k/IRA",
-        "order": 2
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_401k/IRA_returns": {
-        "type": "fixed",
-        "rate": 0.06
-      },
-      "example_Taxable_Investments_returns": {
-        "type": "fixed",
-        "rate": 0.055
-      }
-    }
-  }
-}
-```
+- **2025**: -37% (market crash)
+- **2026**: -22% (continued bear market)
+- **2027**: +26% (recovery begins)
+- **2028**: +15% (continued recovery)
 
-### Strategy C: Delay Until Age 70 (132% of full benefit)
+The same portfolio with the same average returns over time, but starting with crashes instead of ending with them.
 
-```json
-{
-  "example": {
-    "metadata": {
-      "title": "SS Strategy C: Delay Until Age 70",
-      "description": "Maria delays for maximum benefit: $3,696/month (132%) starting at age 70. Highest monthly benefit but maximum early asset depletion."
-    },
-    "plan": {
-      "monthly_expenses": 6500,
-      "duration_months": 360,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [
-      {
-        "name": "Social Security (Delayed)",
-        "amount": 3696,
-        "start_month": 120
-      }
-    ],
-    "assets": [
-      {
-        "name": "401k/IRA",
-        "type": "taxable",
-        "balance": 450000,
-        "compounding": "monthly",
-        "return_schedule": "example_401k/IRA_returns"
-      },
-      {
-        "name": "Taxable Investments",
-        "type": "taxable",
-        "balance": 200000,
-        "compounding": "monthly",
-        "return_schedule": "example_Taxable_Investments_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Taxable Investments",
-        "order": 1
-      },
-      {
-        "account": "401k/IRA",
-        "order": 2
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_401k/IRA_returns": {
-        "type": "fixed",
-        "rate": 0.06
-      },
-      "example_Taxable_Investments_returns": {
-        "type": "fixed",
-        "rate": 0.055
-      }
-    }
-  }
-}
-```
+**Run this simulation.**
 
-### Strategy Comparison
+Notice how devastating early losses are when combined with withdrawals. You're selling assets at their lowest point to pay expenses. Those assets never recover because you no longer own them.
 
-| Strategy | Monthly Draw After SS | Early Asset Depletion | Risk Level |
-|----------|----------------------|----------------------|------------|
-| Age 62   | $4,400              | $156,000 (2 years)   | Lower      |
-| Age 67   | $3,700              | $546,000 (7 years)   | Medium     |
-| Age 70   | $2,804              | $780,000 (10 years)  | Higher     |
+### Why This Matters More Than Average Returns
 
-**Analysis**: Run all three scenarios and compare the asset balance curves. The "best" strategy depends on:
-- Life expectancy (break-even typically around age 80-84)
-- Risk tolerance (early markets crashes hurt delayed strategies more)
-- Other income sources
-- Health considerations
+Traditional retirement planning focuses on average returns - "the market averages 10% over the long term." But averages don't matter when you're withdrawing money.
+
+Consider two scenarios with identical average returns:
+- **Scenario A**: 10%, 10%, 10%, 10% (boring, steady)
+- **Scenario B**: -20%, -20%, 50%, 50% (volatile, same average)
+
+If you're adding money (accumulation phase), these are equivalent. If you're withdrawing money (retirement), Scenario B destroys you while Scenario A works fine.
+
+**This is why retirement planning is fundamentally different from accumulation planning.**
+
+### Protection Strategies
+
+1. **Cash Buffer**: Keep 1-2 years of expenses in cash/bonds to avoid selling stocks during crashes
+2. **Bond Tent**: Increase bond allocation as you approach retirement
+3. **Geographic Arbitrage**: Have flexibility to move to lower-cost areas during market downturns
+4. **Flexible Spending**: Ability to cut expenses during bad market years
 
 ---
 
-## 🏥 Social Security Disability Decision Analysis
+## Chapter 6: Income Sources and Timing
 
-For those with health issues, SSDI can be life-changing financially.
+Most retirees have multiple income sources that start at different times:
 
-### Scenario A: SSDI Approved
+### Social Security Strategy
 
-```json
-{
-  "example": {
-    "metadata": {
-      "title": "SSDI Approved",
-      "description": "Tom gets SSDI at 58: $2,600/month (full retirement amount) immediately, converts to regular SS at 67. Financial game-changer."
-    },
-    "plan": {
-      "monthly_expenses": 5200,
-      "duration_months": 300,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [
-      {
-        "name": "SSDI",
-        "amount": 2600,
-        "start_month": 6,
-        "stop_month": 107
-      },
-      {
-        "name": "Social Security",
-        "amount": 2600,
-        "start_month": 108
-      }
-    ],
-    "assets": [
-      {
-        "name": "401k",
-        "type": "taxable",
-        "balance": 180000,
-        "compounding": "monthly",
-        "return_schedule": "example_401k_returns"
-      },
-      {
-        "name": "Savings",
-        "type": "taxable",
-        "balance": 45000,
-        "compounding": "monthly",
-        "return_schedule": "example_Savings_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Savings",
-        "order": 1
-      },
-      {
-        "account": "401k",
-        "order": 2
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_401k_returns": {
-        "type": "fixed",
-        "rate": 0.055
-      },
-      "example_Savings_returns": {
-        "type": "fixed",
-        "rate": 0.02
-      }
-    }
-  }
-}
-```
+The **"SSDI Approved"** scenario shows someone receiving full Social Security benefits 9 years early due to disability approval. Notice how this completely changes the financial picture - steady income reduces portfolio withdrawals dramatically.
 
-### Scenario B: SSDI Denied, Early Retirement at 62
+Key Social Security insights:
+- **Timing matters**: Delaying benefits increases monthly payments
+- **Spousal benefits**: Married couples have complex optimization opportunities  
+- **Tax implications**: Social Security can be taxable depending on other income
 
-```json
-{
-  "example": {
-    "metadata": {
-      "title": "SSDI Denied - Early SS at 62",
-      "description": "Tom's SSDI denied. Must survive 4 years on assets alone, then reduced SS benefit ($1,950 = 75% of full). Much harder path."
-    },
-    "plan": {
-      "monthly_expenses": 5200,
-      "duration_months": 300,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [
-      {
-        "name": "Social Security (Early)",
-        "amount": 1950,
-        "start_month": 48
-      }
-    ],
-    "assets": [
-      {
-        "name": "401k",
-        "type": "taxable",
-        "balance": 180000,
-        "compounding": "monthly",
-        "return_schedule": "example_401k_returns"
-      },
-      {
-        "name": "Savings",
-        "type": "taxable",
-        "balance": 45000,
-        "compounding": "monthly",
-        "return_schedule": "example_Savings_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Savings",
-        "order": 1
-      },
-      {
-        "account": "401k",
-        "order": 2
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_401k_returns": {
-        "type": "fixed",
-        "rate": 0.055
-      },
-      "example_Savings_returns": {
-        "type": "fixed",
-        "rate": 0.02
-      }
-    }
-  }
-}
-```
+### Pension Considerations
 
-### Scenario C: SSDI Denied, Part-Time Work Bridge
-
-```json
-{
-  "example": {
-    "metadata": {
-      "title": "SSDI Denied - Part-Time Work Bridge",
-      "description": "Tom's SSDI denied but he manages part-time work ($2,200/month) until full retirement at 67. Preserves more assets."
-    },
-    "plan": {
-      "monthly_expenses": 5200,
-      "duration_months": 300,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [
-      {
-        "name": "Part-Time Work",
-        "amount": 2200,
-        "start_month": 6,
-        "stop_month": 107
-      },
-      {
-        "name": "Social Security (Full)",
-        "amount": 2600,
-        "start_month": 108
-      }
-    ],
-    "assets": [
-      {
-        "name": "401k",
-        "type": "taxable",
-        "balance": 180000,
-        "compounding": "monthly",
-        "return_schedule": "example_401k_returns"
-      },
-      {
-        "name": "Savings",
-        "type": "taxable",
-        "balance": 45000,
-        "compounding": "monthly",
-        "return_schedule": "example_Savings_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Savings",
-        "order": 1
-      },
-      {
-        "account": "401k",
-        "order": 2
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_401k_returns": {
-        "type": "fixed",
-        "rate": 0.055
-      },
-      "example_Savings_returns": {
-        "type": "fixed",
-        "rate": 0.02
-      }
-    }
-  }
-}
-```
-
-**Key Insights:**
-- **SSDI approval** = getting your full Social Security benefit 9 years early (huge financial win)
-- **SSDI denial** forces difficult choices: reduced benefits or continued work with health limitations
-- **Application process** takes 6+ months of living on assets
+If you have a pension:
+- **Lump sum vs. annuity**: The tool can model both
+- **Survivor benefits**: How does death affect payments?
+- **COLA adjustments**: Does it adjust for inflation?
 
 ---
 
-## 🌉 Early Retirement Bridge Strategies
+## Chapter 7: Building Your Own Scenarios
 
-Want to retire before Social Security? You need a bridge strategy.
+Now you understand the principles. Time to model your actual situation.
 
-### Bridge Strategy: Conservative Asset Allocation
+### Step 1: Gather Your Data
+
+**Assets** (current balances):
+- Checking/savings accounts
+- Taxable investment accounts  
+- 401k/403b balances
+- Traditional IRA balances
+- Roth IRA balances
+- Other accounts (HSA, etc.)
+
+**Income Sources**:
+- Social Security (use ssa.gov calculator)
+- Pensions
+- Part-time work plans
+- Rental income
+
+**Expenses**:
+- Current monthly spending
+- Healthcare cost increases
+- Long-term care planning
+
+### Step 2: Choose Withdrawal Order
+
+**Conservative approach**:
+1. Savings/checking (preserve growth accounts)
+2. Taxable accounts (avoid early withdrawal penalties)
+3. Traditional 401k/IRA (manage tax brackets)
+4. Roth accounts (preserve tax-free growth)
+
+**Aggressive approach** (if in low tax bracket):
+1. Traditional 401k/IRA first (pay taxes while rates are low)
+2. Taxable accounts
+3. Roth accounts last
+
+### Step 3: Model Different Return Scenarios
+
+Don't use one set of assumptions. Model:
+- **Conservative**: 4% real returns (after inflation)
+- **Moderate**: 6% real returns  
+- **Aggressive**: 8% real returns
+- **Sequence risk**: Start with -20%, -15%, then recover
+
+### Step 4: Stress Test with Inflation
+
+Model different inflation scenarios:
+- **2% Fed target** (optimistic)
+- **3% historical average** (realistic)  
+- **5%+ crisis scenario** (pessimistic)
+
+---
+
+## Chapter 8: Advanced Strategies and Considerations
+
+### Healthcare Cost Explosion
+
+Healthcare costs typically increase faster than general inflation. Model this by adding a separate rate schedule for medical expenses:
+
+```json
+"healthcare_inflation": {
+  "type": "fixed",
+  "rate": 0.06
+}
+```
+
+### Long-Term Care Planning
+
+The average long-term care need is 3 years. Model this by adding a temporary expense:
+
+```json
+"deposits": [
+  {
+    "name": "Long-term care",
+    "amount": -8000,
+    "start_month": 180,
+    "stop_month": 216,
+    "target": "Investment"
+  }
+]
+```
+
+### Geographic Arbitrage
+
+Your expenses aren't fixed. Moving from San Francisco to Austin can cut costs 40%. Model multiple scenarios with different expense levels.
+
+### Legacy Planning
+
+Do you want to leave money to heirs, or spend your last dollar? The tool can model both:
+- **Spend-down approach**: Optimize for personal security
+- **Legacy approach**: Preserve principal, live off income only
+
+---
+
+## Chapter 9: Market Realities and Fed Policy
+
+Understanding broader economic forces helps you make better retirement decisions.
+
+### Federal Reserve Impact
+
+The Fed's decisions directly affect your retirement:
+
+**When they cut rates**:
+- Your savings earn less
+- Bond prices rise (good if you own bonds)
+- Stock prices often rise
+- Real estate prices rise
+- Inflation pressure builds
+
+**When they raise rates**:
+- Your savings earn more
+- Bond prices fall (bad if you own bonds)
+- Stock prices often fall initially
+- Dollar strengthens
+- Inflation pressure reduces
+
+### Market Cycle Awareness
+
+Markets move in cycles, roughly:
+- **7-10 years**: Typical bull market length
+- **1-2 years**: Typical bear market length  
+- **15-20 years**: Full cycle (bull + bear + recovery)
+
+If you retire at the start of a bull market, you're lucky. If you retire at the start of a bear market, you need different strategies.
+
+### Economic Indicators to Watch
+
+- **Yield curve inversion**: Often predicts recession
+- **Consumer Price Index (CPI)**: Official inflation measure
+- **Federal funds rate**: Base rate for all other rates
+- **Unemployment**: Economic health indicator
+
+---
+
+## Chapter 10: Taking Control of Your Financial Destiny
+
+### The Mindset Shift
+
+Stop asking "Do I have enough?" Start asking:
+
+1. **What are my monthly cash flow needs?**
+2. **How will these change over time?**
+3. **What income sources can I count on?**
+4. **How will market volatility affect my withdrawals?**
+5. **What flexibility do I have in expenses and location?**
+
+### Continuous Planning Process
+
+Retirement planning isn't "set and forget." Review annually:
+
+1. **Update asset values** (market changes)
+2. **Adjust expense assumptions** (lifestyle changes)
+3. **Revisit withdrawal strategy** (tax law changes)
+4. **Model new economic scenarios** (Fed policy changes)
+
+### Building Multiple Plans
+
+Don't have one retirement plan. Have several:
+
+- **Plan A**: Everything goes according to plan
+- **Plan B**: Market crashes early in retirement
+- **Plan C**: High inflation persists
+- **Plan D**: Health crisis requires long-term care
+- **Plan E**: Social Security benefits are cut
+
+### The Power of Simulation
+
+This tool gives you something most retirees don't have: **visibility into the future consequences of today's decisions**. You can test strategies before implementing them. You can see the month-by-month impact of different choices.
+
+Use this power responsibly:
+1. **Model realistic scenarios**, not just optimistic ones
+2. **Stress test your assumptions** with various market conditions
+3. **Plan for flexibility** rather than hoping for certainty
+4. **Update regularly** as circumstances change
+
+---
+
+## Chapter 11: Common Scenarios and What They Teach
+
+### The "I'm Fine" Scenario (Usually Wrong)
+
+Many people look at their 401k balance and think they're set. Model your actual expenses against your actual assets with realistic inflation. You might discover you need to work longer, save more, or plan to move somewhere cheaper.
+
+### The "Social Security Will Save Me" Scenario
+
+Social Security replaces about 40% of pre-retirement income for average earners. If you're spending $5,000/month now, Social Security might provide $2,000/month. Your assets need to bridge a $3,000 monthly gap, plus inflation growth, for decades.
+
+### The "I'll Just Spend Less" Scenario
+
+Expenses in retirement often don't decrease as much as expected:
+- Healthcare costs increase
+- Home maintenance continues
+- Property taxes rise
+- Inflation affects everything
+
+Model your current expenses, not some theoretical reduced amount.
+
+### The "Market Always Recovers" Scenario
+
+Yes, the market has always recovered historically. But you might not have enough time for recovery if you're withdrawing money during crashes. This is why sequence of returns risk is so dangerous.
+
+---
+
+## Chapter 12: Beyond the Simulation - Implementation
+
+### Working with Professionals
+
+Use this tool to have informed conversations with financial advisors. You'll know the right questions to ask:
+
+- "How do you account for sequence of returns risk?"
+- "What's your withdrawal strategy during market downturns?"
+- "How do we adjust for healthcare inflation?"
+- "What flexibility do we have if assumptions change?"
+
+### Tax Planning Integration
+
+The simulation shows pre-tax cash flows. Work with a tax professional to understand:
+- **Roth conversion opportunities** in low-income years
+- **Tax-loss harvesting** strategies
+- **Charitable giving** for tax optimization
+- **Geographic tax differences** if you move
+
+### Estate Planning Coordination
+
+Your withdrawal strategy affects what you leave behind. Work with an estate attorney to ensure:
+- **Beneficiary designations** are current
+- **Trust structures** align with spending plans
+- **Healthcare directives** specify your wishes
+- **Power of attorney** documents are in place
+
+---
+
+## Conclusion: Your Financial Destiny is in Your Hands
+
+The retirement planning industry wants you to believe that financial planning is too complex for regular people. They want you to hand over your life savings and trust their "expertise."
+
+But you've just learned to model complex retirement scenarios yourself. You understand inflation, sequence of returns risk, withdrawal strategies, and market cycles. You can stress-test your assumptions and plan for multiple futures.
+
+**This knowledge is power.** Power to make informed decisions. Power to adapt when circumstances change. Power to take control of your financial destiny instead of hoping someone else has your best interests at heart.
+
+The simulation tool shows you the numbers, but the decisions are yours:
+- How much risk can you accept?
+- What flexibility do you have in expenses and location?
+- What legacy do you want to leave?
+- How much uncertainty can you tolerate?
+
+There are no perfect answers, but there are informed decisions. Use this tool regularly. Update your assumptions. Model different scenarios. Plan for multiple futures.
+
+Your retirement security depends not on having the "right" plan, but on having the knowledge and tools to adapt as the future unfolds.
+
+**Take control. Run the numbers. Make informed decisions.**
+
+**Your financial destiny is in your hands.**
+
+---
+
+## Appendix: Technical Reference
+
+### JSON Scenario Format
 
 ```json
 {
-  "example": {
+  "scenario-key": {
     "metadata": {
-      "title": "Early Retirement Bridge - Bond Tent Strategy",
-      "description": "Shift to conservative assets during early retirement to reduce sequence-of-returns risk. Bonds first, then stocks, preserve 401k growth."
+      "title": "Scenario Name",
+      "description": "What this scenario demonstrates",
+      "tags": ["category1", "category2"]
     },
     "plan": {
-      "monthly_expenses": 6000,
-      "duration_months": 240,
-      "inflation_schedule": "example_no_inflation"
+      "monthly_expenses": 5200,
+      "inflation_schedule": "inflation_rate_name",
+      "duration_months": 360
     },
     "income": [
       {
         "name": "Social Security",
-        "amount": 2800,
-        "start_month": 84
+        "amount": 2442,
+        "start_month": 60,
+        "stop_month": 999
       }
     ],
     "assets": [
       {
-        "name": "Bond Ladder (5yr)",
+        "name": "Savings",
         "type": "taxable",
-        "balance": 200000,
-        "compounding": "monthly",
-        "return_schedule": "example_Bond_Ladder_(5yr)_returns"
-      },
-      {
-        "name": "Conservative Stocks",
-        "type": "taxable",
-        "balance": 300000,
-        "compounding": "monthly",
-        "return_schedule": "example_Conservative_Stocks_returns"
-      },
-      {
-        "name": "401k (Aggressive)",
-        "type": "taxable",
-        "balance": 200000,
-        "compounding": "monthly",
-        "return_schedule": "example_401k_(Aggressive)_returns"
-      }
-    ],
-    "order": [
-      {
-        "account": "Bond Ladder (5yr)",
-        "order": 1
-      },
-      {
-        "account": "Conservative Stocks",
-        "order": 2
-      },
-      {
-        "account": "401k (Aggressive)",
-        "order": 3
-      }
-    ],
-    "rate_schedules": {
-      "example_no_inflation": {
-        "type": "fixed",
-        "rate": 0.0
-      },
-      "example_Bond_Ladder_(5yr)_returns": {
-        "type": "fixed",
-        "rate": 0.025
-      },
-      "example_Conservative_Stocks_returns": {
-        "type": "fixed",
-        "rate": 0.045
-      },
-      "example_401k_(Aggressive)_returns": {
-        "type": "fixed",
-        "rate": 0.07
-      }
-    }
-  }
-}
-```
-
----
-
-## 💼 Complex Real-World Scenario
-
-Let's put it all together with a realistic layoff situation.
-
-```json
-{
-  "example": {
-    "metadata": {
-      "title": "Real-World: Early Retirement After Layoff",
-      "description": "Dave, 60, laid off 7 weeks ago. Evaluating early retirement vs job hunting. Includes bridge consulting, multiple asset types, future car expense."
-    },
-    "plan": {
-      "monthly_expenses": 7500,
-      "duration_months": 300,
-      "inflation_schedule": "example_no_inflation"
-    },
-    "income": [
-      {
-        "name": "Consulting Work",
-        "amount": 3000,
-        "start_month": 6,
-        "stop_month": 18
-      },
-      {
-        "name": "Social Security",
-        "amount": 2400,
-        "start_month": 24
-      }
-    ],
-    "assets": [
-      {
-        "name": "Emergency Fund",
-        "type": "taxable",
-        "balance": 40000,
-        "compounding": "monthly",
-        "return_schedule": "example_Emergency_Fund_returns"
-      },
-      {
-        "name": "Taxable Investments",
-        "type": "taxable",
-        "balance": 450000,
-        "compounding": "monthly",
-        "return_schedule": "example_Taxable_Investments_returns"
-      },
-      {
-        "name": "Traditional 401k",
-        "type": "taxable",
-        "balance": 380000,
-        "compounding": "monthly",
-        "return_schedule": "example_Traditional_401k_returns"
-      },
-      {
-        "name": "Roth IRA",
-        "type": "tax_free",
-        "balance": 75000,
-        "compounding": "monthly",
-        "return_schedule": "example_Roth_IRA_returns"
-      },
-      {
-        "name": "Car Replacement",
-        "type": "taxable",
-        "balance": -35000,
-        "start_month": 84,
-        "return_schedule": "example_Car_Replacement_returns",
+        "balance": 100000,
+        "return_schedule": "savings_returns",
         "compounding": "monthly"
       }
     ],
     "order": [
-      {
-        "account": "Emergency Fund",
-        "order": 1
-      },
-      {
-        "account": "Taxable Investments",
-        "order": 2
-      },
-      {
-        "account": "Traditional 401k",
-        "order": 3
-      },
-      {
-        "account": "Roth IRA",
-        "order": 4
-      }
+      {"account": "Savings", "order": 1}
     ],
     "rate_schedules": {
-      "example_no_inflation": {
+      "inflation_rate_name": {
         "type": "fixed",
-        "rate": 0.0
+        "rate": 0.03
       },
-      "example_Emergency_Fund_returns": {
-        "type": "fixed",
-        "rate": 0.01
-      },
-      "example_Taxable_Investments_returns": {
-        "type": "fixed",
-        "rate": 0.055
-      },
-      "example_Traditional_401k_returns": {
-        "type": "fixed",
-        "rate": 0.06
-      },
-      "example_Roth_IRA_returns": {
-        "type": "fixed",
-        "rate": 0.06
-      },
-      "example_Car_Replacement_returns": {
-        "type": "fixed",
-        "rate": 0.0
+      "savings_returns": {
+        "type": "fixed", 
+        "rate": 0.05
       }
     }
   }
 }
 ```
 
-**This models:**
-- **Immediate situation**: Living off emergency fund initially
-- **Bridge income**: Some consulting for 1 year to ease transition  
-- **Social Security timing**: Starting at 62 (realistic for layoff situation)
-- **Asset priority**: Tax-efficient withdrawal sequence
-- **Future expense**: Car replacement in 7 years
-- **Growth assumptions**: Different rates for different asset types
+### Rate Schedule Types
+
+**Fixed Rate**:
+```json
+{
+  "type": "fixed",
+  "rate": 0.05
+}
+```
+
+**Sequence (Historical Data)**:
+```json
+{
+  "type": "sequence", 
+  "start_year": 2025,
+  "values": [0.10, -0.05, 0.15, 0.08],
+  "default_rate": 0.07
+}
+```
+
+**Pipeline (Complex Calculations)**:
+```json
+{
+  "pipeline": [
+    {"start_with": 0.03},
+    {"add_trend": {"annual_change": 0.001}},
+    {"add_noise": {"std_dev": 0.01}},
+    {"clamp": {"min": 0.0, "max": 0.08}}
+  ]
+}
+```
 
 ---
 
-## 🎯 How to Use This Guide
-
-### 1. Start Simple
-Copy the Level 1 scenario and modify the numbers to match your basic situation.
-
-### 2. Add Complexity Gradually
-- Level 2: Add your income sources (Social Security, pensions, part-time work)
-- Level 3: Model multiple accounts with withdrawal priorities
-- Level 4: Add windfalls and major expenses
-
-### 3. Compare Scenarios
-Create variants to test:
-- Different Social Security timing
-- SSDI approval vs denial
-- Various bridge strategies
-- Optimistic vs pessimistic market returns
-
-### 4. Stress Test
-- What if returns are 2% lower?
-- What if expenses are $500/month higher?
-- What if a market crash happens in year 2-3?
-
-### 5. Make Informed Decisions
-Use the insights to:
-- Choose Social Security timing
-- Plan withdrawal strategies
-- Build appropriate emergency reserves
-- Decide on early retirement feasibility
-
----
-
-## 💡 Key Insights
-
-1. **Everything is an asset** - Windfalls, expenses, future accounts can all be modeled as assets with timing and growth properties
-
-2. **Timing matters enormously** - Small changes in Social Security timing or income duration can extend financial runway by years
-
-3. **Withdrawal order affects outcomes** - Tax-efficient strategies preserve wealth longer
-
-4. **Early years are critical** - Sequence of returns risk means early market crashes hurt more than later ones
-
-5. **Income trumps assets** - Even small amounts of reliable income dramatically improve sustainability
-
----
-
-## 🚧 Limitations to Remember
-
-This tool shows **cash flow projections**, but doesn't model:
-- **Tax implications** (withdrawals shown gross, not net)
-- **Inflation** (expenses stay constant in real dollars)
-- **Market volatility** (returns are smoothed monthly)
-- **Required minimum distributions**
-- **Healthcare cost changes**
-- **Longevity uncertainty**
-
-Use these scenarios as a **starting point** for deeper analysis with financial professionals.
-
----
-
-## 🔧 Pro Tips
-
-- **Month numbering**: Tool uses 0-based indexing (month 0 = first month)
-- **Interest compounding**: Annual rate ÷ 12, applied monthly  
-- **CSV export**: Great for spreadsheet analysis and custom charts
-- **Order matters**: Assets drain completely in priority order
-- **Negative balances**: Perfect for modeling one-time expenses
-- **Start months**: Use to time events precisely
-
-Ready to model your retirement? Start with Level 1 and work your way up to your real situation! 🚀
+*This guide represents the learning journey of someone using simulation tools to understand retirement planning. It is not professional financial advice. Consult qualified professionals for personalized guidance.*

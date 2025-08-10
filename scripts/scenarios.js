@@ -134,20 +134,44 @@ export class ScenarioManager {
     return groups;
   }
 
-  // Extract clean scenario data for simulation (removes metadata)
+  // Extract clean scenario data for simulation - FIXED VERSION
   getSimulationData(scenarioKey) {
+    console.log(`Getting simulation data for: ${scenarioKey}`);
+    
     const scenario = this.getScenario(scenarioKey);
     if (!scenario) {
+      console.error(`Scenario not found: ${scenarioKey}`);
       return null;
     }
-
-    return {
-      title: scenario.metadata.title,
-      plan: scenario.plan,
-      assets: scenario.assets,
-      income: scenario.income,
-      order: scenario.order
+    
+    console.log('Found scenario:', scenario);
+    
+    // Build simulation data with all required components INCLUDING rate_schedules
+    const simulationData = {
+      title: scenario.metadata?.title || 'Untitled Scenario',
+      plan: scenario.plan || {},
+      assets: scenario.assets || [],
+      income: scenario.income || [],
+      order: scenario.order || [],
+      rate_schedules: scenario.rate_schedules || {}  // CRITICAL: Include rate schedules
     };
+    
+    console.log('Built simulation data:', simulationData);
+    
+    // Validate critical components
+    if (!simulationData.plan.monthly_expenses) {
+      console.warn('Warning: No monthly_expenses in plan');
+    }
+    
+    if (!simulationData.plan.duration_months) {
+      console.warn('Warning: No duration_months in plan');
+    }
+    
+    if (Object.keys(simulationData.rate_schedules).length === 0) {
+      console.warn('Warning: No rate_schedules defined');
+    }
+    
+    return simulationData;
   }
 
   // Load discussion file for a scenario
