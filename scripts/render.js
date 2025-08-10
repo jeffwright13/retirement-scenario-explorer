@@ -16,11 +16,11 @@ export function renderCsv(csvText) {
     return;
   }
   
+  // Set the CSV content
   container.textContent = csvText;
   
-  // Show the CSV section and container
-  csvSection.classList.remove("collapsed");
-  container.classList.remove("collapsed");
+  // DON'T automatically show the CSV section - keep it hidden by default
+  console.log('✅ CSV data prepared (hidden by default)');
 }
 
 /**

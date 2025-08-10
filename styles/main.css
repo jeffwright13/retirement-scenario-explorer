@@ -513,3 +513,67 @@ body {
 .scenario-preview #scenario-json-preview::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
 }
+
+/* Add these fixes to the END of styles/main.css */
+
+/* ===== PHASE 1 POLISH FIXES ===== */
+
+/* Fix chart width - ensure it takes full available width */
+#chart-area {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 20px 0;
+}
+
+#chart-area .plotly-graph-div {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+/* Ensure CSV section is closed by default */
+.csv-section {
+  display: none; /* Default closed */
+}
+
+.csv-section.show {
+  display: block; /* Only show when explicitly opened */
+}
+
+#csv-container {
+  display: none; /* Default closed */
+}
+
+#csv-container.show {
+  display: block; /* Only show when explicitly opened */
+}
+
+/* Ensure getting started panel is open by default */
+.getting-started-panel {
+  /* Remove any default collapsed state */
+}
+
+.getting-started-content {
+  display: block; /* Ensure it's visible by default */
+}
+
+/* Better chart container styling */
+#chart-area.has-results {
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 16px;
+  background-color: white;
+  margin: 20px 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Mobile chart fixes */
+@media (max-width: 768px) {
+  #chart-area {
+    margin: 20px -10px; /* Extend to edges on mobile */
+    border-radius: 0;
+  }
+  
+  #chart-area.has-results {
+    padding: 10px;
+  }
+}

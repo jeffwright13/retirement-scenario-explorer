@@ -85,6 +85,10 @@ export class UIManager {
     this.elements.gettingStartedPanel.classList.add('collapsed');
   }
 
+  expandGettingStartedPanel() {
+    this.elements.gettingStartedPanel.classList.remove('collapsed');
+  }
+
   // JSON editor management
   toggleJsonEditor() {
     const isCollapsed = this.elements.jsonContainer.classList.contains('collapsed');
@@ -117,22 +121,27 @@ export class UIManager {
     this.elements.jsonInput.value = '';
   }
 
-  // CSV results management
+  // ENHANCED: CSV results management with show/hide classes
   toggleCsvResults() {
-    const isCollapsed = this.elements.csvSection.classList.contains('collapsed');
+    const isVisible = this.elements.csvSection.classList.contains('show');
     
-    if (isCollapsed) {
-      this.elements.csvSection.classList.remove('collapsed');
-      this.elements.csvContainer.classList.remove('collapsed');
+    if (isVisible) {
+      this.elements.csvSection.classList.remove('show');
+      this.elements.csvContainer.classList.remove('show');
     } else {
-      this.elements.csvSection.classList.add('collapsed');
-      this.elements.csvContainer.classList.add('collapsed');
+      this.elements.csvSection.classList.add('show');
+      this.elements.csvContainer.classList.add('show');
     }
   }
 
   showCsvResults() {
-    this.elements.csvSection.classList.remove('collapsed');
-    this.elements.csvContainer.classList.remove('collapsed');
+    this.elements.csvSection.classList.add('show');
+    this.elements.csvContainer.classList.add('show');
+  }
+
+  hideCsvResults() {
+    this.elements.csvSection.classList.remove('show');
+    this.elements.csvContainer.classList.remove('show');
   }
 
   // Scenario dropdown management
@@ -158,9 +167,36 @@ export class UIManager {
     }
   }
 
-  // ENHANCED: Scenario preview with key assumptions
+  // NEW: Reset UI to default state when new scenario selected
+  resetToDefaultState() {
+    console.log('🔄 Resetting UI to default state');
+    
+    // Expand getting started panel
+    this.elements.gettingStartedPanel.classList.remove('collapsed');
+    
+    // Collapse JSON editor
+    this.elements.jsonContainer.classList.remove('expanded');
+    this.elements.jsonContainer.classList.add('collapsed');
+    
+    // Hide CSV results
+    this.hideCsvResults();
+    
+    // Hide previous simulation results
+    this.hideSimulationResults();
+    
+    // Scroll to top of getting started panel
+    this.elements.gettingStartedPanel.scrollIntoView({ 
+      behavior: 'smooth', 
+      block: 'start' 
+    });
+  }
+
+  // ENHANCED: Scenario preview with state reset and key assumptions
   showScenarioPreview(metadata, simulationData) {
     console.log('=== showScenarioPreview Enhanced ===');
+    
+    // First, reset UI to clean state
+    this.resetToDefaultState();
     
     try {
       this.elements.scenarioPreview.style.display = 'block';
@@ -246,6 +282,7 @@ export class UIManager {
     this.elements.keyAssumptions.style.display = assumptions.length > 0 ? 'block' : 'none';
   }
 
+  // ENHANCED: Hide scenario preview with state management
   hideScenarioPreview() {
     this.elements.scenarioPreview.style.display = 'none';
     this.elements.scenarioDescription.textContent = '';
@@ -253,6 +290,9 @@ export class UIManager {
     if (this.elements.keyAssumptions) {
       this.elements.keyAssumptions.style.display = 'none';
     }
+    
+    // Also reset UI state
+    this.resetToDefaultState();
   }
 
   // Run button state management
@@ -330,7 +370,7 @@ export class UIManager {
     const title = scenarioData.title || '';
     if (title.includes('No Inflation')) {
       insights.push('This assumes 0% inflation, which never happens in reality');
-      insights.push('Even this unrealistic scenario shows the challenge of retirement funding');
+      insights.push('Even this unrealistic scenario shows the challenge of retirement funding: the steady drip of monthly bills and costs');
     } else if (title.includes('3%')) {
       insights.push('3% inflation is the historical average - your expenses nearly double in 20 years');
       insights.push('Notice how much earlier your money runs out compared to 0% inflation');
@@ -354,7 +394,7 @@ export class UIManager {
     return insights;
   }
 
-  // NEW: Show next scenario suggestion
+  // ENHANCED: Show next scenario suggestion with proper event handling
   showNextScenarioSuggestion(currentScenarioTitle) {
     if (!this.elements.nextScenarioSuggestion) return;
     
@@ -363,10 +403,20 @@ export class UIManager {
     if (suggestion) {
       this.elements.nextScenarioDescription.textContent = suggestion.description;
       this.elements.loadNextScenarioBtn.textContent = suggestion.buttonText;
-      this.elements.loadNextScenarioBtn.onclick = () => {
-        // Trigger scenario change
-        this.elements.scenarioDropdown.value = suggestion.scenarioKey;
-        this.elements.scenarioDropdown.dispatchEvent(new Event('change'));
+      
+      // ENHANCED: Better event handling for next scenario button
+      this.elements.loadNextScenarioBtn.onclick = (e) => {
+        e.preventDefault();
+        console.log('🔄 Loading next scenario:', suggestion.scenarioKey);
+        
+        // Reset to default state first
+        this.resetToDefaultState();
+        
+        // Small delay to let UI reset, then change scenario
+        setTimeout(() => {
+          this.elements.scenarioDropdown.value = suggestion.scenarioKey;
+          this.elements.scenarioDropdown.dispatchEvent(new Event('change'));
+        }, 100);
       };
       
       this.elements.nextScenarioSuggestion.style.display = 'block';
@@ -406,10 +456,12 @@ export class UIManager {
     return suggestions[currentTitle] || null;
   }
 
-  // ENHANCED: Post-simulation UI updates with Phase 1 features
+  // ENHANCED: Post-simulation UI updates with better state management
   handleSimulationComplete(scenarioData, results) {
-    // Do existing behavior
-    this.collapseGettingStartedPanel();
+    // Don't collapse getting started panel - let user see their selection
+    // this.collapseGettingStartedPanel();
+    
+    // Collapse JSON editor if it's open
     this.collapseJsonEditor();
     
     // Show chart area
