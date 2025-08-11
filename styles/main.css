@@ -1804,3 +1804,317 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, textarea, select, button {
 .btn-success:active {
   animation: button-pulse 0.6s;
 }
+
+/* Fix for "Recommended Next Step" text readability */
+.next-scenario-suggestion {
+  background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+  color: white; /* Make text white for readability */
+  padding: 20px;
+  border-radius: 8px;
+  margin: 20px 0;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.next-scenario-suggestion h4 {
+  color: white; /* Ensure heading is white */
+  margin: 0 0 10px 0;
+  font-size: 1.2rem;
+}
+
+.next-scenario-suggestion p {
+  color: #e2e8f0; /* Slightly lighter white for body text */
+  margin: 0 0 15px 0;
+  line-height: 1.5;
+}
+
+/* Style the button in the next step box */
+.btn-next-scenario {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn-next-scenario:hover {
+  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Also fix simulation insights if they have similar issues */
+.scenario-insights {
+  background: #f7fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+  color: #2d3748; /* Dark text on light background */
+}
+
+.scenario-insights h3 {
+  color: #2d3748;
+  margin: 0 0 15px 0;
+}
+
+.scenario-insights ul {
+  color: #4a5568;
+  margin: 0;
+  padding-left: 20px;
+}
+
+.scenario-insights li {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+
+/* Enhanced CSS - Adding minimal styles for new introduction and error features */
+/* All existing styles remain unchanged - only adding new classes */
+
+/* NEW: Story Introduction Section */
+.story-introduction-section {
+  background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  animation: slideIn 0.3s ease-out;
+}
+
+.introduction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.introduction-header h4 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: white;
+}
+
+.introduction-content {
+  padding: 20px;
+}
+
+.introduction-content p {
+  margin: 0 0 20px 0;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+.introduction-actions {
+  text-align: right;
+}
+
+/* NEW: Story Error Section */
+.story-error-section {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+  color: white;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  animation: slideIn 0.3s ease-out;
+}
+
+.error-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.error-header h4 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: white;
+}
+
+.error-content {
+  padding: 20px;
+}
+
+.error-content p {
+  margin: 0;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+/* NEW: Dismiss button for overlays */
+.btn-dismiss {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease;
+}
+
+.btn-dismiss:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+/* NEW: Enhanced story dropdown with introduction indicator */
+.story-dropdown option {
+  padding: 8px 12px;
+}
+
+/* NEW: Story insight styling */
+.story-insight {
+  margin-bottom: 8px;
+  padding-left: 5px;
+  border-left: 3px solid #4299e1;
+}
+
+.story-insights {
+  border: 2px solid #4299e1;
+  background: linear-gradient(135deg, #ebf8ff 0%, #dbeafe 100%);
+}
+
+.story-insights h3 {
+  color: #1e40af;
+}
+
+/* NEW: Story action styling */
+.story-action {
+  border: 2px solid #059669;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+}
+
+.story-action h4 {
+  color: #047857;
+}
+
+/* NEW: Enhanced button states */
+.btn-complete {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  animation: pulse 2s infinite;
+}
+
+.btn-complete:hover {
+  background: linear-gradient(135deg, #047857 0%, #065f46 100%);
+}
+
+/* NEW: Content loading states */
+.story-panel.loading {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.story-panel.loading::after {
+  content: "Loading content...";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 14px;
+  z-index: 1000;
+}
+
+/* NEW: Hidden during simulation state */
+.hidden-during-simulation {
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+/* NEW: Animations */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(5, 150, 105, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(5, 150, 105, 0);
+  }
+}
+
+/* NEW: Enhanced responsive design for story elements */
+@media (max-width: 768px) {
+  .introduction-header,
+  .error-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .btn-dismiss {
+    align-self: flex-end;
+  }
+
+  .introduction-actions {
+    text-align: center;
+  }
+
+  .story-navigation {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .btn-story-nav {
+    width: 100%;
+  }
+}
+
+/* NEW: Content management debug info (for development) */
+.content-debug {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0,0,0,0.8);
+  color: white;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 1000;
+  max-width: 300px;
+}
+
+/* NEW: Enhanced error recovery styling */
+.content-error-recovery {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 6px;
+  padding: 12px;
+  margin: 10px 0;
+}
+
+.content-error-recovery p {
+  margin: 0;
+  color: #92400e;
+  font-size: 0.9rem;
+}
+
+/* Ensure existing styles remain completely unchanged */
+/* All the original styles from main.css should remain exactly as they were */

@@ -1,19 +1,20 @@
 /**
- * Storyteller UI Extensions
- * Extends the existing UIManager to support story mode
- * Maintains separation of concerns - pure UI logic
+ * Enhanced Storyteller UI Extensions
+ * Now supports story introductions and improved error handling
+ * Maintains all existing functionality with new features
  */
 
 export class StorytellerUI {
   constructor(uiManager) {
-    this.ui = uiManager; // Reference to existing UIManager
+    this.ui = uiManager;
     this.storyElements = this.initializeStoryElements();
     this.setupStoryEventListeners();
   }
 
-  // Initialize story-specific UI elements
+  // Initialize story-specific UI elements (enhanced)
   initializeStoryElements() {
     return {
+      // Existing elements
       storyModeToggle: document.getElementById('story-mode-toggle'),
       storySelector: document.getElementById('story-selector'),
       storyPanel: document.getElementById('story-panel'),
@@ -29,77 +30,154 @@ export class StorytellerUI {
       storyNextBtn: document.getElementById('story-next-btn'),
       storyExitBtn: document.getElementById('story-exit-btn'),
       chapterProgress: document.getElementById('chapter-progress'),
-      chapterCounter: document.getElementById('chapter-counter')
+      chapterCounter: document.getElementById('chapter-counter'),
+
+      // NEW: Introduction elements (we'll add these to the HTML)
+      storyIntroductionSection: document.getElementById('story-introduction-section'),
+      storyIntroductionText: document.getElementById('story-introduction-text'),
+      storyIntroductionDismiss: document.getElementById('story-introduction-dismiss'),
+
+      // NEW: Error handling elements
+      storyErrorSection: document.getElementById('story-error-section'),
+      storyErrorText: document.getElementById('story-error-text'),
+      storyErrorDismiss: document.getElementById('story-error-dismiss')
     };
   }
 
-  // Setup story-specific event listeners
+  // Setup story-specific event listeners (enhanced)
   setupStoryEventListeners() {
-    // These callbacks will be set by the main app
+    // Existing callbacks
     this.onStoryStart = null;
     this.onStoryNext = null;
     this.onStoryPrevious = null;
     this.onStoryExit = null;
+
+    // NEW: Introduction dismiss handler
+    if (this.storyElements.storyIntroductionDismiss) {
+      this.storyElements.storyIntroductionDismiss.addEventListener('click', () => {
+        this.hideStoryIntroduction();
+      });
+    }
+
+    // NEW: Error dismiss handler
+    if (this.storyElements.storyErrorDismiss) {
+      this.storyElements.storyErrorDismiss.addEventListener('click', () => {
+        this.hideScenarioError();
+      });
+    }
   }
 
-  // Show story mode UI
+  // Show story mode UI (unchanged)
   enterStoryMode() {
     console.log('🎭 Entering story mode UI');
-    
-    // Hide regular scenario selector
+
     if (this.ui.elements.gettingStartedPanel) {
       this.ui.elements.gettingStartedPanel.style.display = 'none';
     }
-    
-    // Show story panel
+
     if (this.storyElements.storyPanel) {
       this.storyElements.storyPanel.style.display = 'block';
       this.storyElements.storyPanel.classList.add('story-active');
     }
 
-    // Update body class for story-specific styling
     document.body.classList.add('story-mode');
   }
 
-  // Exit story mode UI
+  // Exit story mode UI (enhanced cleanup)
   exitStoryMode() {
     console.log('🎭 Exiting story mode UI');
-    
-    // Show regular scenario selector
+
+    // Hide all story elements
+    this.hideStoryIntroduction();
+    this.hideScenarioError();
+
     if (this.ui.elements.gettingStartedPanel) {
       this.ui.elements.gettingStartedPanel.style.display = 'block';
     }
-    
-    // Hide story panel
+
     if (this.storyElements.storyPanel) {
       this.storyElements.storyPanel.style.display = 'none';
       this.storyElements.storyPanel.classList.remove('story-active');
     }
 
-    // Remove story mode styling
     document.body.classList.remove('story-mode');
-    
-    // Reset to normal UI state
     this.ui.resetToDefaultState();
   }
 
-  // Populate story selector dropdown
+  // NEW: Show story introduction
+  showStoryIntroduction(introductionText) {
+    if (!introductionText || !this.storyElements.storyIntroductionSection) {
+      return;
+    }
+
+    console.log('📖 Showing story introduction');
+
+    // Set introduction text
+    if (this.storyElements.storyIntroductionText) {
+      this.storyElements.storyIntroductionText.textContent = introductionText;
+    }
+
+    // Show introduction section
+    this.storyElements.storyIntroductionSection.style.display = 'block';
+    this.storyElements.storyIntroductionSection.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+
+  // NEW: Hide story introduction
+  hideStoryIntroduction() {
+    if (this.storyElements.storyIntroductionSection) {
+      this.storyElements.storyIntroductionSection.style.display = 'none';
+    }
+  }
+
+  // NEW: Show scenario error with helpful message
+  showScenarioError(errorMessage) {
+    console.warn('⚠️ Showing scenario error:', errorMessage);
+
+    if (this.storyElements.storyErrorSection && this.storyElements.storyErrorText) {
+      this.storyElements.storyErrorText.textContent = `Scenario loading issue: ${errorMessage}`;
+      this.storyElements.storyErrorSection.style.display = 'block';
+    }
+  }
+
+  // NEW: Hide scenario error
+  hideScenarioError() {
+    if (this.storyElements.storyErrorSection) {
+      this.storyElements.storyErrorSection.style.display = 'none';
+    }
+  }
+
+  // Populate story selector dropdown (enhanced with introduction info)
   populateStorySelector(stories) {
     if (!this.storyElements.storySelector) return;
 
     this.storyElements.storySelector.innerHTML = '<option value="">Choose a Story...</option>';
-    
+
     for (const [storyKey, storyMeta] of Object.entries(stories)) {
       const option = document.createElement('option');
       option.value = storyKey;
-      option.textContent = `${storyMeta.title} (${storyMeta.chapterCount} chapters, ${storyMeta.duration})`;
+
+      // Enhanced option text with introduction indicator
+      let optionText = `${storyMeta.title} (${storyMeta.chapterCount} chapters, ${storyMeta.duration})`;
+      if (storyMeta.introduction) {
+        optionText += ' 📖'; // Indicate introduction available
+      }
+
+      option.textContent = optionText;
       this.storyElements.storySelector.appendChild(option);
     }
   }
 
-  // Update story chapter display
+  // Update story chapter display (enhanced)
   updateChapterDisplay(chapterData) {
     if (!chapterData) return;
+
+    console.log(`📖 Updating chapter display: ${chapterData.title}`);
+
+    // Hide any previous errors or introductions
+    this.hideScenarioError();
 
     // Update chapter title
     if (this.storyElements.storyChapterTitle) {
@@ -132,7 +210,7 @@ export class StorytellerUI {
     }
   }
 
-  // Update narrative content sections
+  // Update narrative content sections (unchanged)
   updateNarrativeContent(narrative) {
     if (this.storyElements.storyIntroduction && narrative.introduction) {
       this.storyElements.storyIntroduction.textContent = narrative.introduction;
@@ -147,22 +225,20 @@ export class StorytellerUI {
     }
   }
 
-  // Update story progress indicators
+  // Update story progress indicators (unchanged)
   updateStoryProgress(chapterData) {
-    // Chapter counter
     if (this.storyElements.chapterCounter) {
-      this.storyElements.chapterCounter.textContent = 
+      this.storyElements.chapterCounter.textContent =
         `Chapter ${chapterData.chapterNumber} of ${chapterData.totalChapters}`;
     }
 
-    // Progress bar
     if (this.storyElements.chapterProgress) {
       const progressPercent = (chapterData.chapterNumber / chapterData.totalChapters) * 100;
       this.storyElements.chapterProgress.style.width = `${progressPercent}%`;
     }
   }
 
-  // Update story navigation buttons
+  // Update story navigation buttons (enhanced)
   updateStoryNavigation(chapterData) {
     // Previous button
     if (this.storyElements.storyPrevBtn) {
@@ -172,16 +248,16 @@ export class StorytellerUI {
       };
     }
 
-    // Next button
+    // Next button with enhanced text
     if (this.storyElements.storyNextBtn) {
       if (chapterData.isLastChapter) {
-        this.storyElements.storyNextBtn.textContent = 'Complete Story';
+        this.storyElements.storyNextBtn.textContent = 'Complete Story 🎉';
         this.storyElements.storyNextBtn.classList.add('btn-complete');
       } else {
-        this.storyElements.storyNextBtn.textContent = 'Next Chapter';
+        this.storyElements.storyNextBtn.textContent = `Next: Chapter ${chapterData.chapterNumber + 1} →`;
         this.storyElements.storyNextBtn.classList.remove('btn-complete');
       }
-      
+
       this.storyElements.storyNextBtn.onclick = () => {
         if (this.onStoryNext) this.onStoryNext();
       };
@@ -195,16 +271,20 @@ export class StorytellerUI {
     }
   }
 
-  // Override insights display for story mode
+  // Override insights display for story mode (enhanced)
   showStoryInsights(insights, chapterData) {
     if (!this.ui.elements.simulationInsights) return;
 
-    // Use story-provided insights instead of hardcoded ones
+    console.log('📊 Showing story insights:', insights);
+
+    // Clear previous insights
     this.ui.elements.insightsList.innerHTML = '';
-    
+
+    // Add story-provided insights
     insights.forEach(insight => {
       const li = document.createElement('li');
       li.textContent = insight;
+      li.classList.add('story-insight'); // For potential styling
       this.ui.elements.insightsList.appendChild(li);
     });
 
@@ -218,12 +298,14 @@ export class StorytellerUI {
     }
   }
 
-  // Override next scenario suggestion for story mode
+  // Override next scenario suggestion for story mode (enhanced)
   showStoryNextAction(actionData) {
     if (!this.ui.elements.nextScenarioSuggestion || !actionData) return;
 
+    console.log('📈 Showing story next action:', actionData);
+
     const suggestion = this.ui.elements.nextScenarioSuggestion;
-    
+
     // Update content based on story action type
     if (actionData.type === 'next_chapter') {
       this.ui.elements.nextScenarioDescription.textContent = actionData.description;
@@ -244,22 +326,25 @@ export class StorytellerUI {
     suggestion.style.display = 'block';
   }
 
-  // Hide story-specific elements when simulation runs
+  // Hide story-specific elements during simulation (enhanced)
   hideStoryElements() {
-    // Temporarily hide story narrative during simulation
     if (this.storyElements.storyNarrative) {
       this.storyElements.storyNarrative.classList.add('hidden-during-simulation');
     }
+
+    // Also hide introduction and errors during simulation
+    this.hideStoryIntroduction();
+    this.hideScenarioError();
   }
 
-  // Show story elements after simulation
+  // Show story elements after simulation (enhanced)
   showStoryElements() {
     if (this.storyElements.storyNarrative) {
       this.storyElements.storyNarrative.classList.remove('hidden-during-simulation');
     }
   }
 
-  // Event listener registration for external components
+  // Event listener registration for external components (unchanged)
   onStoryModeToggle(callback) {
     if (this.storyElements.storyModeToggle) {
       this.storyElements.storyModeToggle.addEventListener('click', callback);
@@ -272,24 +357,26 @@ export class StorytellerUI {
     }
   }
 
-  // Set story event callbacks
+  // Set story event callbacks (unchanged)
   setStoryCallbacks(callbacks) {
     this.onStoryStart = callbacks.onStoryStart;
     this.onStoryNext = callbacks.onStoryNext;
-    this.onStoryPrevious = callbacks.onStoryPrevious; 
+    this.onStoryPrevious = callbacks.onStoryPrevious;
     this.onStoryExit = callbacks.onStoryExit;
   }
 
-  // Get current story UI state
+  // Get current story UI state (enhanced)
   getStoryUIState() {
     return {
       inStoryMode: document.body.classList.contains('story-mode'),
       selectedStory: this.storyElements.storySelector?.value || null,
-      narrativeVisible: !this.storyElements.storyNarrative?.classList.contains('hidden-during-simulation')
+      narrativeVisible: !this.storyElements.storyNarrative?.classList.contains('hidden-during-simulation'),
+      introductionVisible: this.storyElements.storyIntroductionSection?.style.display !== 'none',
+      hasError: this.storyElements.storyErrorSection?.style.display !== 'none'
     };
   }
 
-  // Utility: Show story loading state
+  // Utility: Show story loading state (enhanced)
   setStoryLoading(isLoading) {
     if (this.storyElements.storyPanel) {
       if (isLoading) {
@@ -298,5 +385,36 @@ export class StorytellerUI {
         this.storyElements.storyPanel.classList.remove('loading');
       }
     }
+
+    // Disable navigation during loading
+    if (this.storyElements.storyPrevBtn) {
+      this.storyElements.storyPrevBtn.disabled = isLoading;
+    }
+    if (this.storyElements.storyNextBtn) {
+      this.storyElements.storyNextBtn.disabled = isLoading;
+    }
+  }
+
+  // NEW: Utility methods for better UX
+
+  // Scroll to story content
+  scrollToStoryContent() {
+    if (this.storyElements.storyNarrative) {
+      this.storyElements.storyNarrative.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
+  }
+
+  // Show content loading indicator
+  showContentLoading(message = 'Loading content...') {
+    // You could implement a loading overlay here
+    console.log(`🔄 ${message}`);
+  }
+
+  // Hide content loading indicator
+  hideContentLoading() {
+    console.log('✅ Content loading complete');
   }
 }

@@ -416,11 +416,6 @@ export class UIManager {
         assumptions.push(`Monthly expenses: $${simulationData.plan.monthly_expenses.toLocaleString()}`);
       }
 
-      // Duration
-      if (simulationData.plan.duration_months) {
-        assumptions.push(`Duration: ${Math.round(simulationData.plan.duration_months / 12)} years`);
-      }
-
       // Inflation handling - support both formats
       if (simulationData.plan.inflation_rate !== undefined) {
         const rate = (simulationData.plan.inflation_rate * 100).toFixed(1);

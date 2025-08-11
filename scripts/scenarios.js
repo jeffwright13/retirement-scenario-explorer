@@ -11,25 +11,8 @@ export class ScenarioManager {
 
     // Only scenario files, NOT story files
 	this.discoveryPatterns = [
-	  // Inflation scenarios
-	  'inflation-none.json', 'inflation-0pct.json', 'inflation-zero.json',
-	  'inflation-3pct.json', 'inflation-low.json', 'inflation-normal.json',
-	  'inflation-70s.json', 'inflation-high.json', 'inflation-8pct.json',
-
-	  // Personal scenarios
-	  'personal.json', 'personal-test.json', 'my-scenario.json', 'portfolio.json',
-	  'personal-portfolio-scenarios.json',
-
-	  // Advanced scenarios
-	  'sequence-crash-2008.json', 'sequence-returns.json', 'market-crash.json',
-    'ssdi-approved.json', 'disability.json', 'early-retirement.json',
-
-    // Proportional scenarios
-    'proportional-examples.json',
-
-	  // Template scenarios
-	  'template.json', 'blank-template.json', 'example.json', 'sample.json',
-	  'basic.json', 'simple.json', 'starter.json',
+    // Personal scenarios
+    'jeffs-learning-journey-scenarios.json',
 	];
   }
 
@@ -124,9 +107,6 @@ export class ScenarioManager {
   // Group scenarios by tags for dropdown organization
   groupScenariosByTag(scenarios = this.discoveredScenarios) {
     const groups = {
-      'Learning Examples': [],
-      'Templates': [],
-      'Advanced': [],
       'Personal': []
     };
 

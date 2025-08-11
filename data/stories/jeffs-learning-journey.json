@@ -1,0 +1,98 @@
+{
+    "jeffs-learning-journey": {
+      "metadata": {
+        "title": "Jeff's Learning Journey: From Unconscious Ignorance to Financial Reality",
+        "description": "A true story of discovering the hidden complexities of retirement planning, one shocking realization at a time",
+        "author": "Jeff Wright (Personal Experience)",
+        "estimated_duration": "25 minutes",
+        "difficulty": "beginner",
+        "tags": ["personal", "learning-journey", "beginner", "compound-interest", "inflation"],
+        "version": "1.0"
+      },
+      "chapters": [
+        {
+          "title": "Chapter 1: Blissful Ignorance - The Linear Drawdown Fantasy",
+          "scenario_key": "jeffs-stage-1-no-growth",
+          "narrative": {
+            "introduction": "This is how I first modeled retirement - assets that earn absolutely nothing. Just a pile of money that shrinks by exactly $8,500 every month. Simple math, right? Divide total assets by monthly expenses. Easy!",
+            "setup": "My actual portfolio: $918,000 total assets, $8,500 monthly expenses, but with 0% growth on everything. I was modeling it like cash under a mattress.",
+            "insights": [
+              "With no asset growth, money lasts exactly {{duration_years}} years",
+              "That's ${{monthly_expenses}} × 12 × {{duration_years}} = total depletion",
+              "Linear drawdown: $918,000 ÷ $8,500 = 108 months = 9 years",
+              "This was genuinely terrifying - I thought we'd run out of money in our early 70s!"
+            ],
+            "key_takeaway": "Unconscious ignorance is dangerous. I was modeling retirement like a checking account, not an investment portfolio."
+          }
+        },
+        {
+          "title": "Chapter 2: The Compound Interest Revelation - Holy $#!@, We're Saved!",
+          "scenario_key": "jeffs-stage-2-with-growth",
+          "narrative": {
+            "introduction": "After some research, I discovered that investment accounts actually GROW while you're withdrawing from them. Mind blown! Let me add realistic return rates and see what happens...",
+            "setup": "Same exact portfolio and expenses, but now with realistic growth: Savings at 3.7%, Investments at 6.5%, IRAs at 6-7%. This changes everything!",
+            "insights": [
+              "WITH compound growth, money now lasts {{duration_years}} years instead of 9!",
+              "Compound interest during drawdown extends your runway by many years",
+              "Your portfolio is earning money while you withdraw money",
+              "This felt like discovering a financial superpower - compound interest saves retirement!"
+            ],
+            "key_takeaway": "Compound interest during retirement is MASSIVE. Your money keeps working for you even as you spend it. I went from panic to relief!"
+          }
+        },
+        {
+          "title": "Chapter 3: The Inflation Gut Punch - Reality Comes Knocking",
+          "scenario_key": "jeffs-stage-3-inflation-reality",
+          "narrative": {
+            "introduction": "Wait, you mean my $8,500 monthly expenses today won't be $8,500 in 10 years? Everything gets more expensive over time? Nobody told me this!",
+            "setup": "Same portfolio with compound growth, but now expenses increase by 3.5% annually due to inflation. That $8,500 becomes $12,250 in year 10, and $17,650 in year 20!",
+            "insights": [
+              "With inflation, money lasts only {{duration_years}} years - back to scary territory!",
+              "Inflation at 3.5% means expenses DOUBLE every 20 years",
+              "By year 20, you need much more monthly just to maintain today's lifestyle",
+              "Compound interest helps, but inflation is its evil twin that eats your purchasing power"
+            ],
+            "key_takeaway": "Inflation is the silent retirement killer. It doesn't just affect your expenses - it destroys the real value of your 'safe' money over decades."
+          }
+        },
+        {
+          "title": "Chapter 4: The Social Security Game Changer - Guaranteed Income FTW",
+          "scenario_key": "jeffs-stage-4-with-social-security",
+          "narrative": {
+            "introduction": "After the inflation shock, I remembered: we'll get Social Security! Guaranteed income that adjusts for inflation. This has to help, right?",
+            "setup": "Adding my estimated Social Security benefit ($2,442/month) starting at age 62. This reduces the monthly shortfall from $8,500 to about $6,058.",
+            "insights": [
+              "Social Security extends money from previous scary timeframe to {{duration_years}} years",
+              "Guaranteed income is incredibly powerful - it reduces asset withdrawal pressure",
+              "Social Security has COLA adjustments, so it grows with inflation (mostly)",
+              "Even modest guaranteed income dramatically improves retirement sustainability"
+            ],
+            "key_takeaway": "Income trumps assets. Guaranteed income like Social Security is worth far more than equivalent assets because it never runs out."
+          }
+        },
+        {
+          "title": "Chapter 5: The Unknown Unknowns - What Else Don't I Know?",
+          "scenario_key": "jeffs-stage-5-full-complexity",
+          "narrative": {
+            "introduction": "Each discovery revealed how much I didn't know. If I missed compound interest and inflation, what else am I missing? Withdrawal order? Market crashes? Healthcare costs? Taxes?",
+            "setup": "A more sophisticated model with strategic withdrawal order (taxable accounts first), potential market volatility, and recognition of what I still don't know.",
+            "insights": [
+              "Strategic withdrawal order can save thousands in taxes and penalties",
+              "Market sequence of returns risk means timing matters enormously",
+              "Healthcare costs, long-term care, and end-of-life expenses are wildcards",
+              "Tax optimization, Roth conversions, and Medicare planning add more complexity",
+              "Every answer reveals three new questions"
+            ],
+            "key_takeaway": "Retirement planning is a complex system with many moving parts. The goal isn't to predict everything perfectly, but to understand the key variables and plan for uncertainty.",
+            "completion_message": "This is why I built this tool - to help others discover these realities through modeling rather than painful experience. Knowledge is power, and modeling reveals what you don't know you don't know."
+          }
+        }
+      ],
+      "story_settings": {
+        "auto_advance": false,
+        "show_chapter_progress": true,
+        "allow_chapter_jumping": true,
+        "reset_ui_between_chapters": true
+      }
+    }
+  }

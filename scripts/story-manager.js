@@ -16,14 +16,9 @@ export class StoryManager {
   async discoverStories() {
     console.log('📚 Discovering story files...');
     this.discoveredStories = {};
-    
+
     const storyPatterns = [
-      'comprehensive-feature-tour.json',
-      'inflation-journey.json',
-      'jeffs-unknown-unknown.json', 
-      'compound-interest-magic.json',
-      'market-crash-series.json',
-      'retirement-reality-check.json'
+      'jeffs-learning-journey.json',
     ];
 
     for (const filename of storyPatterns) {
@@ -42,7 +37,7 @@ export class StoryManager {
         const storyData = await response.json();
         const storyKey = Object.keys(storyData)[0];
         const story = storyData[storyKey];
-        
+
         if (this.validateStory(story)) {
           this.discoveredStories[storyKey] = {
             filename: filename,
@@ -71,8 +66,8 @@ export class StoryManager {
       story.chapters &&
       Array.isArray(story.chapters) &&
       story.chapters.length > 0 &&
-      story.chapters.every(chapter => 
-        chapter.scenario_key && 
+      story.chapters.every(chapter =>
+        chapter.scenario_key &&
         chapter.narrative
       )
     );
@@ -88,7 +83,7 @@ export class StoryManager {
     this.currentStory = story;
     this.currentChapter = 0;
     this.storyMode = true;
-    
+
     console.log(`📖 Starting story: ${story.metadata.title}`);
     return this.getCurrentChapter();
   }
@@ -224,7 +219,7 @@ export class StoryManager {
   // Process dynamic content in insights
   processInsightTemplate(template, results, scenarioData) {
     let processed = template;
-    
+
     // Replace common placeholders
     if (results && results.length > 0) {
       // FIXED: Find when money actually runs out (first shortfall > 0)
@@ -235,12 +230,12 @@ export class StoryManager {
           break;
         }
       }
-      
+
       // If no shortfall found, money lasts the full duration
       if (moneyRunsOutYear === null) {
         moneyRunsOutYear = Math.round(results.length / 12);
       }
-      
+
       processed = processed
         .replace('{{duration_years}}', moneyRunsOutYear)
         .replace('{{money_runs_out_year}}', moneyRunsOutYear)
@@ -253,7 +248,7 @@ export class StoryManager {
       const initialBalance = Object.values(window._scenarioResult.balanceHistory).reduce((total, balances) => {
         return total + (balances[0] || 0);
       }, 0);
-      
+
       if (initialBalance > 0) {
         const annualWithdrawal = monthlyExpenses * 12;
         const withdrawalRate = (annualWithdrawal / initialBalance * 100).toFixed(1);
@@ -264,22 +259,22 @@ export class StoryManager {
     // NEW: Calculate compound interest metrics for accumulation scenarios
     if (window._scenarioResult?.balanceHistory && scenarioData.deposits) {
       const balanceHistory = window._scenarioResult.balanceHistory;
-      
+
       // Get final balance from the investment portfolio
       const investmentBalances = balanceHistory['Investment Portfolio'] || [];
       const finalBalance = investmentBalances[investmentBalances.length - 1] || 0;
-      
+
       // Calculate total deposits
       let totalDeposits = 0;
       scenarioData.deposits.forEach(deposit => {
         const months = (deposit.stop_month || results.length) - (deposit.start_month - 1);
         totalDeposits += deposit.amount * months;
       });
-      
+
       if (finalBalance > 0 && totalDeposits > 0) {
         const profit = finalBalance - totalDeposits;
         const multiplier = finalBalance / totalDeposits;
-        
+
         processed = processed
           .replace('{{final_balance_formatted}}', `${Math.round(finalBalance).toLocaleString()}`)
           .replace('{{profit_formatted}}', `${Math.round(profit).toLocaleString()}`)

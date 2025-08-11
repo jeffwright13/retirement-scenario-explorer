@@ -1,33 +1,120 @@
 {
-  "simple-test": {
-    "metadata": {
-      "title": "Simple Test Story",
-      "description": "Basic test to see if story discovery works",
-      "author": "Test",
-      "estimated_duration": "2 minutes",
-      "difficulty": "test",
-      "tags": ["test"]
-    },
-    "chapters": [
-      {
-        "title": "Test Chapter",
-        "scenario_key": "inflation-3pct",
-        "narrative": {
-          "introduction": "This is a test story using an existing scenario.",
-          "setup": "Testing if story discovery and loading works.",
-          "insights": [
-            "This is a test insight"
-          ],
-          "key_takeaway": "If you see this, story mode is working!",
-          "completion_message": "Test completed successfully."
+    "$schema": "../docs/story-schema.json",
+    "test-content-management": {
+      "metadata": {
+        "title": "Test Story: Content Management Validation",
+        "description": "A test story to validate the new content management system features",
+        "author": "System Test",
+        "estimated_duration": "10 minutes",
+        "difficulty": "beginner",
+        "tags": ["test", "validation", "content-management"],
+        "version": "1.0",
+        "introduction": "Welcome to the test story! This demonstrates the new introduction feature and flexible content management. You'll see how the system handles scenario matching, error recovery, and the enhanced story experience."
+      },
+      "chapters": [
+        {
+          "title": "Chapter 1: Basic Scenario Testing",
+          "scenario_key": "test-simple-retirement",
+          "narrative": {
+            "introduction": "This chapter tests basic scenario loading and validation. We're using a simple retirement scenario with a single asset to ensure the fundamentals work correctly.",
+            "setup": "Test scenario: $200,000 savings account earning 4% annually, with $4,000 monthly expenses for 10 years.",
+            "insights": [
+              "Basic scenario loading works correctly",
+              "Single asset scenarios validate properly",
+              "Money lasts {{duration_years}} years with 4% returns",
+              "This validates the core simulation engine"
+            ],
+            "key_takeaway": "The basic content management system is working - scenarios load, validate, and simulate correctly."
+          }
+        },
+        {
+          "title": "Chapter 2: Income Integration Testing",
+          "scenario_key": "test-with-income",
+          "narrative": {
+            "introduction": "Now we test scenarios with delayed income sources. This validates that the system properly handles income timing and reduces asset withdrawal pressure.",
+            "setup": "Test scenario: $300,000 portfolio earning 6%, $5,000 monthly expenses, with $2,000 Social Security starting in year 2.",
+            "insights": [
+              "Income sources integrate properly with asset withdrawals",
+              "Delayed income timing works correctly",
+              "Social Security reduces withdrawal pressure significantly",
+              "Money now lasts {{duration_years}} years instead of the no-income baseline"
+            ],
+            "key_takeaway": "Income integration works correctly - delayed income sources properly reduce asset withdrawal requirements."
+          }
+        },
+        {
+          "title": "Chapter 3: Flexible Matching Test",
+          "scenario_key": "flexible",
+          "narrative": {
+            "introduction": "This chapter tests the flexible scenario matching system. The scenario_key 'flexible' should automatically match to 'test-flexible-matching' through the enhanced content discovery.",
+            "setup": "Using partial key matching to find the flexible matching test scenario automatically.",
+            "insights": [
+              "Flexible scenario matching works correctly",
+              "Partial key matches resolve properly",
+              "Content discovery is more forgiving",
+              "Error recovery handles missing scenarios gracefully"
+            ],
+            "key_takeaway": "The flexible matching system makes content management much easier - no more need for exact key alignment."
+          }
         }
+      ],
+      "story_settings": {
+        "auto_advance": false,
+        "show_chapter_progress": true,
+        "allow_chapter_jumping": false,
+        "reset_ui_between_chapters": true,
+        "show_introduction": true
       }
-    ],
-    "story_settings": {
-      "auto_advance": false,
-      "show_chapter_progress": true,
-      "allow_chapter_jumping": true,
-      "reset_ui_between_chapters": true
+    },
+
+    "test-error-recovery": {
+      "metadata": {
+        "title": "Test Story: Error Recovery",
+        "description": "Tests how the system handles missing scenarios and content errors",
+        "author": "System Test",
+        "estimated_duration": "5 minutes",
+        "difficulty": "advanced",
+        "tags": ["test", "error-recovery", "resilience"],
+        "version": "1.0",
+        "introduction": "This story intentionally references missing scenarios to test error recovery and graceful degradation. You'll see how the system handles content that doesn't exist."
+      },
+      "chapters": [
+        {
+          "title": "Chapter 1: Missing Scenario Test",
+          "scenario_key": "this-scenario-does-not-exist",
+          "narrative": {
+            "introduction": "This chapter intentionally references a scenario that doesn't exist to test error handling.",
+            "setup": "Attempting to load a non-existent scenario to validate error recovery.",
+            "insights": [
+              "Error recovery prevents system crashes",
+              "Clear error messages help identify issues",
+              "Graceful degradation maintains story flow",
+              "Content validation catches problems early"
+            ],
+            "key_takeaway": "Robust error handling makes the system resilient to content issues."
+          }
+        },
+        {
+          "title": "Chapter 2: Partial Recovery",
+          "scenario_key": "test-simple",
+          "narrative": {
+            "introduction": "This uses a partial match ('test-simple') that should resolve to 'test-simple-retirement'.",
+            "setup": "Testing partial scenario key matching for error recovery.",
+            "insights": [
+              "Partial matching provides backup scenario resolution",
+              "Content system is forgiving of minor naming issues",
+              "Fuzzy matching improves user experience"
+            ],
+            "key_takeaway": "Smart matching reduces content management burden."
+          }
+        }
+      ],
+      "story_settings": {
+        "auto_advance": false,
+        "show_chapter_progress": true,
+        "allow_chapter_jumping": true,
+        "reset_ui_between_chapters": false,
+        "show_introduction": true
+      }
     }
   }
-}

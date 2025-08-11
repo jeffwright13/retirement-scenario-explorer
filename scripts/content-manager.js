@@ -1,0 +1,524 @@
+/**
+ * Enhanced Content Management System
+ * Automatically discovers and manages scenarios and stories with flexible relationships
+ */
+
+export class ContentManager {
+    constructor() {
+      this.scenarios = new Map();
+      this.stories = new Map();
+      this.collections = new Map();
+      this.registry = {
+        scenarios: {},
+        stories: {},
+        collections: {},
+        errors: []
+      };
+    }
+
+    // Main discovery method - scans all content automatically
+    async discoverContent() {
+      console.log('🔍 Starting automatic content discovery...');
+
+      this.registry.errors = [];
+
+      // Discover all content in parallel
+      await Promise.all([
+        this.discoverScenarios(),
+        this.discoverStories(),
+        this.discoverCollections()
+      ]);
+
+      // Build relationships after all content is loaded
+      this.buildContentRelationships();
+
+      const totalContent = this.scenarios.size + this.stories.size + this.collections.size;
+      console.log(`✅ Content discovery complete! Found ${totalContent} items`);
+
+      if (this.registry.errors.length > 0) {
+        console.warn(`⚠️ ${this.registry.errors.length} content errors (see registry.errors)`);
+      }
+
+      return this.registry;
+    }
+
+    // Discover all scenario files automatically
+    async discoverScenarios() {
+      const scenarioFiles = await this.scanDirectory('data/scenarios/', '.json');
+
+      for (const filePath of scenarioFiles) {
+        try {
+          await this.loadScenarioFile(filePath);
+        } catch (error) {
+          this.registry.errors.push({
+            type: 'scenario_load_error',
+            file: filePath,
+            error: error.message
+          });
+        }
+      }
+    }
+
+    // Discover all story files automatically
+    async discoverStories() {
+      const storyFiles = await this.scanDirectory('data/stories/', '.json');
+
+      for (const filePath of storyFiles) {
+        try {
+          await this.loadStoryFile(filePath);
+        } catch (error) {
+          this.registry.errors.push({
+            type: 'story_load_error',
+            file: filePath,
+            error: error.message
+          });
+        }
+      }
+    }
+
+    // Discover content collections (groups of related content)
+    async discoverCollections() {
+      const collectionFiles = await this.scanDirectory('data/collections/', '.json');
+
+      for (const filePath of collectionFiles) {
+        try {
+          await this.loadCollectionFile(filePath);
+        } catch (error) {
+          this.registry.errors.push({
+            type: 'collection_load_error',
+            file: filePath,
+            error: error.message
+          });
+        }
+      }
+    }
+
+    // Generic directory scanner
+    async scanDirectory(basePath, extension) {
+      const files = [];
+
+      // Try common file patterns
+      const patterns = [
+        `${basePath}*${extension}`,
+        `${basePath}**/*${extension}` // Support subdirectories
+      ];
+
+      for (const pattern of patterns) {
+        try {
+          // In browser environment, we need to try known files
+          // This is a simplified approach - in a real filesystem you'd use glob
+          const knownFiles = await this.getKnownFiles(basePath, extension);
+          files.push(...knownFiles);
+        } catch (error) {
+          // Expected - files may not exist
+        }
+      }
+
+      return [...new Set(files)]; // Remove duplicates
+    }
+
+    // Get known files (browser-compatible approach)
+    async getKnownFiles(basePath, extension) {
+      const knownFiles = [];
+
+      // Try common naming patterns
+      const patterns = [
+        'index', 'main', 'default',
+        'jeff*', 'learning*', 'journey*',  // Existing Jeff content
+        'test*', 'example*', 'demo*',      // Test content
+        'beginner*', 'intermediate*', 'advanced*',
+        'tutorial*', 'guide*'
+      ];
+
+      for (const pattern of patterns) {
+        const fileName = `${basePath}${pattern}${extension}`;
+        try {
+          const response = await fetch(fileName, { method: 'HEAD' });
+          if (response.ok) {
+            knownFiles.push(fileName);
+          }
+        } catch (error) {
+          // File doesn't exist - expected
+        }
+      }
+
+      // Also try exact known files
+      const exactFiles = [
+        `${basePath}jeffs-learning-journey-scenarios.json`,
+        `${basePath}jeffs-learning-journey.json`,
+        `${basePath}test-scenarios.json`,
+        `${basePath}test-story.json`,
+        `${basePath}sequence-crash-2008.json`
+      ];
+
+      for (const fileName of exactFiles) {
+        try {
+          const response = await fetch(fileName, { method: 'HEAD' });
+          if (response.ok && !knownFiles.includes(fileName)) {
+            knownFiles.push(fileName);
+          }
+        } catch (error) {
+          // File doesn't exist - expected
+        }
+      }
+
+      return knownFiles;
+    }
+
+    // Load and validate a scenario file
+    async loadScenarioFile(filePath) {
+      const response = await fetch(filePath);
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const fileName = filePath.split('/').pop().replace('.json', '');
+
+      // Support both single scenarios and scenario collections
+      for (const [key, scenario] of Object.entries(data)) {
+        if (key.startsWith('$')) continue; // Skip schema references
+
+        const enhancedScenario = this.enhanceScenario(scenario, key, fileName, filePath);
+
+        if (this.validateScenario(enhancedScenario)) {
+          this.scenarios.set(key, enhancedScenario);
+          this.registry.scenarios[key] = {
+            title: enhancedScenario.metadata?.title || key,
+            description: enhancedScenario.metadata?.description || '',
+            tags: enhancedScenario.metadata?.tags || [],
+            difficulty: enhancedScenario.metadata?.difficulty || 'beginner',
+            source: filePath
+          };
+        }
+      }
+    }
+
+    // Load and validate a story file
+    async loadStoryFile(filePath) {
+      const response = await fetch(filePath);
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const fileName = filePath.split('/').pop().replace('.json', '');
+
+      for (const [key, story] of Object.entries(data)) {
+        if (key.startsWith('$')) continue; // Skip schema references
+
+        const enhancedStory = this.enhanceStory(story, key, fileName, filePath);
+
+        if (this.validateStory(enhancedStory)) {
+          this.stories.set(key, enhancedStory);
+          this.registry.stories[key] = {
+            title: enhancedStory.metadata?.title || key,
+            description: enhancedStory.metadata?.description || '',
+            chapterCount: enhancedStory.chapters?.length || 0,
+            duration: enhancedStory.metadata?.estimated_duration || 'Unknown',
+            difficulty: enhancedStory.metadata?.difficulty || 'beginner',
+            source: filePath
+          };
+        }
+      }
+    }
+
+    // Load content collection file
+    async loadCollectionFile(filePath) {
+      const response = await fetch(filePath);
+      if (!response.ok) return;
+
+      const data = await response.json();
+      const fileName = filePath.split('/').pop().replace('.json', '');
+
+      for (const [key, collection] of Object.entries(data)) {
+        if (key.startsWith('$')) continue;
+
+        this.collections.set(key, {
+          ...collection,
+          _key: key,
+          _fileName: fileName,
+          _source: filePath
+        });
+
+        this.registry.collections[key] = {
+          title: collection.title || key,
+          description: collection.description || '',
+          itemCount: (collection.scenarios?.length || 0) + (collection.stories?.length || 0),
+          source: filePath
+        };
+      }
+    }
+
+    // Enhance scenario with defaults and metadata
+    enhanceScenario(scenario, key, fileName, filePath) {
+      return {
+        ...scenario,
+        _key: key,
+        _fileName: fileName,
+        _source: filePath,
+        metadata: {
+          title: scenario.metadata?.title || scenario.title || key,
+          description: scenario.metadata?.description || scenario.description || '',
+          tags: scenario.metadata?.tags || [],
+          difficulty: scenario.metadata?.difficulty || 'beginner',
+          ...scenario.metadata
+        },
+        plan: {
+          monthly_expenses: 5000,
+          duration_months: 360,
+          stop_on_shortfall: true,
+          ...scenario.plan
+        },
+        assets: scenario.assets || [],
+        income: scenario.income || [],
+        deposits: scenario.deposits || [],
+        order: scenario.order || this.generateDefaultOrder(scenario.assets || []),
+        rate_schedules: scenario.rate_schedules || this.generateDefaultRateSchedules(scenario)
+      };
+    }
+
+    // Enhance story with defaults and metadata
+    enhanceStory(story, key, fileName, filePath) {
+      return {
+        ...story,
+        _key: key,
+        _fileName: fileName,
+        _source: filePath,
+        metadata: {
+          title: story.metadata?.title || story.title || key,
+          description: story.metadata?.description || story.description || '',
+          estimated_duration: story.metadata?.estimated_duration || '15 minutes',
+          difficulty: story.metadata?.difficulty || 'beginner',
+          tags: story.metadata?.tags || [],
+          // NEW: Introduction support
+          introduction: story.metadata?.introduction || story.introduction,
+          ...story.metadata
+        },
+        chapters: (story.chapters || []).map((chapter, index) => ({
+          title: chapter.title || `Chapter ${index + 1}`,
+          scenario_key: chapter.scenario_key,
+          narrative: {
+            introduction: chapter.narrative?.introduction || '',
+            setup: chapter.narrative?.setup || '',
+            insights: chapter.narrative?.insights || [],
+            key_takeaway: chapter.narrative?.key_takeaway || '',
+            ...chapter.narrative
+          },
+          ...chapter
+        }))
+      };
+    }
+
+    // Generate default withdrawal order if not specified
+    generateDefaultOrder(assets) {
+      return assets.map((asset, index) => ({
+        account: asset.name,
+        order: index + 1
+      }));
+    }
+
+    // Generate default rate schedules for backward compatibility
+    generateDefaultRateSchedules(scenario) {
+      const schedules = {};
+
+      // Default inflation
+      schedules.default_inflation = {
+        type: 'fixed',
+        rate: scenario.plan?.inflation_rate || 0.03
+      };
+
+      // Convert legacy interest_rate to rate schedules
+      if (scenario.assets) {
+        scenario.assets.forEach(asset => {
+          if (asset.interest_rate && !asset.return_schedule) {
+            const scheduleName = `${asset.name.toLowerCase().replace(/\s+/g, '_')}_returns`;
+            schedules[scheduleName] = {
+              type: 'fixed',
+              rate: asset.interest_rate
+            };
+            // Update asset to use the new schedule
+            asset.return_schedule = scheduleName;
+            delete asset.interest_rate;
+          }
+        });
+      }
+
+      return schedules;
+    }
+
+    // Build relationships between content after discovery
+    buildContentRelationships() {
+      // Link stories to scenarios with flexible matching
+      for (const [storyKey, story] of this.stories) {
+        story.chapters.forEach((chapter, index) => {
+          const scenarioKey = this.findMatchingScenario(chapter.scenario_key);
+          if (scenarioKey) {
+            chapter.resolved_scenario_key = scenarioKey;
+          } else {
+            this.registry.errors.push({
+              type: 'missing_scenario',
+              story: storyKey,
+              chapter: index,
+              requested: chapter.scenario_key,
+              message: `Chapter ${index + 1} references scenario "${chapter.scenario_key}" which was not found`
+            });
+          }
+        });
+      }
+    }
+
+    // Flexible scenario matching - allows partial matches and aliases
+    findMatchingScenario(requestedKey) {
+      // Exact match first
+      if (this.scenarios.has(requestedKey)) {
+        return requestedKey;
+      }
+
+      // Partial match - find scenarios that contain the key
+      for (const scenarioKey of this.scenarios.keys()) {
+        if (scenarioKey.includes(requestedKey) || requestedKey.includes(scenarioKey)) {
+          return scenarioKey;
+        }
+      }
+
+      // Tag-based matching - find scenarios with matching tags
+      for (const [scenarioKey, scenario] of this.scenarios) {
+        const tags = scenario.metadata?.tags || [];
+        if (tags.includes(requestedKey)) {
+          return scenarioKey;
+        }
+      }
+
+      return null;
+    }
+
+    // Simple validation
+    validateScenario(scenario) {
+      return scenario.plan &&
+             scenario.assets &&
+             Array.isArray(scenario.assets) &&
+             typeof scenario.plan.monthly_expenses === 'number';
+    }
+
+    validateStory(story) {
+      return story.chapters &&
+             Array.isArray(story.chapters) &&
+             story.chapters.length > 0;
+    }
+
+    // Public API methods
+    getScenario(key) {
+      return this.scenarios.get(key);
+    }
+
+    getStory(key) {
+      return this.stories.get(key);
+    }
+
+    getAllScenarios() {
+      return Object.fromEntries(this.scenarios);
+    }
+
+    getAllStories() {
+      return Object.fromEntries(this.stories);
+    }
+
+    getScenariosByTag(tag) {
+      const filtered = {};
+      for (const [key, scenario] of this.scenarios) {
+        if (scenario.metadata?.tags?.includes(tag)) {
+          filtered[key] = scenario;
+        }
+      }
+      return filtered;
+    }
+
+    getStoriesByDifficulty(difficulty) {
+      const filtered = {};
+      for (const [key, story] of this.stories) {
+        if (story.metadata?.difficulty === difficulty) {
+          filtered[key] = story;
+        }
+      }
+      return filtered;
+    }
+
+    // Group scenarios for dropdown (backward compatibility)
+    groupScenariosByTag() {
+      const groups = {
+        'Learning Examples': [],
+        'Personal': [],
+        'Advanced': [],
+        'Templates': []
+      };
+
+      for (const [key, scenario] of this.scenarios) {
+        const tags = scenario.metadata?.tags || [];
+
+        if (tags.includes('template')) {
+          groups['Templates'].push([key, scenario]);
+        } else if (tags.includes('personal')) {
+          groups['Personal'].push([key, scenario]);
+        } else if (tags.includes('advanced')) {
+          groups['Advanced'].push([key, scenario]);
+        } else {
+          groups['Learning Examples'].push([key, scenario]);
+        }
+      }
+
+      return groups;
+    }
+
+    // Get story list (backward compatibility)
+    getStoryList() {
+      const stories = {};
+      for (const [key, story] of this.stories) {
+        stories[key] = {
+          title: story.metadata?.title || key,
+          description: story.metadata?.description || '',
+          chapterCount: story.chapters?.length || 0,
+          duration: story.metadata?.estimated_duration || 'Unknown',
+          difficulty: story.metadata?.difficulty || 'beginner',
+          introduction: story.metadata?.introduction // NEW: Introduction support
+        };
+      }
+      return stories;
+    }
+
+    // Extract simulation data (backward compatibility)
+    getSimulationData(scenarioKey) {
+      const scenario = this.getScenario(scenarioKey);
+      if (!scenario) return null;
+
+      return {
+        title: scenario.metadata?.title || 'Untitled Scenario',
+        plan: scenario.plan,
+        assets: scenario.assets,
+        income: scenario.income,
+        deposits: scenario.deposits,
+        order: scenario.order,
+        rate_schedules: scenario.rate_schedules
+      };
+    }
+
+    // Content management utilities
+    getContentSummary() {
+      return {
+        scenarios: this.scenarios.size,
+        stories: this.stories.size,
+        collections: this.collections.size,
+        errors: this.registry.errors.length,
+        registry: this.registry
+      };
+    }
+
+    // Error recovery methods
+    getErrorsByType(type) {
+      return this.registry.errors.filter(error => error.type === type);
+    }
+
+    getMissingScenarios() {
+      return this.getErrorsByType('missing_scenario');
+    }
+
+    hasErrors() {
+      return this.registry.errors.length > 0;
+    }
+  }

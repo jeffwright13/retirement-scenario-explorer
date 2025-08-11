@@ -6,15 +6,308 @@
   <title>Retirement Scenario Explorer</title>
   <script src="https://cdn.plot.ly/plotly-3.1.0.js" charset="utf-8"></script>
   <link rel="stylesheet" href="styles/main.css">
+
+  <style>
+    /* Inline the essential existing styles for artifact environment */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .story-mode-toggle {
+      margin-top: 15px;
+    }
+
+    .btn-story-toggle {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-story-toggle:hover {
+      background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+      transform: translateY(-1px);
+    }
+
+    .story-panel {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      padding: 25px 30px;
+      border-bottom: none;
+    }
+
+    .story-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .story-header h3 {
+      font-size: 1.4rem;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .btn-exit-story {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .story-dropdown {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      color: #2d3748;
+      min-width: 250px;
+      cursor: pointer;
+    }
+
+    /* NEW: Story Introduction Styles */
+    .story-introduction-section {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      color: white;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .introduction-header,
+    .error-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .introduction-header h4,
+    .error-header h4 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: white;
+    }
+
+    .introduction-content,
+    .error-content {
+      padding: 20px;
+    }
+
+    .introduction-content p,
+    .error-content p {
+      margin: 0 0 20px 0;
+      line-height: 1.6;
+    }
+
+    .btn-dismiss {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-dismiss:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .story-error-section {
+      background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+      color: white;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+      transform: translateY(-1px);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Keep existing styles for other elements */
+    .getting-started-panel {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      padding: 25px 30px;
+    }
+
+    .main-content {
+      padding: 30px;
+    }
+
+    .control-panel {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    button {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
+
+    #chart-area {
+      background: white;
+      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      min-height: 500px;
+      margin-bottom: 30px;
+      padding: 20px;
+      display: none;
+    }
+
+    .scenario-insights,
+    .next-scenario-suggestion {
+      background: #f7fafc;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .advanced-options {
+      margin: 20px 0;
+    }
+
+    .advanced-options summary {
+      cursor: pointer;
+      font-weight: 500;
+      color: #4a5568;
+    }
+
+    .json-section,
+    .csv-section {
+      margin-bottom: 30px;
+    }
+
+    #json-container,
+    #csv-container {
+      background: #1a202c;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: max-height 0.2s ease;
+    }
+
+    #json-container.collapsed,
+    .csv-section.collapsed {
+      display: none;
+    }
+
+    #json-input {
+      width: 100%;
+      background: #1a202c;
+      color: #e2e8f0;
+      border: none;
+      padding: 20px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 13px;
+      min-height: 400px;
+      resize: vertical;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
     <!-- Main header -->
     <div class="header">
       <h1>💰 Retirement Scenario Explorer</h1>
-      <p>Sophisticated financial scenario analysis with JSON-based configuration</p>
+      <p>Sophisticated financial scenario analysis with enhanced content management</p>
 
-      <!-- NEW: Story Mode Toggle -->
+      <!-- Story Mode Toggle -->
       <div class="story-mode-toggle">
         <button id="story-mode-toggle" class="btn-story-toggle">
           📚 Story Mode
@@ -22,7 +315,7 @@
       </div>
     </div>
 
-    <!-- NEW: Story Panel (hidden by default) -->
+    <!-- Story Panel (hidden by default) -->
     <div class="story-panel" id="story-panel" style="display: none;">
       <div class="story-header">
         <h3>📚 Storyteller Mode</h3>
@@ -36,6 +329,31 @@
           <option value="">Choose a Story...</option>
           <!-- Options populated dynamically -->
         </select>
+      </div>
+
+      <!-- NEW: Story Introduction Section -->
+      <div class="story-introduction-section" id="story-introduction-section" style="display: none;">
+        <div class="introduction-header">
+          <h4>📖 Story Introduction</h4>
+          <button id="story-introduction-dismiss" class="btn-dismiss" title="Close introduction">✕</button>
+        </div>
+        <div class="introduction-content">
+          <p id="story-introduction-text">Story introduction text will appear here...</p>
+          <div class="introduction-actions">
+            <button id="story-introduction-dismiss" class="btn-primary">Begin Story →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW: Story Error Section -->
+      <div class="story-error-section" id="story-error-section" style="display: none;">
+        <div class="error-header">
+          <h4>⚠️ Content Issue</h4>
+          <button id="story-error-dismiss" class="btn-dismiss" title="Dismiss error">✕</button>
+        </div>
+        <div class="error-content">
+          <p id="story-error-text">Error details will appear here...</p>
+        </div>
       </div>
 
       <!-- Story Progress -->
@@ -85,7 +403,7 @@
       </div>
     </div>
 
-    <!-- EXISTING: Getting Started Panel -->
+    <!-- Getting Started Panel (unchanged) -->
     <div class="getting-started-panel" id="getting-started-panel">
       <div class="getting-started-header" id="getting-started-header">
         <h3>📊 Scenario Explorer</h3>
@@ -179,7 +497,7 @@
       <div class="csv-section collapsed" id="csv-section">
         <div class="csv-header">
           <h3>📊 Detailed Results (CSV)</h3>
-          <div class="csv-actions">
+          <div class="css-actions">
             <button id="select-csv-btn" class="btn-secondary btn-small">Select All</button>
           </div>
         </div>
