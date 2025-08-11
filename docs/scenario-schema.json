@@ -1,0 +1,414 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://retirement-scenario-explorer.com/schemas/scenario-schema.json",
+    "title": "Retirement Scenario Schema",
+    "description": "JSON Schema for individual retirement scenario records in the Retirement Scenario Explorer",
+    "type": "object",
+    "patternProperties": {
+      "^[a-zA-Z0-9_-]+$": {
+        "type": "object",
+        "required": ["plan", "assets"],
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Human-readable name for the scenario"
+              },
+              "description": {
+                "type": "string",
+                "description": "Detailed explanation of what this scenario models"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Categories and keywords for organization"
+              },
+              "discussion_file": {
+                "type": "string",
+                "description": "Path to detailed analysis markdown file"
+              },
+              "difficulty": {
+                "type": "string",
+                "enum": ["beginner", "intermediate", "advanced"],
+                "description": "Complexity level of the scenario"
+              },
+              "author": {
+                "type": "string",
+                "description": "Creator of the scenario"
+              },
+              "version": {
+                "type": "string",
+                "description": "Version tracking for the scenario"
+              },
+              "notes": {
+                "type": "string",
+                "description": "Additional notes or assumptions"
+              }
+            }
+          },
+          "plan": {
+            "type": "object",
+            "required": ["monthly_expenses", "duration_months"],
+            "properties": {
+              "monthly_expenses": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Fixed monthly living expenses in current dollars"
+              },
+              "duration_months": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Number of months to simulate"
+              },
+              "inflation_schedule": {
+                "type": "string",
+                "description": "Reference to rate schedule for inflation modeling"
+              },
+              "inflation_rate": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Legacy: Fixed annual inflation rate (use inflation_schedule instead)"
+              },
+              "stop_on_shortfall": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to stop simulation when assets are depleted"
+              },
+              "start_date": {
+                "type": "string",
+                "format": "date",
+                "description": "Optional start date for the scenario"
+              }
+            }
+          },
+          "assets": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["name", "balance"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Unique identifier for this asset account"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["taxable", "tax_deferred", "tax_free"],
+                  "default": "taxable",
+                  "description": "Tax treatment of the account"
+                },
+                "balance": {
+                  "type": "number",
+                  "description": "Starting balance (can be negative for planned expenses)"
+                },
+                "return_schedule": {
+                  "type": "string",
+                  "description": "Reference to rate schedule for returns"
+                },
+                "interest_rate": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Legacy: Fixed annual return rate (use return_schedule instead)"
+                },
+                "compounding": {
+                  "type": "string",
+                  "enum": ["monthly", "annual"],
+                  "default": "monthly",
+                  "description": "How often returns compound"
+                },
+                "start_month": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "Month when this asset becomes available (0 = immediately)"
+                },
+                "dynamic": {
+                  "type": "boolean",
+                  "description": "Internal flag for dynamically created assets"
+                },
+                "withdrawal_limit": {
+                  "type": "string",
+                  "description": "Future: Maximum withdrawal constraints"
+                },
+                "early_withdrawal_penalty": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "Future: Penalty rate for early withdrawal"
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "Additional notes about this asset"
+                }
+              }
+            }
+          },
+          "income": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "amount"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Descriptive name for this income source"
+                },
+                "amount": {
+                  "type": "number",
+                  "description": "Monthly amount (use negative for recurring expenses)"
+                },
+                "start_month": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Month when income begins (1 = first month)"
+                },
+                "stop_month": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Month when income ends (omit for permanent income)"
+                },
+                "inflation_adjustment": {
+                  "type": "boolean",
+                  "description": "Future: Whether this income adjusts for inflation"
+                },
+                "tax_treatment": {
+                  "type": "string",
+                  "enum": ["taxable", "tax_free", "partially_taxable"],
+                  "description": "Future: Tax treatment of this income"
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "Additional context for this income source"
+                }
+              }
+            }
+          },
+          "order": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["account", "order"],
+              "properties": {
+                "account": {
+                  "type": "string",
+                  "description": "Asset name (must match an asset name exactly)"
+                },
+                "order": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Withdrawal priority (1 = first, 2 = second, etc.)"
+                },
+                "weight": {
+                  "type": "number",
+                  "minimum": 0,
+                  "description": "Proportional weight for same-order assets"
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "Explanation of withdrawal strategy"
+                }
+              }
+            }
+          },
+          "deposits": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["name", "target", "amount", "start_month", "stop_month"],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Description of the deposit event"
+                },
+                "target": {
+                  "type": "string",
+                  "description": "Asset account name to receive the deposit"
+                },
+                "amount": {
+                  "type": "number",
+                  "description": "Amount to deposit each month"
+                },
+                "start_month": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Month when deposits begin"
+                },
+                "stop_month": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "Month when deposits end (same as start for one-time)"
+                },
+                "notes": {
+                  "type": "string",
+                  "description": "Context for this deposit"
+                }
+              }
+            }
+          },
+          "rate_schedules": {
+            "type": "object",
+            "patternProperties": {
+              "^[a-zA-Z0-9_-]+$": {
+                "type": "object",
+                "required": ["type"],
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": ["fixed", "sequence", "map", "pipeline"],
+                    "description": "Type of rate schedule"
+                  }
+                },
+                "allOf": [
+                  {
+                    "if": {
+                      "properties": { "type": { "const": "fixed" } }
+                    },
+                    "then": {
+                      "required": ["rate"],
+                      "properties": {
+                        "rate": {
+                          "type": "number",
+                          "description": "Fixed annual rate"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": { "type": { "const": "sequence" } }
+                    },
+                    "then": {
+                      "required": ["values"],
+                      "properties": {
+                        "start_year": {
+                          "type": "integer",
+                          "default": 0,
+                          "description": "Starting year offset"
+                        },
+                        "values": {
+                          "type": "array",
+                          "items": { "type": "number" },
+                          "description": "Array of annual rates by year"
+                        },
+                        "default_rate": {
+                          "type": "number",
+                          "description": "Rate to use outside sequence range"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": { "type": { "const": "map" } }
+                    },
+                    "then": {
+                      "required": ["periods"],
+                      "properties": {
+                        "periods": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": ["start_year", "stop_year", "rate"],
+                            "properties": {
+                              "start_year": { "type": "integer" },
+                              "stop_year": { "type": "integer" },
+                              "rate": { "type": "number" }
+                            }
+                          }
+                        },
+                        "default_rate": {
+                          "type": "number",
+                          "description": "Rate for periods not covered"
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "if": {
+                      "properties": { "type": { "const": "pipeline" } }
+                    },
+                    "then": {
+                      "required": ["pipeline"],
+                      "properties": {
+                        "pipeline": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "description": "Pipeline operations for complex rate calculations"
+                          }
+                        }
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          },
+          "withdrawal_priority": {
+            "type": "array",
+            "description": "Legacy field - use 'order' instead",
+            "items": {
+              "type": "object",
+              "properties": {
+                "account": { "type": "string" },
+                "priority": { "type": "integer" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "additionalProperties": false,
+    "examples": [
+      {
+        "simple-example": {
+          "metadata": {
+            "title": "Basic Retirement Scenario",
+            "description": "Simple drawdown from savings with Social Security",
+            "tags": ["basic", "social-security"],
+            "difficulty": "beginner"
+          },
+          "plan": {
+            "monthly_expenses": 4000,
+            "duration_months": 240,
+            "inflation_schedule": "low_inflation"
+          },
+          "assets": [
+            {
+              "name": "Savings",
+              "type": "taxable",
+              "balance": 300000,
+              "return_schedule": "conservative_growth"
+            }
+          ],
+          "income": [
+            {
+              "name": "Social Security",
+              "amount": 2200,
+              "start_month": 24
+            }
+          ],
+          "order": [
+            {
+              "account": "Savings",
+              "order": 1
+            }
+          ],
+          "rate_schedules": {
+            "low_inflation": {
+              "type": "fixed",
+              "rate": 0.025
+            },
+            "conservative_growth": {
+              "type": "fixed",
+              "rate": 0.04
+            }
+          }
+        }
+      }
+    ]
+  }

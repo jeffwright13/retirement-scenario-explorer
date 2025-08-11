@@ -1,0 +1,262 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://retirement-scenario-explorer.com/schemas/rate-schedule-schema.json",
+    "title": "Rate Schedule Schema",
+    "description": "JSON Schema for time-varying rate schedules used in inflation, asset returns, and other financial calculations",
+    "type": "object",
+    "required": ["type"],
+    "properties": {
+      "type": {
+        "type": "string",
+        "enum": ["fixed", "sequence", "map", "pipeline"],
+        "description": "Type of rate schedule calculation"
+      }
+    },
+    "allOf": [
+      {
+        "if": {
+          "properties": { "type": { "const": "fixed" } }
+        },
+        "then": {
+          "required": ["rate"],
+          "properties": {
+            "rate": {
+              "type": "number",
+              "description": "Fixed annual rate (e.g., 0.03 for 3%)"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "sequence" } }
+        },
+        "then": {
+          "required": ["values"],
+          "properties": {
+            "start_year": {
+              "type": "integer",
+              "default": 0,
+              "description": "Starting year offset for the sequence"
+            },
+            "values": {
+              "type": "array",
+              "items": {
+                "type": "number"
+              },
+              "minItems": 1,
+              "description": "Array of annual rates, one for each year in sequence"
+            },
+            "default_rate": {
+              "type": "number",
+              "description": "Rate to use when outside the sequence range"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "map" } }
+        },
+        "then": {
+          "required": ["periods"],
+          "properties": {
+            "periods": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["start_year", "stop_year", "rate"],
+                "properties": {
+                  "start_year": {
+                    "type": "integer",
+                    "description": "First year this rate applies (inclusive)"
+                  },
+                  "stop_year": {
+                    "type": "integer",
+                    "description": "Last year this rate applies (inclusive)"
+                  },
+                  "rate": {
+                    "type": "number",
+                    "description": "Annual rate for this time period"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1
+            },
+            "default_rate": {
+              "type": "number",
+              "description": "Rate to use for periods not covered by the map"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      {
+        "if": {
+          "properties": { "type": { "const": "pipeline" } }
+        },
+        "then": {
+          "required": ["pipeline"],
+          "properties": {
+            "pipeline": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "minProperties": 1,
+                "maxProperties": 1,
+                "patternProperties": {
+                  "^(start_with|add|multiply|add_noise|add_trend|add_cycles|overlay_sequence|clamp|floor|ceiling)$": {
+                    "oneOf": [
+                      {
+                        "type": "number",
+                        "description": "Simple numeric parameter"
+                      },
+                      {
+                        "type": "object",
+                        "description": "Complex operation parameters"
+                      }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "minItems": 1,
+              "description": "Array of mathematical operations applied in sequence"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    ],
+    "definitions": {
+      "pipeline_operations": {
+        "description": "Available pipeline operations for complex rate calculations",
+        "type": "object",
+        "properties": {
+          "start_with": {
+            "type": "number",
+            "description": "Initialize the rate with this value"
+          },
+          "add": {
+            "type": "number",
+            "description": "Add this value to the current rate"
+          },
+          "multiply": {
+            "type": "number",
+            "description": "Multiply the current rate by this value"
+          },
+          "add_noise": {
+            "type": "object",
+            "required": ["std_dev"],
+            "properties": {
+              "std_dev": {
+                "type": "number",
+                "minimum": 0,
+                "description": "Standard deviation for random noise"
+              }
+            }
+          },
+          "add_trend": {
+            "type": "object",
+            "required": ["annual_change"],
+            "properties": {
+              "annual_change": {
+                "type": "number",
+                "description": "Amount to add per year (can be negative)"
+              }
+            }
+          },
+          "add_cycles": {
+            "type": "object",
+            "required": ["period", "amplitude"],
+            "properties": {
+              "period": {
+                "type": "integer",
+                "minimum": 2,
+                "description": "Length of the cycle in years"
+              },
+              "amplitude": {
+                "type": "number",
+                "description": "Maximum change from baseline (boom/bust)"
+              }
+            }
+          },
+          "overlay_sequence": {
+            "type": "object",
+            "patternProperties": {
+              "^[0-9]{4}$": {
+                "type": "number",
+                "description": "Rate override for specific year"
+              }
+            },
+            "description": "Override rates for specific years"
+          },
+          "clamp": {
+            "type": "object",
+            "required": ["min", "max"],
+            "properties": {
+              "min": {
+                "type": "number",
+                "description": "Minimum allowed rate"
+              },
+              "max": {
+                "type": "number",
+                "description": "Maximum allowed rate"
+              }
+            }
+          },
+          "floor": {
+            "type": "number",
+            "description": "Minimum rate (cannot go below this)"
+          },
+          "ceiling": {
+            "type": "number",
+            "description": "Maximum rate (cannot go above this)"
+          }
+        }
+      }
+    },
+    "examples": [
+      {
+        "fixed_rate": {
+          "type": "fixed",
+          "rate": 0.03
+        },
+        "variable_sequence": {
+          "type": "sequence",
+          "start_year": 0,
+          "values": [0.08, 0.06, 0.04, 0.02, 0.03],
+          "default_rate": 0.03
+        },
+        "economic_periods": {
+          "type": "map",
+          "periods": [
+            {
+              "start_year": 2025,
+              "stop_year": 2030,
+              "rate": 0.08
+            },
+            {
+              "start_year": 2031,
+              "stop_year": 2040,
+              "rate": 0.03
+            }
+          ],
+          "default_rate": 0.025
+        },
+        "complex_pipeline": {
+          "type": "pipeline",
+          "pipeline": [
+            {"start_with": 0.05},
+            {"add_trend": {"annual_change": 0.001}},
+            {"add_noise": {"std_dev": 0.005}},
+            {"add_cycles": {"period": 7, "amplitude": 0.02}},
+            {"clamp": {"min": 0.01, "max": 0.12}}
+          ]
+        }
+      }
+    ]
+  }

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schema Validator</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .validator { margin: 20px 0; }
+        textarea { width: 100%; height: 200px; font-family: monospace; }
+        button { background: #007acc; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #005999; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 4px; }
+        .valid { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .invalid { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .error { font-family: monospace; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>JSON Schema Validator</h1>
+    <p>Validate your scenario and story files against the schemas.</p>
+
+    <div class="validator">
+        <h3>Scenario Validation</h3>
+        <textarea id="scenarioJson" placeholder="Paste your scenario JSON here..."></textarea>
+        <br><br>
+        <button onclick="validateScenario()">Validate Scenario</button>
+        <div id="scenarioResult"></div>
+    </div>
+
+    <div class="validator">
+        <h3>Story Validation</h3>
+        <textarea id="storyJson" placeholder="Paste your story JSON here..."></textarea>
+        <br><br>
+        <button onclick="validateStory()">Validate Story</button>
+        <div id="storyResult"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ajv@8.12.0/dist/ajv.bundle.min.js"></script>
+    <script>
+        // Initialize AJV
+        const ajv = new Ajv({ allErrors: true, verbose: true });
+
+        // Schema storage
+        let scenarioSchema = null;
+        let storySchema = null;
+
+        // Load schemas
+        async function loadSchemas() {
+            try {
+                const [scenarioResponse, storyResponse] = await Promise.all([
+                    fetch('./docs/scenario-schema.json'),
+                    fetch('./docs/story-schema.json')
+                ]);
+
+                scenarioSchema = await scenarioResponse.json();
+                storySchema = await storyResponse.json();
+
+                console.log('✅ Schemas loaded successfully');
+            } catch (error) {
+                console.error('❌ Failed to load schemas:', error);
+                alert('Failed to load schema files. Ensure they exist in the docs/ directory.');
+            }
+        }
+
+        function validateScenario() {
+            const json = document.getElementById('scenarioJson').value;
+            const resultDiv = document.getElementById('scenarioResult');
+
+            if (!scenarioSchema) {
+                resultDiv.innerHTML = '<div class="invalid">Schema not loaded. Please refresh the page.</div>';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(json);
+                const validate = ajv.compile(scenarioSchema);
+                const isValid = validate(data);
+
+                if (isValid) {
+                    resultDiv.innerHTML = '<div class="valid">✅ Valid scenario JSON!</div>';
+                } else {
+                    const errors = validate.errors.map(error => {
+                        const path = error.instancePath || 'root';
+                        return `${path}: ${error.message}`;
+                    }).join('\n');
+
+                    resultDiv.innerHTML = `<div class="invalid">❌ Invalid scenario JSON:<br><div class="error">${errors}</div></div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="invalid">❌ JSON Parse Error: ${error.message}</div>`;
+            }
+        }
+
+        function validateStory() {
+            const json = document.getElementById('storyJson').value;
+            const resultDiv = document.getElementById('storyResult');
+
+            if (!storySchema) {
+                resultDiv.innerHTML = '<div class="invalid">Schema not loaded. Please refresh the page.</div>';
+                return;
+            }
+
+            try {
+                const data = JSON.parse(json);
+                const validate = ajv.compile(storySchema);
+                const isValid = validate(data);
+
+                if (isValid) {
+                    resultDiv.innerHTML = '<div class="valid">✅ Valid story JSON!</div>';
+                } else {
+                    const errors = validate.errors.map(error => {
+                        const path = error.instancePath || 'root';
+                        return `${path}: ${error.message}`;
+                    }).join('\n');
+
+                    resultDiv.innerHTML = `<div class="invalid">❌ Invalid story JSON:<br><div class="error">${errors}</div></div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="invalid">❌ JSON Parse Error: ${error.message}</div>`;
+            }
+        }
+
+        // Load schemas when page loads
+        loadSchemas();
+    </script>
+</body>
+</html>

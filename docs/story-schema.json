@@ -1,0 +1,230 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://retirement-scenario-explorer.com/schemas/story-schema.json",
+    "title": "Retirement Story Schema",
+    "description": "JSON Schema for storyteller mode files in the Retirement Scenario Explorer",
+    "type": "object",
+    "patternProperties": {
+      "^[a-zA-Z0-9_-]+$": {
+        "type": "object",
+        "required": ["metadata", "chapters"],
+        "properties": {
+          "metadata": {
+            "type": "object",
+            "required": ["title", "description"],
+            "properties": {
+              "title": {
+                "type": "string",
+                "description": "Human-readable title for the story"
+              },
+              "description": {
+                "type": "string",
+                "description": "Overview of what this story teaches"
+              },
+              "author": {
+                "type": "string",
+                "description": "Creator of the story"
+              },
+              "estimated_duration": {
+                "type": "string",
+                "description": "Expected time to complete (e.g., '30 minutes')"
+              },
+              "difficulty": {
+                "type": "string",
+                "enum": ["beginner", "intermediate", "advanced", "comprehensive"],
+                "description": "Complexity level of the story"
+              },
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Categories for organization and discovery"
+              },
+              "version": {
+                "type": "string",
+                "description": "Version tracking for the story"
+              },
+              "notes": {
+                "type": "string",
+                "description": "Additional context or prerequisites"
+              }
+            }
+          },
+          "chapters": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["title", "scenario_key", "narrative"],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "Chapter title displayed to user"
+                },
+                "scenario_key": {
+                  "type": "string",
+                  "description": "Reference to scenario that will be loaded for this chapter"
+                },
+                "narrative": {
+                  "type": "object",
+                  "required": ["introduction"],
+                  "properties": {
+                    "introduction": {
+                      "type": "string",
+                      "description": "What this chapter explores and why it matters"
+                    },
+                    "setup": {
+                      "type": "string",
+                      "description": "Details about the scenario being demonstrated"
+                    },
+                    "insights": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "Key insights with optional template variables like {{duration_years}}"
+                      },
+                      "description": "Dynamic insights that update based on simulation results"
+                    },
+                    "key_takeaway": {
+                      "type": "string",
+                      "description": "Main lesson from this chapter"
+                    },
+                    "transition": {
+                      "type": "string",
+                      "description": "Setup for the next chapter (optional)"
+                    },
+                    "completion_message": {
+                      "type": "string",
+                      "description": "Message shown when story is completed (final chapter only)"
+                    }
+                  }
+                },
+                "chapter_settings": {
+                  "type": "object",
+                  "description": "Chapter-specific behavioral settings",
+                  "properties": {
+                    "auto_run_simulation": {
+                      "type": "boolean",
+                      "default": false,
+                      "description": "Whether to automatically run simulation when chapter loads"
+                    },
+                    "hide_json_editor": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "Whether to hide the JSON editor during story mode"
+                    },
+                    "skip_scenario_preview": {
+                      "type": "boolean",
+                      "default": true,
+                      "description": "Whether to skip the scenario preview in story mode"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "story_settings": {
+            "type": "object",
+            "description": "Overall story behavior settings",
+            "properties": {
+              "auto_advance": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether to automatically advance to next chapter"
+              },
+              "show_chapter_progress": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to display chapter progress indicator"
+              },
+              "allow_chapter_jumping": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether users can jump between chapters"
+              },
+              "reset_ui_between_chapters": {
+                "type": "boolean",
+                "default": true,
+                "description": "Whether to reset UI state when changing chapters"
+              },
+              "require_simulation_completion": {
+                "type": "boolean",
+                "default": false,
+                "description": "Whether user must run simulation before advancing"
+              }
+            }
+          }
+        }
+      }
+    },
+    "additionalProperties": false,
+    "definitions": {
+      "template_variables": {
+        "description": "Available template variables for dynamic content in insights and narratives",
+        "enum": [
+          "{{duration_years}}",
+          "{{money_runs_out_year}}",
+          "{{monthly_expenses}}",
+          "{{withdrawal_rate}}",
+          "{{final_balance_formatted}}",
+          "{{profit_formatted}}",
+          "{{multiplier_formatted}}",
+          "{{total_invested_formatted}}"
+        ]
+      }
+    },
+    "examples": [
+      {
+        "basic-retirement-story": {
+          "metadata": {
+            "title": "Understanding Retirement Basics",
+            "description": "A beginner's guide to retirement planning fundamentals",
+            "author": "Retirement Scenario Explorer",
+            "estimated_duration": "20 minutes",
+            "difficulty": "beginner",
+            "tags": ["tutorial", "basics", "beginner"],
+            "version": "1.0"
+          },
+          "chapters": [
+            {
+              "title": "Chapter 1: Basic Asset Drawdown",
+              "scenario_key": "simple-drawdown-example",
+              "narrative": {
+                "introduction": "Let's start with the most basic retirement scenario - living off your savings with no other income sources.",
+                "setup": "We have $300,000 in savings earning 3% annually, with monthly expenses of $4,000. How long will the money last?",
+                "insights": [
+                  "With ${{monthly_expenses}} monthly expenses, your money lasts {{duration_years}} years",
+                  "This represents a {{withdrawal_rate}}% annual withdrawal rate",
+                  "The 4% rule suggests you need about $1.2 million for this spending level"
+                ],
+                "key_takeaway": "Basic asset drawdown shows why retirement planning requires substantial savings.",
+                "transition": "Now let's see how Social Security changes everything..."
+              }
+            },
+            {
+              "title": "Chapter 2: Adding Social Security",
+              "scenario_key": "social-security-example",
+              "narrative": {
+                "introduction": "Social Security dramatically changes retirement sustainability by providing guaranteed income.",
+                "setup": "Same savings, but now with $2,200 monthly Social Security starting at age 62.",
+                "insights": [
+                  "Social Security extends your money from {{previous_duration}} to {{duration_years}} years",
+                  "Your withdrawal rate drops to {{withdrawal_rate}}% annually",
+                  "Guaranteed income is incredibly powerful for retirement security"
+                ],
+                "key_takeaway": "Income sources like Social Security are game-changers for retirement sustainability.",
+                "completion_message": "You now understand the basics of retirement cash flow and the power of guaranteed income!"
+              }
+            }
+          ],
+          "story_settings": {
+            "auto_advance": false,
+            "show_chapter_progress": true,
+            "allow_chapter_jumping": false,
+            "reset_ui_between_chapters": true
+          }
+        }
+      }
+    ]
+  }
