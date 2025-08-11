@@ -689,3 +689,55 @@ export class UIManager {
     console.log(`Success: ${message}`);
   }
 }
+
+function setupSimpleToggles() {
+  // CSV Toggle
+  const csvBtn = document.getElementById('toggle-csv-btn');
+  const csvSection = document.getElementById('csv-section');
+  const csvContainer = document.getElementById('csv-container');
+
+  if (csvBtn && csvSection && csvContainer) {
+    const newCsvBtn = csvBtn.cloneNode(true);
+    csvBtn.parentNode.replaceChild(newCsvBtn, csvBtn);
+
+    newCsvBtn.addEventListener('click', function() {
+      if (csvSection.style.display === 'none' || csvSection.style.display === '') {
+        csvSection.style.display = 'block';
+        csvContainer.style.display = 'block';
+        this.textContent = 'Hide CSV Data';
+      } else {
+        csvSection.style.display = 'none';
+        csvContainer.style.display = 'none';
+        this.textContent = 'Export CSV Data';
+      }
+    });
+
+    csvSection.style.display = 'none';
+    csvContainer.style.display = 'none';
+    newCsvBtn.textContent = 'Export CSV Data';
+  }
+
+  // JSON Toggle
+  const jsonBtn = document.getElementById('toggle-json-btn');
+  const jsonContainer = document.getElementById('json-container');
+
+  if (jsonBtn && jsonContainer) {
+    const newJsonBtn = jsonBtn.cloneNode(true);
+    jsonBtn.parentNode.replaceChild(newJsonBtn, jsonBtn);
+
+    newJsonBtn.addEventListener('click', function() {
+      if (jsonContainer.style.display === 'none' || jsonContainer.style.display === '') {
+        jsonContainer.style.display = 'block';
+        this.textContent = 'Hide JSON';
+      } else {
+        jsonContainer.style.display = 'none';
+        this.textContent = 'Edit JSON';
+      }
+    });
+
+    jsonContainer.style.display = 'none';
+    newJsonBtn.textContent = 'Edit JSON';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', setupSimpleToggles);

@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Retirement Scenario Explorer</title>
+  <script src="https://cdn.plot.ly/plotly-3.1.0.js" charset="utf-8"></script>
+  <link rel="stylesheet" href="styles/main.css">
+
+  <style>
+    /* Inline the essential existing styles for artifact environment */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+
+    .story-mode-toggle {
+      margin-top: 15px;
+    }
+
+    .btn-story-toggle {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-story-toggle:hover {
+      background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+      transform: translateY(-1px);
+    }
+
+    .story-panel {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      padding: 25px 30px;
+      border-bottom: none;
+    }
+
+    .story-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .story-header h3 {
+      font-size: 1.4rem;
+      margin: 0;
+      font-weight: 600;
+    }
+
+    .btn-exit-story {
+      background: rgba(255,255,255,0.2);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    .story-dropdown {
+      background: white;
+      border: 2px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      color: #2d3748;
+      min-width: 250px;
+      cursor: pointer;
+    }
+
+    /* NEW: Story Introduction Styles */
+    .story-introduction-section {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      color: white;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .introduction-header,
+    .error-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .introduction-header h4,
+    .error-header h4 {
+      margin: 0;
+      font-size: 1.2rem;
+      color: white;
+    }
+
+    .introduction-content,
+    .error-content {
+      padding: 20px;
+    }
+
+    .introduction-content p,
+    .error-content p {
+      margin: 0 0 20px 0;
+      line-height: 1.6;
+    }
+
+    .btn-dismiss {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.2s ease;
+    }
+
+    .btn-dismiss:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    .story-error-section {
+      background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+      color: white;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #3182ce 0%, #2c5282 100%);
+      transform: translateY(-1px);
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Keep existing styles for other elements */
+    .getting-started-panel {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      color: white;
+      padding: 25px 30px;
+    }
+
+    .main-content {
+      padding: 30px;
+    }
+
+    .control-panel {
+      background: #f7fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+
+    button {
+      background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    }
+
+    #chart-area {
+      background: white;
+      border-radius: 8px;
+      border: 2px solid #e2e8f0;
+      min-height: 500px;
+      margin-bottom: 30px;
+      padding: 20px;
+      display: none;
+    }
+
+    .scenario-insights,
+    .next-scenario-suggestion {
+      background: #f7fafc;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .advanced-options {
+      margin: 20px 0;
+    }
+
+    .advanced-options summary {
+      cursor: pointer;
+      font-weight: 500;
+      color: #4a5568;
+    }
+
+    .json-section,
+    .csv-section {
+      margin-bottom: 30px;
+    }
+
+    #json-container,
+    #csv-container {
+      background: #1a202c;
+      border-radius: 8px;
+      overflow: hidden;
+      transition: max-height 0.2s ease;
+    }
+
+    #json-container.collapsed,
+    .csv-section.collapsed {
+      display: none;
+    }
+
+    #json-input {
+      width: 100%;
+      background: #1a202c;
+      color: #e2e8f0;
+      border: none;
+      padding: 20px;
+      font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+      font-size: 13px;
+      min-height: 400px;
+      resize: vertical;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Main header -->
+    <div class="header">
+      <h1>💰 Retirement Scenario Explorer</h1>
+      <p>Sophisticated financial scenario analysis with enhanced content management</p>
+
+      <!-- Story Mode Toggle -->
+      <div class="story-mode-toggle">
+        <button id="story-mode-toggle" class="btn-story-toggle">
+          📚 Story Mode
+        </button>
+      </div>
+    </div>
+
+    <!-- Story Panel (hidden by default) -->
+    <div class="story-panel" id="story-panel" style="display: none;">
+      <div class="story-header">
+        <h3>📚 Storyteller Mode</h3>
+        <button id="story-exit-btn" class="btn-exit-story">Exit Story</button>
+      </div>
+
+      <!-- Story Selection -->
+      <div class="story-selector-section">
+        <label for="story-selector"><strong>Choose Your Journey:</strong></label>
+        <select id="story-selector" class="story-dropdown">
+          <option value="">Choose a Story...</option>
+          <!-- Options populated dynamically -->
+        </select>
+      </div>
+
+      <!-- NEW: Story Introduction Section -->
+      <div class="story-introduction-section" id="story-introduction-section" style="display: none;">
+        <div class="introduction-header">
+          <h4>📖 Story Introduction</h4>
+          <button id="story-introduction-dismiss" class="btn-dismiss" title="Close introduction">✕</button>
+        </div>
+        <div class="introduction-content">
+          <p id="story-introduction-text">Story introduction text will appear here...</p>
+          <div class="introduction-actions">
+            <button id="story-introduction-dismiss" class="btn-primary">Begin Story →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEW: Story Error Section -->
+      <div class="story-error-section" id="story-error-section" style="display: none;">
+        <div class="error-header">
+          <h4>⚠️ Content Issue</h4>
+          <button id="story-error-dismiss" class="btn-dismiss" title="Dismiss error">✕</button>
+        </div>
+        <div class="error-content">
+          <p id="story-error-text">Error details will appear here...</p>
+        </div>
+      </div>
+
+      <!-- Story Progress -->
+      <div class="story-progress-section" id="story-progress" style="display: none;">
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div class="progress-fill" id="chapter-progress"></div>
+          </div>
+          <span class="progress-text" id="chapter-counter">Chapter 1 of 3</span>
+        </div>
+      </div>
+
+      <!-- Story Content -->
+      <div class="story-content" id="story-narrative" style="display: none;">
+        <!-- Chapter Title -->
+        <div class="chapter-header">
+          <h4 class="chapter-title" id="story-chapter-title">Chapter Title</h4>
+        </div>
+
+        <!-- Introduction -->
+        <div class="story-section intro-section">
+          <h5>🎯 What We're Exploring</h5>
+          <p id="story-introduction">Chapter introduction text...</p>
+        </div>
+
+        <!-- Setup -->
+        <div class="story-section setup-section">
+          <h5>⚙️ The Scenario</h5>
+          <p id="story-setup">Scenario setup explanation...</p>
+        </div>
+
+        <!-- Key Takeaway (shown after simulation) -->
+        <div class="story-section takeaway-section" id="story-takeaway-section" style="display: none;">
+          <h5>💡 Key Takeaway</h5>
+          <p id="story-key-takeaway" class="key-takeaway-text">Main lesson from this chapter...</p>
+        </div>
+      </div>
+
+      <!-- Story Navigation -->
+      <div class="story-navigation" id="story-navigation" style="display: none;">
+        <button id="story-prev-btn" class="btn-story-nav btn-prev" disabled>
+          ← Previous
+        </button>
+        <button id="story-next-btn" class="btn-story-nav btn-next">
+          Next Chapter →
+        </button>
+      </div>
+    </div>
+
+    <!-- NEW: Story Scenario Details (only visible in story mode) -->
+    <div class="story-scenario-details" id="story-scenario-details" style="display: none;">
+      <details class="scenario-details-collapsible">
+        <summary>📋 Current Scenario Details</summary>
+        <div class="scenario-details-content">
+          <!-- Mirror the scenario preview content -->
+          <p id="story-scenario-description">Scenario description will appear here...</p>
+
+          <div class="key-assumptions" id="story-key-assumptions" style="display: none;">
+            <h4>🔑 Key Assumptions</h4>
+            <ul id="story-key-assumptions-list"></ul>
+          </div>
+
+          <details>
+            <summary>👀 JSON Configuration</summary>
+            <pre id="story-scenario-json-preview"></pre>
+          </details>
+        </div>
+      </details>
+    </div>
+
+    <!-- Getting Started Panel (unchanged) -->
+    <div class="getting-started-panel" id="getting-started-panel">
+      <div class="getting-started-header" id="getting-started-header">
+        <h3>📊 Scenario Explorer</h3>
+        <span class="collapse-indicator">🔽</span>
+      </div>
+      <div class="getting-started-content">
+        <div class="scenario-selector">
+          <select id="scenario-dropdown" class="scenario-dropdown">
+            <option value="">Choose a Scenario...</option>
+            <!-- Options populated dynamically -->
+          </select>
+        </div>
+        <div class="scenario-preview" id="scenario-preview" style="display: none;">
+          <h4>📋 Scenario Details:</h4>
+          <p id="scenario-description"></p>
+
+          <!-- Key Assumptions Section -->
+          <div class="key-assumptions" id="key-assumptions" style="display: none;">
+            <h4>🔑 Key Assumptions</h4>
+            <ul id="key-assumptions-list">
+              <!-- Populated dynamically -->
+            </ul>
+          </div>
+
+          <details>
+            <summary>👀 Peek at JSON Configuration</summary>
+            <pre id="scenario-json-preview"></pre>
+          </details>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="main-content">
+      <!-- Control Panel -->
+      <div class="control-panel">
+        <div class="control-group">
+          <h3>🚀 Simulation</h3>
+          <p style="margin-bottom: 15px;">Select a scenario above, then run the simulation to see your financial projection.</p>
+          <!-- MOVE the primary run button here -->
+          <button id="run-btn-primary" class="btn-success" style="font-size: 1.1rem; padding: 16px 32px; font-weight: 600;">
+            🚀 Run Simulation
+          </button>
+        </div>
+      </div>
+
+      <!-- Chart Area - HIDDEN BY DEFAULT -->
+      <div id="chart-area"></div>
+
+      <!-- Simulation Insights (appears after simulation) -->
+      <div class="scenario-insights" id="simulation-insights" style="display: none;">
+        <h3>💡 Key Insights</h3>
+        <ul id="insights-list">
+          <!-- Populated dynamically based on scenario results -->
+        </ul>
+      </div>
+
+      <!-- Next Scenario Suggestion (appears after simulation) -->
+      <div class="next-scenario-suggestion" id="next-scenario-suggestion" style="display: none;">
+        <h4>📈 Coming Up Next...</h4>
+        <p id="next-scenario-description"></p>
+        <button class="btn-next-scenario" id="load-next-scenario">
+          <!-- Text set dynamically -->
+        </button>
+      </div>
+
+      <!-- Advanced Options -->
+      <details class="advanced-options" id="advanced-options">
+        <summary>Advanced Options</summary>
+        <div class="advanced-options-content">
+          <div class="advanced-button-group">
+            <button id="toggle-json-btn" class="btn-advanced">Edit JSON</button>
+            <button id="toggle-csv-btn" class="btn-advanced">Export CSV Data</button>
+            <button id="run-btn-advanced" class="btn-advanced" style="background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);">
+              ⚡ Run Custom Scenario
+            </button>
+            <p style="margin-top: 10px; color: #666; font-size: 0.9rem; font-style: italic;">
+              <small>Edits made here will perist immediately - no need to explicitly save. Execute the new scenario by pressing the Run Custom Scenario button.</small>
+            </p>
+          </div>
+        </div>
+      </details>
+
+      <!-- JSON Section -->
+      <div class="json-section">
+        <div id="json-container" class="collapsed">
+          <div class="json-header">
+            <h3>📝 Scenario Configuration</h3>
+            <div class="json-actions">
+              <button id="select-json-btn" class="btn-secondary btn-small">Select All</button>
+            </div>
+          </div>
+          <textarea id="json-input" placeholder="Select a scenario from the dropdown above, or paste your own JSON configuration here..."></textarea>
+        </div>
+      </div>
+
+      <!-- CSV Section -->
+      <div class="csv-section collapsed" id="csv-section">
+        <div class="csv-header">
+          <h3>📊 Detailed Results (CSV)</h3>
+          <div class="css-actions">
+            <button id="select-csv-btn" class="btn-secondary btn-small">Select All</button>
+          </div>
+        </div>
+        <pre id="csv-container" class="collapsed"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="scripts/main.js"></script>
+</body>
+</html>

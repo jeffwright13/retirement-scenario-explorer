@@ -1,0 +1,332 @@
+/**
+ * Theme System
+ * Story mode (blue), Advanced mode (purple), and special themed components
+ */
+
+/* ===== STORY MODE THEME (BLUE) ===== */
+body.story-mode {
+    --theme-primary-50: var(--color-blue-50);
+    --theme-primary-100: var(--color-blue-100);
+    --theme-primary-500: var(--color-blue-500);
+    --theme-primary-600: var(--color-blue-600);
+    --theme-primary-700: var(--color-blue-700);
+    --theme-primary-900: var(--color-blue-900);
+
+    --theme-gradient-primary: linear-gradient(135deg, var(--theme-primary-500) 0%, var(--theme-primary-600) 100%);
+  }
+
+  /* Hide getting started panel in story mode */
+  body.story-mode .getting-started-panel {
+    display: none !important;
+  }
+
+  /* Show story panel in story mode */
+  body.story-mode .story-panel {
+    display: block !important;
+  }
+
+  /* ===== STORY-SPECIFIC COMPONENTS ===== */
+
+  /* Story panel with blue theme */
+  .story-panel {
+    background: linear-gradient(135deg, var(--color-blue-500) 0%, var(--color-blue-600) 100%);
+    color: var(--color-white);
+  }
+
+  .story-panel * {
+    color: var(--color-white) !important; /* Force all text to be white */
+  }
+
+  .story-panel .story-dropdown {
+    color: var(--color-white) !important;
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .story-panel .story-dropdown option {
+    background: var(--color-gray-800);
+    color: var(--color-white) !important;
+  }
+
+  /* Story insights styling */
+  .simulation-insights.story-insights {
+    background: linear-gradient(135deg, var(--color-blue-500) 0%, var(--color-blue-600) 100%);
+    color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+  }
+
+  .simulation-insights.story-insights h3 {
+    color: #fbbf24; /* Amber accent */
+    margin-top: 0;
+  }
+
+  .simulation-insights.story-insights ul {
+    margin: 0;
+    padding-left: var(--space-6);
+  }
+
+  .simulation-insights.story-insights li {
+    margin-bottom: var(--space-3);
+    line-height: var(--line-height-relaxed);
+  }
+
+  .story-insight {
+    margin-bottom: var(--space-2);
+    padding-left: var(--space-2);
+    border-left: 3px solid var(--color-blue-400);
+  }
+
+  /* Story action styling */
+  .next-scenario-suggestion.story-action {
+    background: linear-gradient(135deg, var(--color-blue-500) 0%, var(--color-blue-600) 100%);
+    color: var(--color-white);
+    border-radius: var(--radius-md);
+    padding: var(--space-6);
+  }
+
+  .next-scenario-suggestion.story-action h4 {
+    color: #fbbf24; /* Amber accent */
+    margin-top: 0;
+  }
+
+  .next-scenario-suggestion.story-action button {
+    background: rgba(255, 255, 255, 0.2);
+    color: var(--color-white);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: var(--space-3) var(--space-6);
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .next-scenario-suggestion.story-action button:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+  }
+
+  /* ===== ADVANCED MODE THEME (PURPLE) ===== */
+  .theme-advanced {
+    --theme-primary-50: var(--color-purple-50);
+    --theme-primary-100: var(--color-purple-100);
+    --theme-primary-500: var(--color-purple-500);
+    --theme-primary-600: var(--color-purple-600);
+    --theme-primary-700: var(--color-purple-700);
+    --theme-primary-900: var(--color-purple-900);
+
+    --theme-gradient-primary: linear-gradient(135deg, var(--theme-primary-500) 0%, var(--theme-primary-600) 100%);
+  }
+
+  /* Advanced options get purple theme when open */
+  .advanced-options[open] {
+    background: linear-gradient(135deg, var(--color-purple-50) 0%, var(--color-purple-100) 100%);
+    border-color: var(--color-purple-300);
+  }
+
+  .advanced-options[open] .advanced-summary {
+    background: linear-gradient(135deg, var(--color-purple-500) 0%, var(--color-purple-600) 100%);
+    color: var(--color-white);
+  }
+
+  .advanced-options[open] .advanced-summary:hover {
+    background: linear-gradient(135deg, var(--color-purple-600) 0%, var(--color-purple-700) 100%);
+  }
+
+  /* Advanced JSON section gets purple theming */
+  .json-container--expanded {
+    border: 2px solid var(--color-purple-300);
+  }
+
+  .json-container--expanded .json-header {
+    background: linear-gradient(135deg, var(--color-purple-600) 0%, var(--color-purple-700) 100%);
+  }
+
+  /* ===== CONTENT LOADING STATES ===== */
+  .story-panel.loading {
+    opacity: 0.7;
+    pointer-events: none;
+    position: relative;
+  }
+
+  .story-panel.loading::after {
+    content: "Loading content...";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--color-white);
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-base);
+    font-size: var(--font-size-sm);
+    z-index: var(--z-modal);
+    font-weight: var(--font-weight-medium);
+  }
+
+  /* ===== HIDDEN DURING SIMULATION ===== */
+  .hidden-during-simulation {
+    opacity: 0.5;
+    transition: opacity var(--transition-base);
+    pointer-events: none;
+  }
+
+  /* ===== SPECIAL STATES ===== */
+
+  /* Scenario error recovery */
+  .content-error-recovery {
+    background: var(--color-warning-50);
+    border: 1px solid var(--color-warning-500);
+    border-radius: var(--radius-base);
+    padding: var(--space-3);
+    margin: var(--space-3) 0;
+  }
+
+  .content-error-recovery p {
+    margin: 0;
+    color: var(--color-warning-600);
+    font-size: var(--font-size-sm);
+  }
+
+  /* Debug information (for development) */
+  .content-debug {
+    position: fixed;
+    bottom: var(--space-3);
+    right: var(--space-3);
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--color-white);
+    padding: var(--space-3);
+    border-radius: var(--radius-base);
+    font-size: var(--font-size-xs);
+    z-index: var(--z-tooltip);
+    max-width: 300px;
+    font-family: var(--font-family-mono);
+  }
+
+  /* ===== ENHANCED VISUAL STATES ===== */
+
+  /* Selected/active states */
+  .scenario-card.active,
+  .collection-item.active {
+    background: var(--theme-gradient-primary);
+    color: var(--color-white);
+    border-color: var(--theme-primary-600);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Hover states for interactive elements */
+  .scenario-card:hover {
+    border-color: var(--theme-primary-500);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  .collection-item:hover {
+    background: linear-gradient(135deg, var(--theme-primary-50) 0%, var(--theme-primary-100) 100%);
+    border-color: var(--theme-primary-500);
+    transform: translateX(4px);
+  }
+
+  /* ===== ACCESSIBILITY THEMES ===== */
+
+  /* High contrast mode support */
+  @media (prefers-contrast: high) {
+    .story-panel {
+      background: var(--color-blue-900);
+      border: 2px solid var(--color-white);
+    }
+
+    .getting-started-panel {
+      background: var(--color-green-900);
+      border: 2px solid var(--color-white);
+    }
+
+    .btn {
+      border: 2px solid currentColor;
+    }
+  }
+
+  /* Dark mode support (future enhancement) */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --color-background: var(--color-gray-900);
+      --color-text: var(--color-gray-100);
+    }
+
+    .container {
+      background: var(--color-gray-800);
+      color: var(--color-gray-100);
+    }
+
+    .control-panel {
+      background: var(--color-gray-700);
+      border-color: var(--color-gray-600);
+    }
+  }
+
+  /* ===== REDUCED MOTION SUPPORT ===== */
+  @media (prefers-reduced-motion: reduce) {
+    .story-panel.story-active {
+      animation: none;
+    }
+
+    .story-introduction-section,
+    .story-error-section {
+      animation: none;
+    }
+
+    .btn--complete {
+      animation: none;
+    }
+
+    * {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+
+  /* ===== PRINT STYLES ===== */
+  @media print {
+    .story-mode-toggle,
+    .story-navigation,
+    .btn,
+    .advanced-options {
+      display: none !important;
+    }
+
+    .story-panel,
+    .getting-started-panel {
+      background: var(--color-white) !important;
+      color: var(--color-gray-900) !important;
+      box-shadow: none !important;
+    }
+
+    .container {
+      box-shadow: none !important;
+      max-width: none !important;
+    }
+  }
+
+  /* ===== RESPONSIVE THEME ADJUSTMENTS ===== */
+  @media (max-width: 768px) {
+    /* Ensure story mode elements stack properly on mobile */
+    .story-header {
+      flex-direction: column;
+      gap: var(--space-4);
+      text-align: center;
+    }
+
+    .introduction-header,
+    .error-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-3);
+    }
+
+    .btn--dismiss {
+      align-self: flex-end;
+    }
+
+    .introduction-actions {
+      text-align: center;
+    }
+  }

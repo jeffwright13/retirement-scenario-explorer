@@ -2159,3 +2159,53 @@ h1, h2, h3, h4, h5, h6, p, span, div, label, input, textarea, select, button {
   max-height: 300px;
   overflow: auto;
 }
+
+/* Fix JSON Editor Styling */
+#json-input {
+  width: 100%;
+  background: #1a202c !important;
+  color: #e2e8f0 !important;
+  border: none;
+  padding: 20px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 400px;
+  outline: none;
+}
+
+/* Ensure JSON container has proper styling */
+#json-container {
+  background: #1a202c;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: max-height 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+#json-container.collapsed {
+  max-height: 0;
+  margin-bottom: 0;
+}
+
+#json-container.expanded {
+  max-height: 600px;
+  margin-bottom: 20px;
+}
+
+/* JSON header styling */
+.json-header {
+  background: #2d3748;
+  color: white;
+  padding: 15px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.json-header h3 {
+  margin: 0;
+  color: white;
+  font-size: 1.1rem;
+}

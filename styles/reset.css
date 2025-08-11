@@ -1,0 +1,147 @@
+/**
+ * Modern CSS Reset
+ * Based on modern-normalize and custom resets for better consistency
+ */
+
+/* Box sizing reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Remove default margins and paddings */
+* {
+  margin: 0;
+  padding: 0;
+}
+
+/* HTML and body setup */
+html {
+  font-family: var(--font-family-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  line-height: var(--line-height-normal);
+  color: var(--color-gray-900);
+  background-color: var(--color-gray-50);
+}
+
+/* Improve media defaults */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Remove list styles */
+ul,
+ol {
+  list-style: none;
+}
+
+/* Improve table defaults */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* Form element resets */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Button reset */
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Link reset */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Remove default focus styles (we'll add better ones) */
+:focus {
+  outline: none;
+}
+
+/* Better focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--theme-primary-500);
+  outline-offset: 2px;
+}
+
+/* Improve readability for screen readers */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Improve default typography */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+}
+
+p {
+  line-height: var(--line-height-relaxed);
+}
+
+/* Better default for hidden elements */
+[hidden] {
+  display: none !important;
+}
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Respect user's motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  *,
+  *::before,
+  *::after {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}
