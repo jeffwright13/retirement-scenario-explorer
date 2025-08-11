@@ -403,6 +403,27 @@
       </div>
     </div>
 
+    <!-- NEW: Story Scenario Details (only visible in story mode) -->
+    <div class="story-scenario-details" id="story-scenario-details" style="display: none;">
+      <details class="scenario-details-collapsible">
+        <summary>📋 Current Scenario Details</summary>
+        <div class="scenario-details-content">
+          <!-- Mirror the scenario preview content -->
+          <p id="story-scenario-description">Scenario description will appear here...</p>
+
+          <div class="key-assumptions" id="story-key-assumptions" style="display: none;">
+            <h4>🔑 Key Assumptions</h4>
+            <ul id="story-key-assumptions-list"></ul>
+          </div>
+
+          <details>
+            <summary>👀 JSON Configuration</summary>
+            <pre id="story-scenario-json-preview"></pre>
+          </details>
+        </div>
+      </details>
+    </div>
+
     <!-- Getting Started Panel (unchanged) -->
     <div class="getting-started-panel" id="getting-started-panel">
       <div class="getting-started-header" id="getting-started-header">
@@ -463,7 +484,7 @@
 
       <!-- Next Scenario Suggestion (appears after simulation) -->
       <div class="next-scenario-suggestion" id="next-scenario-suggestion" style="display: none;">
-        <h4>📈 Recommended Next Step</h4>
+        <h4>📈 Coming Up Next...</h4>
         <p id="next-scenario-description"></p>
         <button class="btn-next-scenario" id="load-next-scenario">
           <!-- Text set dynamically -->

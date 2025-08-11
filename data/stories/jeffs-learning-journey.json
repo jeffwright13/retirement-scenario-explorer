@@ -44,8 +44,8 @@
           "title": "Chapter 3: The Inflation Gut Punch - Reality Comes Knocking",
           "scenario_key": "jeffs-stage-3-inflation-reality",
           "narrative": {
-            "introduction": "Wait, you mean my $8,500 monthly expenses today won't be $8,500 in 10 years? Everything gets more expensive over time? Nobody told me this!",
-            "setup": "Same portfolio with compound growth, but now expenses increase by 3.5% annually due to inflation. That $8,500 becomes $12,250 in year 10, and $17,650 in year 20!",
+            "introduction": "Wait, you mean my $8,500 monthly expenses today won't be worth $8,500 in 10 years? Everything gets more expensive over time? Nobody told me this!",
+            "setup": "Same portfolio with compound growth, but now expenses increase by 3.5% annually due to inflation. What cost $8,500 in year 1 of retirement costs $12,250 in year 10, and $17,650 in year 20!",
             "insights": [
               "With inflation, money lasts only {{duration_years}} years - back to scary territory!",
               "Inflation at 3.5% means expenses DOUBLE every 20 years",

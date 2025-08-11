@@ -213,6 +213,15 @@ class RetirementScenarioApp {
 
     // Load the scenario normally
     await this.handleScenarioSelection(actualKey);
+
+    // Show scenario details in story mode
+    const scenario = this.content.getScenario(actualKey);
+    if (scenario) {
+      this.storytellerUI.showStoryScenarioDetails(
+        this.content.getSimulationData(actualKey),
+        scenario.metadata
+      );
+    }
   }
 
   // Flexible scenario matching

@@ -90,6 +90,7 @@ export class StorytellerUI {
     // Hide all story elements
     this.hideStoryIntroduction();
     this.hideScenarioError();
+    this.hideStoryScenarioDetails();
 
     if (this.ui.elements.gettingStartedPanel) {
       this.ui.elements.gettingStartedPanel.style.display = 'block';
@@ -129,6 +130,50 @@ export class StorytellerUI {
   hideStoryIntroduction() {
     if (this.storyElements.storyIntroductionSection) {
       this.storyElements.storyIntroductionSection.style.display = 'none';
+    }
+  }
+
+  // Show story scenario details when chapter loads
+  showStoryScenarioDetails(scenarioData, metadata) {
+    const detailsSection = document.getElementById('story-scenario-details');
+    if (detailsSection && scenarioData) {
+      detailsSection.style.display = 'block';
+
+      // Populate description
+      const descElement = document.getElementById('story-scenario-description');
+      if (descElement) {
+        descElement.textContent = metadata?.description || 'Scenario loaded from story chapter';
+      }
+
+      // Show key assumptions (reuse existing logic)
+      this.ui.showKeyAssumptions(scenarioData);
+      this.copyAssumptionsToStorySection();
+
+      // Show JSON
+      const jsonElement = document.getElementById('story-scenario-json-preview');
+      if (jsonElement) {
+        jsonElement.textContent = JSON.stringify(scenarioData, null, 2);
+      }
+    }
+  }
+
+  // Copy assumptions from main UI to story section
+  copyAssumptionsToStorySection() {
+    const mainAssumptions = document.getElementById('key-assumptions-list');
+    const storyAssumptions = document.getElementById('story-key-assumptions-list');
+    const storyAssumptionsSection = document.getElementById('story-key-assumptions');
+
+    if (mainAssumptions && storyAssumptions && storyAssumptionsSection) {
+      storyAssumptions.innerHTML = mainAssumptions.innerHTML;
+      storyAssumptionsSection.style.display = 'block';
+    }
+  }
+
+  // Hide story scenario details when exiting story mode
+  hideStoryScenarioDetails() {
+    const detailsSection = document.getElementById('story-scenario-details');
+    if (detailsSection) {
+      detailsSection.style.display = 'none';
     }
   }
 
