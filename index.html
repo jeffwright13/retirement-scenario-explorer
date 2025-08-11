@@ -433,7 +433,7 @@
             <pre id="scenario-json-preview"></pre>
           </details>
         </div>
-        <p><strong>Or:</strong> Read the <a href="https://github.com/jeffwright13/retirement-scenario-explorer/blob/main/docs/complete-guide.md" target="_blank">Complete Guide</a> and copy-paste any scenario manually.</p>
+
       </div>
     </div>
 
@@ -442,9 +442,11 @@
       <div class="control-panel">
         <div class="control-group">
           <h3>🚀 Simulation</h3>
-          <div class="button-group">
-            <button id="run-btn" class="btn-success">Run Simulation</button>
-          </div>
+          <p style="margin-bottom: 15px;">Select a scenario above, then run the simulation to see your financial projection.</p>
+          <!-- MOVE the primary run button here -->
+          <button id="run-btn-primary" class="btn-success" style="font-size: 1.1rem; padding: 16px 32px; font-weight: 600;">
+            🚀 Run Simulation
+          </button>
         </div>
       </div>
 
@@ -472,10 +474,15 @@
       <details class="advanced-options" id="advanced-options">
         <summary>Advanced Options</summary>
         <div class="advanced-options-content">
-          <p>For power users and detailed analysis:</p>
           <div class="advanced-button-group">
             <button id="toggle-json-btn" class="btn-advanced">Edit JSON</button>
             <button id="toggle-csv-btn" class="btn-advanced">Export CSV Data</button>
+            <button id="run-btn-advanced" class="btn-advanced" style="background: linear-gradient(135deg, #805ad5 0%, #6b46c1 100%);">
+              ⚡ Run Custom Scenario
+            </button>
+            <p style="margin-top: 10px; color: #666; font-size: 0.9rem; font-style: italic;">
+              <small>Edits made here will perist immediately - no need to explicitly save. Execute the new scenario by pressing the Run Custom Scenario button.</small>
+            </p>
           </div>
         </div>
       </details>

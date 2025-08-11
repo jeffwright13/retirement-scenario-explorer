@@ -72,7 +72,7 @@ class RetirementScenarioApp {
     console.log('✅ UI updated with discovered content');
   }
 
-  // Event handlers (mostly unchanged)
+  // Event handlers
   setupEventHandlers() {
     this.ui.onScenarioChange(async (e) => {
       if (!this.isInStoryMode()) {
@@ -81,6 +81,17 @@ class RetirementScenarioApp {
     });
 
     this.ui.onRunSimulation(() => {
+      this.handleSimulationExecution();
+    });
+
+    // ADD these new event handlers after the existing ones:
+    // Primary run button (in getting started panel)
+    document.getElementById('run-btn-primary')?.addEventListener('click', () => {
+      this.handleSimulationExecution();
+    });
+
+    // Advanced run button (in advanced options)
+    document.getElementById('run-btn-advanced')?.addEventListener('click', () => {
       this.handleSimulationExecution();
     });
   }
