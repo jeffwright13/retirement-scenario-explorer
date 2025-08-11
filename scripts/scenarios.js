@@ -8,7 +8,7 @@ export class ScenarioManager {
   constructor() {
     this.discoveredScenarios = {};
     this.registeredFiles = new Set(); // Track what we've found
-    
+
     // Only scenario files, NOT story files
 	this.discoveryPatterns = [
 	  // Inflation scenarios
@@ -22,7 +22,10 @@ export class ScenarioManager {
 
 	  // Advanced scenarios
 	  'sequence-crash-2008.json', 'sequence-returns.json', 'market-crash.json',
-	  'ssdi-approved.json', 'disability.json', 'early-retirement.json',
+    'ssdi-approved.json', 'disability.json', 'early-retirement.json',
+
+    // Proportional scenarios
+    'proportional-examples.json',
 
 	  // Template scenarios
 	  'template.json', 'blank-template.json', 'example.json', 'sample.json',
@@ -34,16 +37,16 @@ export class ScenarioManager {
   async discoverScenarios() {
     console.log('🔍 Smart scenario discovery starting...');
     this.discoveredScenarios = {};
-    
+
     // Try all discovery patterns
     await this.discoverByPatterns();
-    
-    // Try any user-registered files  
+
+    // Try any user-registered files
     await this.discoverRegisteredFiles();
-    
+
     console.log(`🎉 Discovery complete! Found ${Object.keys(this.discoveredScenarios).length} scenarios`);
     console.log(`📁 Discovered files: ${Array.from(this.registeredFiles).join(', ')}`);
-    
+
     return this.discoveredScenarios;
   }
 
@@ -126,10 +129,10 @@ export class ScenarioManager {
       'Advanced': [],
       'Personal': []
     };
-    
+
     for (const [key, scenario] of Object.entries(scenarios)) {
       const tags = scenario.metadata.tags || [];
-      
+
       if (tags.includes('template')) {
         groups['Templates'].push([key, scenario]);
       } else if (tags.includes('personal')) {
@@ -140,22 +143,22 @@ export class ScenarioManager {
         groups['Learning Examples'].push([key, scenario]);
       }
     }
-    
+
     return groups;
   }
 
   // Extract clean scenario data for simulation - FIXED VERSION
   getSimulationData(scenarioKey) {
     console.log(`Getting simulation data for: ${scenarioKey}`);
-    
+
     const scenario = this.getScenario(scenarioKey);
     if (!scenario) {
       console.error(`Scenario not found: ${scenarioKey}`);
       return null;
     }
-    
+
     console.log('Found scenario:', scenario);
-    
+
     // Build simulation data with all required components INCLUDING rate_schedules
     const simulationData = {
       title: scenario.metadata?.title || 'Untitled Scenario',
@@ -165,22 +168,22 @@ export class ScenarioManager {
       order: scenario.order || [],
       rate_schedules: scenario.rate_schedules || {}  // CRITICAL: Include rate schedules
     };
-    
+
     console.log('Built simulation data:', simulationData);
-    
+
     // Validate critical components
     if (!simulationData.plan.monthly_expenses) {
       console.warn('Warning: No monthly_expenses in plan');
     }
-    
+
     if (!simulationData.plan.duration_months) {
       console.warn('Warning: No duration_months in plan');
     }
-    
+
     if (Object.keys(simulationData.rate_schedules).length === 0) {
       console.warn('Warning: No rate_schedules defined');
     }
-    
+
     return simulationData;
   }
 
@@ -189,7 +192,7 @@ export class ScenarioManager {
     if (!scenario.metadata.discussion_file) {
       return null;
     }
-    
+
     try {
       const response = await fetch(`data/${scenario.metadata.discussion_file}`);
       if (response.ok) {
@@ -264,7 +267,7 @@ export class ScenarioManager {
     if (!filename.endsWith('.json')) {
       filename += '.json';
     }
-    
+
     this.registeredFiles.add(filename);
     console.log(`📝 Registered new scenario file: ${filename}`);
     console.log(`💡 Run refreshScenarios() to discover it!`);

@@ -1,0 +1,171 @@
+{
+    "tax-optimized-blend": {
+      "metadata": {
+        "title": "Tax-Optimized Blended Withdrawal",
+        "description": "Withdraws 3:2 ratio from taxable vs tax-deferred accounts to optimize tax brackets.",
+        "tags": ["proportional", "tax-optimization"],
+        "difficulty": "intermediate"
+      },
+      "plan": {
+        "monthly_expenses": 5000,
+        "duration_months": 240,
+        "inflation_schedule": "low_inflation"
+      },
+      "rate_schedules": {
+        "low_inflation": {
+          "type": "fixed",
+          "rate": 0.02
+        },
+        "market_growth": {
+          "type": "fixed",
+          "rate": 0.06
+        }
+      },
+      "assets": [
+        {
+          "name": "Taxable Brokerage",
+          "balance": 300000,
+          "return_schedule": "market_growth"
+        },
+        {
+          "name": "Traditional IRA",
+          "balance": 250000,
+          "return_schedule": "market_growth"
+        },
+        {
+          "name": "Roth IRA",
+          "balance": 100000,
+          "return_schedule": "market_growth"
+        }
+      ],
+      "order": [
+        { "account": "Taxable Brokerage", "order": 1, "weight": 3 },
+        { "account": "Traditional IRA", "order": 1, "weight": 2 },
+        { "account": "Roth IRA", "order": 2 }
+      ]
+    },
+
+    "multi-brokerage-equal": {
+      "metadata": {
+        "title": "Equal Multi-Brokerage Diversification",
+        "description": "Withdraws equally from three brokerages to reduce single-point-of-failure risk.",
+        "tags": ["proportional", "diversification"],
+        "difficulty": "beginner"
+      },
+      "plan": {
+        "monthly_expenses": 4000,
+        "duration_months": 300,
+        "inflation_schedule": "moderate_inflation"
+      },
+      "rate_schedules": {
+        "moderate_inflation": {
+          "type": "fixed",
+          "rate": 0.025
+        },
+        "broad_market": {
+          "type": "fixed",
+          "rate": 0.07
+        }
+      },
+      "assets": [
+        {
+          "name": "Vanguard Account",
+          "balance": 200000,
+          "return_schedule": "broad_market"
+        },
+        {
+          "name": "Fidelity Account",
+          "balance": 200000,
+          "return_schedule": "broad_market"
+        },
+        {
+          "name": "Schwab Account",
+          "balance": 200000,
+          "return_schedule": "broad_market"
+        }
+      ],
+      "order": [
+        { "account": "Vanguard Account", "order": 1, "weight": 1 },
+        { "account": "Fidelity Account", "order": 1, "weight": 1 },
+        { "account": "Schwab Account", "order": 1, "weight": 1 }
+      ]
+    },
+
+    "weighted-bucket-strategy": {
+      "metadata": {
+        "title": "Weighted Bucket Strategy",
+        "description": "Modern bucket approach: Cash bucket (equal), Bond bucket (70/30), Stock bucket (60/25/15).",
+        "tags": ["proportional", "bucket-strategy", "advanced"],
+        "difficulty": "advanced"
+      },
+      "plan": {
+        "monthly_expenses": 6000,
+        "duration_months": 360,
+        "inflation_schedule": "target_inflation"
+      },
+      "rate_schedules": {
+        "target_inflation": {
+          "type": "fixed",
+          "rate": 0.02
+        },
+        "cash_returns": {
+          "type": "fixed",
+          "rate": 0.02
+        },
+        "bond_returns": {
+          "type": "fixed",
+          "rate": 0.04
+        },
+        "stock_returns": {
+          "type": "fixed",
+          "rate": 0.08
+        }
+      },
+      "assets": [
+        {
+          "name": "High-Yield Savings",
+          "balance": 36000,
+          "return_schedule": "cash_returns"
+        },
+        {
+          "name": "Money Market",
+          "balance": 36000,
+          "return_schedule": "cash_returns"
+        },
+        {
+          "name": "Treasury Bonds",
+          "balance": 140000,
+          "return_schedule": "bond_returns"
+        },
+        {
+          "name": "Corporate Bonds",
+          "balance": 60000,
+          "return_schedule": "bond_returns"
+        },
+        {
+          "name": "US Total Market",
+          "balance": 240000,
+          "return_schedule": "stock_returns"
+        },
+        {
+          "name": "International Stocks",
+          "balance": 100000,
+          "return_schedule": "stock_returns"
+        },
+        {
+          "name": "Emerging Markets",
+          "balance": 60000,
+          "return_schedule": "stock_returns"
+        }
+      ],
+      "order": [
+        { "account": "High-Yield Savings", "order": 1, "weight": 1 },
+        { "account": "Money Market", "order": 1, "weight": 1 },
+        { "account": "Treasury Bonds", "order": 2, "weight": 7 },
+        { "account": "Corporate Bonds", "order": 2, "weight": 3 },
+        { "account": "US Total Market", "order": 3, "weight": 6 },
+        { "account": "International Stocks", "order": 3, "weight": 2.5 },
+        { "account": "Emerging Markets", "order": 3, "weight": 1.5 }
+      ]
+    }
+  }
