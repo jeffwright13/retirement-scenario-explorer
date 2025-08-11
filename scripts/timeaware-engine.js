@@ -277,7 +277,7 @@ export function simulateScenarioAdvanced(scenario) {
     }
 
     // 7. Check auto-stop condition
-    if (stopOnShortfall && month >= minDuration && remainingShortfall > 0) {
+    if (stopOnShortfall && month >= minDuration && remainingShortfall > 0.01) {
       actualDuration = month + 1;
       console.log(`🛑 Auto-stopping simulation at month ${actualDuration} due to shortfall of $${remainingShortfall.toFixed(2)}`);
       break;
