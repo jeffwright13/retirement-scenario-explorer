@@ -1,312 +1,375 @@
 {
-    "$schema": "../docs/scenario-schema.json",
-    "jeffs-stage-1-no-growth": {
-      "metadata": {
-        "title": "Jeff's Stage 1: No Growth (The Linear Drawdown Fantasy)",
-        "description": "Modeling retirement as if assets earn 0% - just a pile of money that shrinks linearly",
-        "tags": ["personal", "learning-journey", "no-growth", "beginner-mistake"],
-        "difficulty": "beginner",
-        "author": "Jeff Wright - Personal Experience"
-      },
-      "plan": {
-        "monthly_expenses": 8500,
-        "duration_months": 300,
-        "inflation_schedule": "no_inflation"
-      },
-      "income": [],
-      "assets": [
-        {
-          "name": "Savings",
-          "type": "taxable",
-          "balance": 70000,
-          "return_schedule": "no_growth"
-        },
-        {
-          "name": "Investment",
-          "type": "taxable",
-          "balance": 513000,
-          "return_schedule": "no_growth"
-        },
-        {
-          "name": "Traditional IRA",
-          "type": "tax_deferred",
-          "balance": 323000,
-          "return_schedule": "no_growth"
-        },
-        {
-          "name": "Roth IRA",
-          "type": "tax_free",
-          "balance": 12000,
-          "return_schedule": "no_growth"
-        }
-      ],
-      "order": [
-        {"account": "Savings", "order": 1},
-        {"account": "Investment", "order": 2},
-        {"account": "Traditional IRA", "order": 3},
-        {"account": "Roth IRA", "order": 4}
-      ],
-      "rate_schedules": {
-        "no_inflation": {"type": "fixed", "rate": 0.0},
-        "no_growth": {"type": "fixed", "rate": 0.0}
-      }
+  "$schema": "../docs/scenario-schema.json",
+  "jeffs-stage-1-no-growth": {
+    "metadata": {
+      "title": "Jeff's Stage 1: No Growth (The Linear Drawdown Fantasy)",
+      "description": "Modeling retirement as if assets earn 0% - just a pile of money that shrinks linearly",
+      "tags": ["personal", "learning-journey", "no-growth", "beginner-mistake"],
+      "difficulty": "beginner",
+      "author": "Jeff Wright - Personal Experience"
     },
-
-    "jeffs-stage-2-with-growth": {
-      "metadata": {
-        "title": "Jeff's Stage 2: Compound Interest Discovery (The Relief)",
-        "description": "Same portfolio but with realistic growth rates - discovering how compound interest extends retirement",
-        "tags": ["personal", "learning-journey", "compound-interest", "discovery"],
-        "difficulty": "beginner",
-        "author": "Jeff Wright - Personal Experience"
-      },
-      "plan": {
-        "monthly_expenses": 8500,
-        "duration_months": 300,
-        "inflation_schedule": "no_inflation"
-      },
-      "income": [],
-      "assets": [
-        {
-          "name": "Savings",
-          "type": "taxable",
-          "balance": 70000,
-          "return_schedule": "savings_growth"
-        },
-        {
-          "name": "Investment",
-          "type": "taxable",
-          "balance": 513000,
-          "return_schedule": "investment_growth"
-        },
-        {
-          "name": "Traditional IRA",
-          "type": "tax_deferred",
-          "balance": 323000,
-          "return_schedule": "ira_growth"
-        },
-        {
-          "name": "Roth IRA",
-          "type": "tax_free",
-          "balance": 12000,
-          "return_schedule": "roth_growth"
-        }
-      ],
-      "order": [
-        {"account": "Savings", "order": 1},
-        {"account": "Investment", "order": 2},
-        {"account": "Traditional IRA", "order": 3},
-        {"account": "Roth IRA", "order": 4}
-      ],
-      "rate_schedules": {
-        "no_inflation": {"type": "fixed", "rate": 0.0},
-        "savings_growth": {"type": "fixed", "rate": 0.037},
-        "investment_growth": {"type": "fixed", "rate": 0.065},
-        "ira_growth": {"type": "fixed", "rate": 0.0625},
-        "roth_growth": {"type": "fixed", "rate": 0.07}
-      }
+    "plan": {
+      "monthly_expenses": 8500,
+      "duration_months": 300,
+      "inflation_schedule": "no_inflation"
     },
-
-    "jeffs-stage-3-inflation-reality": {
-      "metadata": {
-        "title": "Jeff's Stage 3: Inflation Reality Check (The Gut Punch)",
-        "description": "Adding inflation to the model - watching expenses grow over time and shortening the runway",
-        "tags": ["personal", "learning-journey", "inflation", "reality-check"],
-        "difficulty": "intermediate",
-        "author": "Jeff Wright - Personal Experience"
+    "income": [],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 70000,
+        "return_schedule": "no_growth"
       },
-      "plan": {
-        "monthly_expenses": 8500,
-        "duration_months": 300,
-        "inflation_schedule": "realistic_inflation",
-        "stop_on_shortfall": true
+      {
+        "name": "Investment",
+        "type": "taxable",
+        "balance": 513000,
+        "return_schedule": "no_growth"
       },
-      "income": [],
-      "assets": [
-        {
-          "name": "Savings",
-          "type": "taxable",
-          "balance": 70000,
-          "return_schedule": "savings_growth"
-        },
-        {
-          "name": "Investment",
-          "type": "taxable",
-          "balance": 513000,
-          "return_schedule": "investment_growth"
-        },
-        {
-          "name": "Traditional IRA",
-          "type": "tax_deferred",
-          "balance": 323000,
-          "return_schedule": "ira_growth"
-        },
-        {
-          "name": "Roth IRA",
-          "type": "tax_free",
-          "balance": 12000,
-          "return_schedule": "roth_growth"
-        }
-      ],
-      "order": [
-        {"account": "Savings", "order": 1},
-        {"account": "Investment", "order": 2},
-        {"account": "Traditional IRA", "order": 3},
-        {"account": "Roth IRA", "order": 4}
-      ],
-      "rate_schedules": {
-        "realistic_inflation": {"type": "fixed", "rate": 0.035},
-        "savings_growth": {"type": "fixed", "rate": 0.037},
-        "investment_growth": {"type": "fixed", "rate": 0.065},
-        "ira_growth": {"type": "fixed", "rate": 0.0625},
-        "roth_growth": {"type": "fixed", "rate": 0.07}
+      {
+        "name": "Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 323000,
+        "return_schedule": "no_growth"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 12000,
+        "return_schedule": "no_growth"
       }
+    ],
+    "order": [
+      {"account": "Savings", "order": 1},
+      {"account": "Investment", "order": 2},
+      {"account": "Traditional IRA", "order": 3},
+      {"account": "Roth IRA", "order": 4}
+    ],
+    "rate_schedules": {
+      "no_inflation": {"type": "fixed", "rate": 0.0},
+      "no_growth": {"type": "fixed", "rate": 0.0}
+    }
+  },
+
+  "jeffs-stage-2-with-growth": {
+    "metadata": {
+      "title": "Jeff's Stage 2: Compound Interest Discovery (The Relief)",
+      "description": "Same portfolio but with realistic growth rates - discovering how compound interest extends retirement",
+      "tags": ["personal", "learning-journey", "compound-interest", "discovery"],
+      "difficulty": "beginner",
+      "author": "Jeff Wright - Personal Experience"
     },
-
-    "jeffs-stage-4-with-social-security": {
-      "metadata": {
-        "title": "Jeff's Stage 4: Social Security Game Changer (Guaranteed Income)",
-        "description": "Adding Social Security to see how guaranteed income dramatically improves sustainability",
-        "tags": ["personal", "learning-journey", "social-security", "guaranteed-income"],
-        "difficulty": "intermediate",
-        "author": "Jeff Wright - Personal Experience"
-      },
-      "plan": {
-        "monthly_expenses": 8500,
-        "duration_months": 300,
-        "inflation_schedule": "realistic_inflation",
-        "stop_on_shortfall": true
-      },
-      "income": [
-        {
-          "name": "Social Security",
-          "amount": 2442,
-          "start_month": 24,
-          "notes": "Claiming at age 62 - early but guaranteed"
-        }
-      ],
-      "assets": [
-        {
-          "name": "Savings",
-          "type": "taxable",
-          "balance": 70000,
-          "return_schedule": "savings_growth"
-        },
-        {
-          "name": "Investment",
-          "type": "taxable",
-          "balance": 513000,
-          "return_schedule": "investment_growth"
-        },
-        {
-          "name": "Traditional IRA",
-          "type": "tax_deferred",
-          "balance": 323000,
-          "return_schedule": "ira_growth"
-        },
-        {
-          "name": "Roth IRA",
-          "type": "tax_free",
-          "balance": 12000,
-          "return_schedule": "roth_growth"
-        }
-      ],
-      "order": [
-        {"account": "Savings", "order": 1},
-        {"account": "Investment", "order": 2},
-        {"account": "Traditional IRA", "order": 3},
-        {"account": "Roth IRA", "order": 4}
-      ],
-      "rate_schedules": {
-        "realistic_inflation": {"type": "fixed", "rate": 0.035},
-        "savings_growth": {"type": "fixed", "rate": 0.037},
-        "investment_growth": {"type": "fixed", "rate": 0.065},
-        "ira_growth": {"type": "fixed", "rate": 0.0625},
-        "roth_growth": {"type": "fixed", "rate": 0.07}
-      }
+    "plan": {
+      "monthly_expenses": 8500,
+      "duration_months": 300,
+      "inflation_schedule": "no_inflation"
     },
-
-    "jeffs-stage-5-full-complexity": {
-      "metadata": {
-        "title": "Jeff's Stage 5: Full Complexity (The Unknown Unknowns)",
-        "description": "More sophisticated modeling with strategic withdrawal order and acknowledgment of remaining uncertainties",
-        "tags": ["personal", "learning-journey", "advanced", "unknown-unknowns"],
-        "difficulty": "advanced",
-        "author": "Jeff Wright - Personal Experience"
+    "income": [],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 70000,
+        "return_schedule": "savings_growth"
       },
-      "plan": {
-        "monthly_expenses": 8500,
-        "duration_months": 360,
-        "inflation_schedule": "variable_inflation",
-        "stop_on_shortfall": true
+      {
+        "name": "Investment",
+        "type": "taxable",
+        "balance": 513000,
+        "return_schedule": "investment_growth"
       },
-      "income": [
-        {
-          "name": "Social Security",
-          "amount": 2442,
-          "start_month": 24,
-          "notes": "Early claiming strategy"
-        },
-        {
-          "name": "Healthcare Cost Shock",
-          "amount": -1200,
-          "start_month": 180,
-          "notes": "Modeling increased healthcare costs later in retirement"
-        }
-      ],
-      "assets": [
-        {
-          "name": "Savings",
-          "type": "taxable",
-          "balance": 70000,
-          "return_schedule": "conservative_growth"
-        },
-        {
-          "name": "Investment",
-          "type": "taxable",
-          "balance": 513000,
-          "return_schedule": "market_growth"
-        },
-        {
-          "name": "Traditional IRA",
-          "type": "tax_deferred",
-          "balance": 323000,
-          "return_schedule": "ira_growth"
-        },
-        {
-          "name": "Roth IRA",
-          "type": "tax_free",
-          "balance": 12000,
-          "return_schedule": "aggressive_growth"
-        },
-        {
-          "name": "Future Market Crash",
-          "type": "taxable",
-          "balance": -150000,
-          "start_month": 84,
-          "notes": "Modeling a major market downturn in year 7"
-        }
-      ],
-      "order": [
-        {"account": "Savings", "order": 1},
-        {"account": "Investment", "order": 2},
-        {"account": "Traditional IRA", "order": 3},
-        {"account": "Roth IRA", "order": 4}
-      ],
-      "rate_schedules": {
-        "variable_inflation": {
-          "type": "sequence",
-          "values": [0.035, 0.04, 0.05, 0.045, 0.03, 0.025, 0.03, 0.035],
-          "default_rate": 0.03
-        },
-        "conservative_growth": {"type": "fixed", "rate": 0.025},
-        "market_growth": {
-          "type": "sequence",
-          "values": [0.065, 0.08, -0.15, 0.12, 0.06, 0.055, 0.07],
-          "default_rate": 0.06
-        },
-        "ira_growth": {"type": "fixed", "rate": 0.0625},
-        "aggressive_growth": {"type": "fixed", "rate": 0.08}
+      {
+        "name": "Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 323000,
+        "return_schedule": "ira_growth"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 12000,
+        "return_schedule": "roth_growth"
       }
+    ],
+    "order": [
+      {"account": "Savings", "order": 1},
+      {"account": "Investment", "order": 2},
+      {"account": "Traditional IRA", "order": 3},
+      {"account": "Roth IRA", "order": 4}
+    ],
+    "rate_schedules": {
+      "no_inflation": {"type": "fixed", "rate": 0.0},
+      "savings_growth": {"type": "fixed", "rate": 0.037},
+      "investment_growth": {"type": "fixed", "rate": 0.065},
+      "ira_growth": {"type": "fixed", "rate": 0.0625},
+      "roth_growth": {"type": "fixed", "rate": 0.07}
+    }
+  },
+
+  "jeffs-stage-3-inflation-reality": {
+    "metadata": {
+      "title": "Jeff's Stage 3: Inflation Reality Check (The Gut Punch)",
+      "description": "Adding inflation to the model - watching expenses grow over time and shortening the runway",
+      "tags": ["personal", "learning-journey", "inflation", "reality-check"],
+      "difficulty": "intermediate",
+      "author": "Jeff Wright - Personal Experience"
+    },
+    "plan": {
+      "monthly_expenses": 8500,
+      "duration_months": 300,
+      "inflation_schedule": "realistic_inflation",
+      "stop_on_shortfall": true
+    },
+    "income": [],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 70000,
+        "return_schedule": "savings_growth"
+      },
+      {
+        "name": "Investment",
+        "type": "taxable",
+        "balance": 513000,
+        "return_schedule": "investment_growth"
+      },
+      {
+        "name": "Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 323000,
+        "return_schedule": "ira_growth"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 12000,
+        "return_schedule": "roth_growth"
+      }
+    ],
+    "order": [
+      {"account": "Savings", "order": 1},
+      {"account": "Investment", "order": 2},
+      {"account": "Traditional IRA", "order": 3},
+      {"account": "Roth IRA", "order": 4}
+    ],
+    "rate_schedules": {
+      "realistic_inflation": {"type": "fixed", "rate": 0.035},
+      "savings_growth": {"type": "fixed", "rate": 0.037},
+      "investment_growth": {"type": "fixed", "rate": 0.065},
+      "ira_growth": {"type": "fixed", "rate": 0.0625},
+      "roth_growth": {"type": "fixed", "rate": 0.07}
+    }
+  },
+
+  "jeffs-stage-4-with-social-security": {
+    "metadata": {
+      "title": "Jeff's Stage 4: Social Security Game Changer (Guaranteed Income)",
+      "description": "Adding Social Security to see how guaranteed income dramatically improves sustainability",
+      "tags": ["personal", "learning-journey", "social-security", "guaranteed-income"],
+      "difficulty": "intermediate",
+      "author": "Jeff Wright - Personal Experience"
+    },
+    "plan": {
+      "monthly_expenses": 8500,
+      "duration_months": 300,
+      "inflation_schedule": "realistic_inflation",
+      "stop_on_shortfall": true
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 2442,
+        "start_month": 24,
+        "notes": "Claiming at age 62 - early but guaranteed"
+      }
+    ],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 70000,
+        "return_schedule": "savings_growth"
+      },
+      {
+        "name": "Investment",
+        "type": "taxable",
+        "balance": 513000,
+        "return_schedule": "investment_growth"
+      },
+      {
+        "name": "Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 323000,
+        "return_schedule": "ira_growth"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 12000,
+        "return_schedule": "roth_growth"
+      }
+    ],
+    "order": [
+      {"account": "Savings", "order": 1},
+      {"account": "Investment", "order": 2},
+      {"account": "Traditional IRA", "order": 3},
+      {"account": "Roth IRA", "order": 4}
+    ],
+    "rate_schedules": {
+      "realistic_inflation": {"type": "fixed", "rate": 0.035},
+      "savings_growth": {"type": "fixed", "rate": 0.037},
+      "investment_growth": {"type": "fixed", "rate": 0.065},
+      "ira_growth": {"type": "fixed", "rate": 0.0625},
+      "roth_growth": {"type": "fixed", "rate": 0.07}
+    }
+  },
+
+  "jeffs-stage-5-full-complexity": {
+    "metadata": {
+      "title": "Jeff's Stage 5: Full Complexity (The Unknown Unknowns)",
+      "description": "More sophisticated modeling with strategic withdrawal order and acknowledgment of remaining uncertainties",
+      "tags": ["personal", "learning-journey", "advanced", "unknown-unknowns"],
+      "difficulty": "advanced",
+      "author": "Jeff Wright - Personal Experience"
+    },
+    "plan": {
+      "monthly_expenses": 8500,
+      "duration_months": 360,
+      "inflation_schedule": "variable_inflation",
+      "stop_on_shortfall": true
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 2442,
+        "start_month": 24,
+        "notes": "Early claiming strategy"
+      },
+      {
+        "name": "Healthcare Cost Shock",
+        "amount": -1200,
+        "start_month": 180,
+        "notes": "Modeling increased healthcare costs later in retirement"
+      }
+    ],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 70000,
+        "return_schedule": "conservative_growth"
+      },
+      {
+        "name": "Investment",
+        "type": "taxable",
+        "balance": 513000,
+        "return_schedule": "market_growth"
+      },
+      {
+        "name": "Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 323000,
+        "return_schedule": "ira_growth"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 12000,
+        "return_schedule": "aggressive_growth"
+      },
+      {
+        "name": "Future Market Crash",
+        "type": "taxable",
+        "balance": -150000,
+        "start_month": 84,
+        "notes": "Modeling a major market downturn in year 7"
+      }
+    ],
+    "order": [
+      {"account": "Savings", "order": 1},
+      {"account": "Investment", "order": 2},
+      {"account": "Traditional IRA", "order": 3},
+      {"account": "Roth IRA", "order": 4}
+    ],
+    "rate_schedules": {
+      "variable_inflation": {
+        "type": "sequence",
+        "values": [0.035, 0.04, 0.05, 0.045, 0.03, 0.025, 0.03, 0.035],
+        "default_rate": 0.03
+      },
+      "conservative_growth": {"type": "fixed", "rate": 0.025},
+      "market_growth": {
+        "type": "sequence",
+        "values": [0.065, 0.08, -0.15, 0.12, 0.06, 0.055, 0.07],
+        "default_rate": 0.06
+      },
+      "ira_growth": {"type": "fixed", "rate": 0.0625},
+      "aggressive_growth": {"type": "fixed", "rate": 0.08}
+    }
+  },
+
+  "jeffs-stage-7-workable-solution": {
+    "metadata": {
+      "title": "Jeff's Stage 7: The Workable Solution (Hard Choices Pay Off)",
+      "description": "A realistic plan that actually passes Monte Carlo analysis - with reduced expenses, delayed SS, and more assets",
+      "tags": ["personal", "learning-journey", "workable-solution", "monte-carlo-success"],
+      "difficulty": "advanced",
+      "author": "Jeff Wright - Personal Experience"
+    },
+    "plan": {
+      "monthly_expenses": 6000,
+      "duration_months": 360,
+      "inflation_schedule": "realistic_inflation",
+      "stop_on_shortfall": true
+    },
+    "income": [
+      {
+        "name": "Social Security (Full Benefits)",
+        "amount": 3200,
+        "start_month": 84,
+        "notes": "Delayed to age 67 for higher benefits - $758/month more than early claiming"
+      }
+    ],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 80000,
+        "return_schedule": "savings_growth"
+      },
+      {
+        "name": "Investment",
+        "type": "taxable",
+        "balance": 620000,
+        "return_schedule": "investment_growth"
+      },
+      {
+        "name": "Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 375000,
+        "return_schedule": "ira_growth"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 25000,
+        "return_schedule": "roth_growth"
+      }
+    ],
+    "order": [
+      {"account": "Savings", "order": 1},
+      {"account": "Investment", "order": 2},
+      {"account": "Traditional IRA", "order": 3},
+      {"account": "Roth IRA", "order": 4}
+    ],
+    "rate_schedules": {
+      "realistic_inflation": {"type": "fixed", "rate": 0.035},
+      "savings_growth": {"type": "fixed", "rate": 0.037},
+      "investment_growth": {"type": "fixed", "rate": 0.065},
+      "ira_growth": {"type": "fixed", "rate": 0.0625},
+      "roth_growth": {"type": "fixed", "rate": 0.07}
     }
   }
+}
