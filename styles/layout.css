@@ -414,6 +414,25 @@
   .simulation-insights li {
     margin-bottom: var(--space-2);
     line-height: var(--line-height-relaxed);
+    color: var(--color-gray-700); /* ADD THIS LINE */
+  }
+
+  /* Story mode insights - blue background, white text */
+  .simulation-insights.story-insights {
+    background: linear-gradient(135deg, var(--color-blue-500) 0%, var(--color-blue-600) 100%);
+    color: var(--color-white) !important;
+  }
+
+  .simulation-insights.story-insights h3 {
+    color: #fbbf24 !important; /* Amber accent */
+  }
+
+  .simulation-insights.story-insights ul {
+    color: var(--color-white) !important;
+  }
+
+  .simulation-insights.story-insights li {
+    color: var(--color-white) !important;
   }
 
   .next-scenario-suggestion {
