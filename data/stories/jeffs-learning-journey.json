@@ -4,10 +4,10 @@
       "title": "Jeff's Learning Journey: From Unconscious Ignorance to Financial Reality",
       "description": "A true story of discovering the hidden complexities of retirement planning, one shocking realization at a time",
       "author": "Jeff Wright (Personal Experience)",
-      "estimated_duration": "30 minutes",
+      "estimated_duration": "35 minutes",
       "difficulty": "beginner",
-      "tags": ["personal", "learning-journey", "beginner", "compound-interest", "inflation", "monte-carlo"],
-      "version": "2.0",
+      "tags": ["personal", "learning-journey", "beginner", "compound-interest", "inflation", "monte-carlo", "ssdi"],
+      "version": "2.1",
       "introduction": "For 30 years, I thought retirement planning was simple: work hard, save money in a 401k, retire with a million dollars. Done.\n\nI was catastrophically wrong.\n\nIn 2024, three life-changing events happened within months of each other. I was diagnosed with a degenerative neurological disease. I got laid off for the first time in my 30-year career. Then a routine surgical procedure went sideways, landing me in the hospital for two weeks.\n\nLying in that hospital bed, unable to move, with nothing but time to think, I finally did what I should have done decades ago: I actually calculated what retirement would look like.\n\nI had $918,000 in assets - nearly a million dollars! Those Fisher Investment commercials said I could 'retire comfortably' with that much, right?\n\nMy monthly expenses were $8,500. Simple math: $918,000 ÷ $8,500 = 108 months = 9 years of money.\n\n*Nine years.*\n\nI was 60 years old. My wife and I would be broke by 69. That couldn't be right... could it?\n\nWhat I discovered next shattered everything I thought I knew about money, investing, and retirement. Each time I thought I'd figured it out, I'd discover something that changed everything again. Each 'solution' revealed three new problems I'd never even considered.\n\nThis is the story of my journey from unconscious ignorance to painful reality - and maybe, eventually, to a workable plan. If you're reading this and haven't done the math on your own retirement... buckle up."
     },
     "chapters": [
@@ -36,20 +36,20 @@
           "setup": "Same portfolio, same $8,500 monthly expenses, but now with actual returns: Savings at 3.7%, Investments at 6.5%, Traditional IRA at 6.25%, Roth IRA at 7%.\n\nBasically, my money keeps working for me even while I'm spending it. Why didn't anyone tell me this?",
           "insights": [
             "WITH compound growth, money now lasts {{duration_years}} years instead of 9!",
-            "That's literally DOUBLE the runway - compound interest is magical",
+            "That's literally much better - compound interest is magical",
             "My portfolio earns money every month while I withdraw money every month",
             "A 6.5% annual return means my investments grow by ~$2,800/month",
             "This felt like discovering a financial superpower I never knew existed"
           ],
           "key_takeaway": "Compound interest during retirement changes everything. Your money keeps working for you even as you spend it. I went from terror to relief in one calculation!",
-          "cliff_hanger": "Finally, I could breathe. We'd be financially secure well into our 80s. I felt so smart for discovering compound interest... but something was nagging me. Don't things get more expensive over time?"
+          "cliff_hanger": "Finally, I could breathe a little easier. But something was nagging me. Don't things get more expensive over time?"
         }
       },
       {
         "title": "Chapter 3: The Inflation Sledgehammer - When Reality Comes for Your Dreams",
         "scenario_key": "jeffs-stage-3-inflation-reality",
         "narrative": {
-          "introduction": "I was feeling pretty clever about my compound interest discovery when a terrible thought occurred to me: What if my $8,500 monthly expenses today aren't the same as $8,500 in ten years?\n\nWhat if... what if everything gets more expensive over time?\n\n*Google search: 'What is inflation?'*\n\nOh. Oh no.",
+          "introduction": "I was feeling a bit better about my compound interest discovery when a terrible thought occurred to me: What if my $8,500 monthly expenses today aren't the same as $8,500 in ten years?\n\nWhat if... what if everything gets more expensive over time?\n\n*Google search: 'What is inflation?'*\n\nOh. Oh no.",
           "setup": "Same exact scenario with compound growth, but now expenses increase by 3.5% annually. What costs $8,500 today costs $12,250 in year 10 and $17,650 in year 20.\n\nInflation doesn't just affect gas prices. It affects EVERYTHING. Forever.",
           "insights": [
             "With inflation, money only lasts {{duration_years}} years - back to scary territory!",
@@ -66,24 +66,48 @@
         "title": "Chapter 4: The Social Security Lifeline - When Guaranteed Income Saves the Day",
         "scenario_key": "jeffs-stage-4-with-social-security",
         "narrative": {
-          "introduction": "After the inflation gut-punch, I desperately searched for hope. Then I remembered: Social Security! We've been paying into it for decades. It's guaranteed income that (mostly) adjusts for inflation.\n\nMy estimated benefit at age 62: $2,442/month. That would reduce our monthly shortfall from $8,500 to just $6,058. Surely that makes a huge difference?",
-          "setup": "Same scenario with compound growth and inflation, but now adding $2,442/month of Social Security starting at age 62 (month 24).\n\nGuaranteed income that never runs out and adjusts for inflation. This has to be the game-changer.",
+          "introduction": "After the inflation gut-punch, I desperately searched for hope. Then I remembered: Social Security! We've been paying into it for decades. It's guaranteed income that (mostly) adjusts for inflation.\n\nMy estimated benefit at age 62: $2,442/month. That would reduce our monthly shortfall from $8,500 to just $6,058. Surely that makes a difference?",
+          "setup": "Same scenario with compound growth and inflation, but now adding $2,442/month of Social Security starting at age 62 (month 24).\n\nGuaranteed income that never runs out and adjusts for inflation. This has to help.",
           "insights": [
-            "Social Security extends our money from previous scary timeframe to {{duration_years}} years!",
+            "Social Security extends our money to {{duration_years}} years!",
             "Guaranteed income is incredibly powerful - it reduces the pressure on our assets",
             "Social Security has COLA adjustments, so it (mostly) keeps up with inflation",
-            "Even 'small' guaranteed income has massive impact on sustainability",
+            "Even 'small' guaranteed income has significant impact on sustainability",
             "Income trumps assets - $2,442/month forever is worth more than a pile of cash"
           ],
-          "key_takeaway": "Guaranteed income is the holy grail of retirement planning. Social Security isn't just a safety net - it's a financial game-changer that dramatically extends your runway.",
-          "cliff_hanger": "Finally! With compound interest, inflation factored in, AND Social Security, we'd be fine well into our 80s. I was feeling sophisticated now. I understood the key variables. What could possibly go wrong?"
+          "key_takeaway": "Guaranteed income is powerful in retirement planning. Social Security isn't just a safety net - it's a financial game-changer that extends your runway.",
+          "cliff_hanger": "This helps, but I'm still not in great shape. But wait... I just remembered something. What about my pending SSDI application?"
+        }
+      },
+      {
+        "title": "Chapter 4B: The SSDI Wild Card - When Disability Becomes Financial Opportunity",
+        "scenario_key": "jeffs-stage-4-with-social-security",
+        "narrative": {
+          "introduction": "Wait a minute. I'm getting ahead of myself. I mentioned my neurological condition in the beginning, but I haven't talked about the elephant in the room: my pending Social Security Disability (SSDI) application.\n\nMost people don't realize this, but SSDI isn't some small safety net payment. If approved, you get your FULL retirement benefit amount - immediately. No early filing penalty. No waiting until 62.\n\nMy estimated full retirement benefit is around $2,800/month. If SSDI gets approved, I could start receiving that in just 6 months instead of waiting 2 years for the reduced $2,442 early retirement amount.\n\nLet me model the SSDI scenario...",
+
+          "setup": "🎯 **HANDS-ON LEARNING:** This chapter teaches JSON editing!\n\n**Your Mission:** Manually edit the scenario to model SSDI approval:\n\n**STEP 1:** Load the Chapter 4 scenario (if not already loaded)\n**STEP 2:** Open the JSON editor (click 'Edit JSON' in Advanced Options)\n**STEP 3:** Find the 'income' section - look for this:\n```json\n\"income\": [\n  {\n    \"name\": \"Social Security\",\n    \"amount\": 2442,\n    \"start_month\": 24,\n    \"notes\": \"Claiming at age 62 - early but guaranteed\"\n  }\n]\n```\n\n**STEP 4:** Edit it to model SSDI approval:\n```json\n\"income\": [\n  {\n    \"name\": \"SSDI (if approved)\",\n    \"amount\": 2800,\n    \"start_month\": 6,\n    \"notes\": \"Full retirement benefit immediately - no early filing penalty!\"\n  }\n]\n```\n\n**STEP 5:** Click 'Run Custom Scenario' to see the dramatic difference!",
+
+          "insights": [
+            "SSDI approval extends money duration significantly vs early retirement!",
+            "Getting $2,800/month at month 6 vs $2,442/month at month 24 is HUGE",
+            "That's $358 more per month PLUS 18 months earlier start = massive advantage",
+            "SSDI converts to regular Social Security at full retirement age (no penalty)",
+            "This shows why disability applications are worth pursuing even if uncertain",
+            "The financial difference between SSDI approval vs denial can be life-changing"
+          ],
+
+          "key_takeaway": "SSDI isn't charity - it's insurance you've paid for. If approved, you get your full retirement benefit immediately with no early filing penalty. For someone with health issues, this can be the difference between financial stress and financial security.",
+
+          "reality_check": "Of course, there's a big 'IF' here. SSDI approval rates are around 35% for initial applications. The process takes 6+ months minimum, often longer. And you have to prove you can't work for at least 12 months.\n\nBut the potential financial impact is so significant that it's worth understanding and modeling. Even if you ultimately don't qualify, running the numbers helps you understand your options.",
+
+          "cliff_hanger": "The SSDI scenario looks much better financially, but I'm still burning through assets pretty quickly, and there are so many other variables I haven't considered. What else don't I know?"
         }
       },
       {
         "title": "Chapter 5: The Complexity Rabbit Hole - When Every Answer Reveals Three New Questions",
         "scenario_key": "jeffs-stage-5-full-complexity",
         "narrative": {
-          "introduction": "I thought I had it all figured out: compound interest, inflation, Social Security. I was practically a financial expert! But then I started reading about 'withdrawal strategies' and 'tax optimization' and 'sequence of returns risk.'\n\nEvery article I read revealed something else I didn't know. Every solution created new problems.",
+          "introduction": "Whether I get SSDI or not, I thought I had the key variables figured out: compound interest, inflation, Social Security/SSDI. I was practically a financial expert! But then I started reading about 'withdrawal strategies' and 'tax optimization' and 'sequence of returns risk.'\n\nEvery article I read revealed something else I didn't know. Every solution created new problems.",
           "setup": "A more sophisticated model with strategic withdrawal order (taxable first to minimize taxes), variable market returns, healthcare cost increases, and even a major market crash scenario.\n\nWelcome to the real world of retirement planning.",
           "insights": [
             "Withdrawal order matters - taxes can eat thousands if you do it wrong",
@@ -100,11 +124,11 @@
         "title": "Chapter 6: The Monte Carlo Apocalypse - When Statistics Destroy Your Dreams",
         "scenario_key": "jeffs-stage-4-with-social-security",
         "narrative": {
-          "introduction": "I was feeling pretty smart about my retirement model. Compound interest ✓, inflation ✓, Social Security ✓. My deterministic model showed we'd be fine into our 80s.\n\nThen I discovered Monte Carlo analysis. Instead of assuming steady 6.5% returns, what if I ran 50 different scenarios with realistic market volatility? What's the worst that could happen?\n\n*Narrator: It was much worse than he imagined.*",
+          "introduction": "I was feeling pretty smart about my retirement model. Compound interest ✓, inflation ✓, Social Security ✓. My deterministic model showed we'd make it to our late 70s.\n\nThen I discovered Monte Carlo analysis. Instead of assuming steady 6.5% returns, what if I ran 50 different scenarios with realistic market volatility? What's the worst that could happen?\n\n*Narrator: It was much worse than he imagined.*",
           "setup": "Same exact Stage 4 scenario (compound growth + inflation + Social Security), but now tested against 50 different market return sequences. Real-world volatility instead of smooth, steady gains.\n\nThis is where the rubber meets the road.",
           "insights": [
             "SUCCESS RATE: 0.0% - In ALL 50 scenarios, money runs out before 25 years",
-            "Median outcome: Money lasts only 14.1 years instead of 20+ years deterministically",
+            "Median outcome: Money lasts only 14.1 years instead of deterministic projections",
             "Even the 'good luck' scenarios (90th percentile) only last 15.5 years",
             "Market crashes early in retirement are devastating - you're selling low to pay bills",
             "This is 'sequence of returns risk' - the ORDER of returns matters as much as the average",
