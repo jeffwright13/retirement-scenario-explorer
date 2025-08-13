@@ -5,6 +5,25 @@
 export class SimulationService {
   constructor(eventBus) {
     this.eventBus = eventBus;
+    
+    // Set up event listeners
+    this.setupEventListeners();
+  }
+
+  /**
+   * Set up event listeners for simulation requests
+   */
+  setupEventListeners() {
+    // Listen for simulation run requests
+    this.eventBus.on('simulation:run', async (scenarioData) => {
+      console.log('🎯 SimulationService: Received simulation:run event');
+      try {
+        await this.runSimulation(scenarioData);
+      } catch (error) {
+        console.error('❌ SimulationService: Simulation failed:', error);
+        this.eventBus.emit('simulation:error', { error: error.message, scenarioData });
+      }
+    });
   }
 
   /**

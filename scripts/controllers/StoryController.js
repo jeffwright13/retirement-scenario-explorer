@@ -52,10 +52,12 @@ export class StoryController {
    * Exit story mode
    */
   exitStoryMode() {
-    console.log('🎭 Exiting story mode');
+    console.log('🎭 Exiting story mode in StoryController');
+    console.log('🎭 Current story mode state:', this.isStoryMode);
     this.isStoryMode = false;
     this.currentStory = null;
     this.currentChapter = null;
+    console.log('🎭 Emitting story:mode-exited event');
     this.eventBus.emit('story:mode-exited');
   }
 

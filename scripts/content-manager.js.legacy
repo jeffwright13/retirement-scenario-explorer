@@ -4,7 +4,7 @@
  */
 
 export class ContentManager {
-    constructor() {
+    constructor(options = {}) {
       this.scenarios = new Map();
       this.stories = new Map();
       this.collections = new Map();
@@ -14,6 +14,61 @@ export class ContentManager {
         collections: {},
         errors: []
       };
+      
+      // Configuration options
+      this.enableSchemaValidation = options.enableSchemaValidation !== false; // Default: enabled
+      this.schemas = {
+        scenario: null,
+        story: null
+      };
+      
+      // Initialize schema validation if enabled
+      if (this.enableSchemaValidation) {
+        this.initializeSchemaValidation();
+      }
+    }
+
+    // Initialize schema validation system
+    async initializeSchemaValidation() {
+      if (typeof window !== 'undefined' && window.Ajv) {
+        try {
+          this.ajv = new window.Ajv({ allErrors: true, verbose: true });
+          
+          // Load schemas
+          await Promise.all([
+            this.loadSchema('scenario', 'docs/scenario-schema.json'),
+            this.loadSchema('story', 'docs/story-schema.json')
+          ]);
+          
+          console.log('✅ Schema validation initialized');
+        } catch (error) {
+          console.warn('⚠️ Schema validation failed to initialize:', error.message);
+          this.enableSchemaValidation = false;
+        }
+      } else {
+        console.warn('⚠️ AJV not available, schema validation disabled');
+        this.enableSchemaValidation = false;
+      }
+    }
+
+    // Load a JSON schema file
+    async loadSchema(type, schemaPath) {
+      try {
+        const response = await fetch(schemaPath);
+        if (!response.ok) throw new Error(`Failed to load ${type} schema`);
+        
+        const schema = await response.json();
+        this.schemas[type] = schema;
+        
+        if (this.ajv) {
+          this.ajv.addSchema(schema, type);
+        }
+        
+        console.log(`✅ Loaded ${type} schema`);
+      } catch (error) {
+        console.warn(`⚠️ Failed to load ${type} schema:`, error.message);
+        throw error;
+      }
     }
 
     // Main discovery method - scans all content automatically
@@ -121,44 +176,28 @@ export class ContentManager {
     async getKnownFiles(basePath, extension) {
       const knownFiles = [];
 
-      // Try common naming patterns
-      const patterns = [
-        'index', 'main', 'default',
-        'jeff*', 'learning*', 'journey*',  // Existing Jeff content
-        'test*', 'example*', 'demo*',      // Test content
-        'beginner*', 'intermediate*', 'advanced*',
-        'tutorial*', 'guide*'
-      ];
-
-      for (const pattern of patterns) {
-        const fileName = `${basePath}${pattern}${extension}`;
-        try {
-          const response = await fetch(fileName, { method: 'HEAD' });
-          if (response.ok) {
-            knownFiles.push(fileName);
-          }
-        } catch (error) {
-          // File doesn't exist - expected
-        }
+      // Define exact known files based on current content
+      let exactFiles = [];
+      
+      if (basePath.includes('scenarios')) {
+        exactFiles = [
+          `${basePath}jeffs-learning-journey-scenarios.json`
+        ];
+      } else if (basePath.includes('stories')) {
+        exactFiles = [
+          `${basePath}jeffs-learning-journey.json`
+        ];
       }
-
-      // Also try exact known files
-      const exactFiles = [
-        `${basePath}jeffs-learning-journey-scenarios.json`,
-        `${basePath}jeffs-learning-journey.json`,
-        `${basePath}test-scenarios.json`,
-        `${basePath}test-story.json`,
-        `${basePath}sequence-crash-2008.json`
-      ];
 
       for (const fileName of exactFiles) {
         try {
           const response = await fetch(fileName, { method: 'HEAD' });
-          if (response.ok && !knownFiles.includes(fileName)) {
+          if (response.ok) {
             knownFiles.push(fileName);
+            console.log(`✅ Found file: ${fileName}`);
           }
         } catch (error) {
-          // File doesn't exist - expected
+          console.warn(`❌ File not found: ${fileName}`);
         }
       }
 
@@ -389,12 +428,40 @@ export class ContentManager {
       return null;
     }
 
-    // Simple validation
+    // Enhanced validation with schema support
     validateScenario(scenario) {
-      return scenario.plan &&
-             scenario.assets &&
-             Array.isArray(scenario.assets) &&
-             typeof scenario.plan.monthly_expenses === 'number';
+      // Basic structural validation (always performed)
+      const basicValid = scenario.plan &&
+                        scenario.assets &&
+                        Array.isArray(scenario.assets) &&
+                        typeof scenario.plan.monthly_expenses === 'number';
+      
+      if (!basicValid) {
+        console.warn('❌ Scenario failed basic validation');
+        return false;
+      }
+      
+      // Schema validation (if enabled and available)
+      if (this.enableSchemaValidation && this.ajv && this.schemas.scenario) {
+        const validate = this.ajv.getSchema('scenario');
+        if (validate) {
+          // Wrap scenario in object format expected by schema
+          const scenarioWrapper = { 'test-scenario': scenario };
+          const valid = validate(scenarioWrapper);
+          
+          if (!valid) {
+            console.warn('❌ Scenario failed schema validation:', validate.errors);
+            this.registry.errors.push({
+              type: 'schema_validation_error',
+              target: 'scenario',
+              errors: validate.errors
+            });
+            return false;
+          }
+        }
+      }
+      
+      return true;
     }
 
     validateStory(story) {

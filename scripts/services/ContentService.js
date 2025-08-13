@@ -1,14 +1,47 @@
 /**
  * Content Service - Manages scenarios, stories, and collections
- * Wraps the existing ContentManager with event-driven interface
+ * Pure event-driven content management without legacy dependencies
  */
-import { ContentManager } from '../content-manager.js';
 
 export class ContentService {
   constructor(eventBus) {
     this.eventBus = eventBus;
-    this.contentManager = new ContentManager();
+    this.scenarios = new Map();
+    this.stories = new Map();
+    this.registry = {
+      scenarios: {},
+      stories: {},
+      errors: []
+    };
     this.isLoaded = false;
+    
+    // Set up EventBus request handlers
+    this.setupEventHandlers();
+  }
+
+  /**
+   * Set up EventBus request handlers
+   */
+  setupEventHandlers() {
+    // Handle requests for specific scenarios
+    this.eventBus.on('content:get-scenario', async (scenarioKey) => {
+      try {
+        const scenario = await this.getScenario(scenarioKey);
+        this.eventBus.emit('content:scenario-data', { scenarioKey, scenario });
+      } catch (error) {
+        this.eventBus.emit('content:scenario-error', { scenarioKey, error: error.message });
+      }
+    });
+
+    // Handle requests for specific stories
+    this.eventBus.on('content:get-story', async (storyKey) => {
+      try {
+        const story = await this.getStory(storyKey);
+        this.eventBus.emit('content:story-data', { storyKey, story });
+      } catch (error) {
+        this.eventBus.emit('content:story-error', { storyKey, error: error.message });
+      }
+    });
   }
 
   /**
@@ -19,25 +52,142 @@ export class ContentService {
     try {
       this.eventBus.emit('content:loading-started');
       
-      const registry = await this.contentManager.discoverContent();
+      // Load scenarios and stories in parallel
+      await Promise.all([
+        this.loadScenarios(),
+        this.loadStories()
+      ]);
+      
       this.isLoaded = true;
       
       // Emit specific content loaded events
       this.eventBus.emit('scenarios:loaded', this.getAllScenarios());
       this.eventBus.emit('stories:loaded', this.getAllStories());
-      this.eventBus.emit('content:loaded', registry);
+      this.eventBus.emit('content:loaded', this.registry);
       
       // Emit any errors
-      if (this.contentManager.registry.errors.length > 0) {
-        this.eventBus.emit('content:errors', this.contentManager.registry.errors);
+      if (this.registry.errors.length > 0) {
+        this.eventBus.emit('content:errors', this.registry.errors);
       }
       
-      return registry;
+      console.log(`✅ Content loaded: ${this.scenarios.size} scenarios, ${this.stories.size} stories`);
+      return this.registry;
       
     } catch (error) {
       this.eventBus.emit('content:loading-failed', error);
       throw error;
     }
+  }
+
+  /**
+   * Load scenario files
+   */
+  async loadScenarios() {
+    const scenarioFiles = [
+      'data/scenarios/jeffs-learning-journey-scenarios.json'
+    ];
+
+    for (const filePath of scenarioFiles) {
+      try {
+        console.log(`🔍 Loading scenarios from: ${filePath}`);
+        const response = await fetch(filePath);
+        if (!response.ok) {
+          throw new Error(`Failed to load ${filePath}: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Process each scenario in the file
+        for (const [key, scenario] of Object.entries(data)) {
+          if (key.startsWith('$')) continue; // Skip schema references
+          
+          if (this.validateScenario(scenario)) {
+            this.scenarios.set(key, scenario);
+            this.registry.scenarios[key] = {
+              title: scenario.metadata?.title || key,
+              description: scenario.metadata?.description || '',
+              tags: scenario.metadata?.tags || [],
+              source: filePath
+            };
+            console.log(`✅ Loaded scenario: ${key}`);
+          } else {
+            console.warn(`❌ Invalid scenario: ${key}`);
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Failed to load ${filePath}:`, error);
+        this.registry.errors.push({
+          type: 'scenario_load_error',
+          file: filePath,
+          error: error.message
+        });
+      }
+    }
+  }
+
+  /**
+   * Load story files
+   */
+  async loadStories() {
+    const storyFiles = [
+      'data/stories/jeffs-learning-journey.json'
+    ];
+
+    for (const filePath of storyFiles) {
+      try {
+        console.log(`🔍 Loading stories from: ${filePath}`);
+        const response = await fetch(filePath);
+        if (!response.ok) {
+          throw new Error(`Failed to load ${filePath}: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        // Process each story in the file
+        for (const [key, story] of Object.entries(data)) {
+          if (key.startsWith('$')) continue; // Skip schema references
+          
+          if (this.validateStory(story)) {
+            this.stories.set(key, story);
+            this.registry.stories[key] = {
+              title: story.metadata?.title || key,
+              description: story.metadata?.description || '',
+              tags: story.metadata?.tags || [],
+              source: filePath
+            };
+            console.log(`✅ Loaded story: ${key}`);
+          } else {
+            console.warn(`❌ Invalid story: ${key}`);
+          }
+        }
+      } catch (error) {
+        console.error(`❌ Failed to load ${filePath}:`, error);
+        this.registry.errors.push({
+          type: 'story_load_error',
+          file: filePath,
+          error: error.message
+        });
+      }
+    }
+  }
+
+  /**
+   * Basic scenario validation
+   */
+  validateScenario(scenario) {
+    return scenario.plan &&
+           scenario.assets &&
+           Array.isArray(scenario.assets) &&
+           typeof scenario.plan.monthly_expenses === 'number';
+  }
+
+  /**
+   * Basic story validation
+   */
+  validateStory(story) {
+    return story.metadata &&
+           story.chapters &&
+           Array.isArray(story.chapters);
   }
 
   /**
@@ -50,7 +200,7 @@ export class ContentService {
       await this.loadAllContent();
     }
     
-    const scenario = this.contentManager.getScenario(scenarioKey);
+    const scenario = this.scenarios.get(scenarioKey);
     if (!scenario) {
       throw new Error(`Scenario "${scenarioKey}" not found`);
     }
@@ -69,7 +219,7 @@ export class ContentService {
       await this.loadAllContent();
     }
     
-    const story = this.contentManager.getStory(storyKey);
+    const story = this.stories.get(storyKey);
     if (!story) {
       throw new Error(`Story "${storyKey}" not found`);
     }
@@ -83,31 +233,23 @@ export class ContentService {
    * @returns {Array} Array of scenario objects with key property
    */
   getAllScenarios() {
-    const scenarios = this.contentManager.getAllScenarios();
-    
-    // ContentManager returns an object, convert to array with keys and flatten metadata
-    if (scenarios && typeof scenarios === 'object' && !Array.isArray(scenarios)) {
-      return Object.entries(scenarios).map(([key, scenario]) => {
-        // Flatten metadata to root level for UI compatibility
-        const flattened = {
-          ...scenario,
-          key: key
-        };
-        
-        // If metadata exists, merge it to root level
-        if (scenario.metadata) {
-          flattened.title = scenario.metadata.title || flattened.title;
-          flattened.description = scenario.metadata.description || flattened.description;
-          flattened.tags = scenario.metadata.tags || flattened.tags;
-          flattened.difficulty = scenario.metadata.difficulty || flattened.difficulty;
-          flattened.author = scenario.metadata.author || flattened.author;
-        }
-        
-        return flattened;
-      });
-    }
-    
-    return Array.isArray(scenarios) ? scenarios : [];
+    // Convert Map to array with keys and flatten metadata
+    return Array.from(this.scenarios.entries()).map(([key, scenario]) => {
+      // Flatten metadata to root level for UI compatibility
+      const flattened = {
+        ...scenario,
+        key: key
+      };
+      
+      // If metadata exists, merge it to root level
+      if (scenario.metadata) {
+        flattened.title = scenario.metadata.title || flattened.title;
+        flattened.description = scenario.metadata.description || flattened.description;
+        flattened.tags = scenario.metadata.tags || flattened.tags;
+      }
+      
+      return flattened;
+    });
   }
 
   /**
@@ -115,31 +257,23 @@ export class ContentService {
    * @returns {Array} Array of story objects with key property
    */
   getAllStories() {
-    const stories = this.contentManager.getAllStories();
-    
-    // ContentManager returns an object, convert to array with keys and flatten metadata
-    if (stories && typeof stories === 'object' && !Array.isArray(stories)) {
-      return Object.entries(stories).map(([key, story]) => {
-        // Flatten metadata to root level for UI compatibility
-        const flattened = {
-          ...story,
-          key: key
-        };
-        
-        // If metadata exists, merge it to root level
-        if (story.metadata) {
-          flattened.title = story.metadata.title || flattened.title;
-          flattened.description = story.metadata.description || flattened.description;
-          flattened.tags = story.metadata.tags || flattened.tags;
-          flattened.difficulty = story.metadata.difficulty || flattened.difficulty;
-          flattened.author = story.metadata.author || flattened.author;
-        }
-        
-        return flattened;
-      });
-    }
-    
-    return Array.isArray(stories) ? stories : [];
+    // Convert Map to array with keys and flatten metadata
+    return Array.from(this.stories.entries()).map(([key, story]) => {
+      // Flatten metadata to root level for UI compatibility
+      const flattened = {
+        ...story,
+        key: key
+      };
+      
+      // If metadata exists, merge it to root level
+      if (story.metadata) {
+        flattened.title = story.metadata.title || flattened.title;
+        flattened.description = story.metadata.description || flattened.description;
+        flattened.tags = story.metadata.tags || flattened.tags;
+      }
+      
+      return flattened;
+    });
   }
 
   /**
@@ -147,7 +281,12 @@ export class ContentService {
    * @returns {Object} Content summary
    */
   getContentSummary() {
-    return this.contentManager.getContentSummary();
+    return {
+      scenarios: this.scenarios.size,
+      stories: this.stories.size,
+      errors: this.registry.errors.length,
+      registry: this.registry
+    };
   }
 
   /**
@@ -155,7 +294,7 @@ export class ContentService {
    * @returns {boolean} True if there are content errors
    */
   hasErrors() {
-    return this.contentManager.hasErrors();
+    return this.registry.errors.length > 0;
   }
 
   /**
@@ -163,7 +302,7 @@ export class ContentService {
    * @returns {Array} Array of error objects
    */
   getErrors() {
-    return this.contentManager.registry.errors;
+    return this.registry.errors;
   }
 
   /**
@@ -171,7 +310,16 @@ export class ContentService {
    * @returns {Promise<Object>} Updated content registry
    */
   async refreshContent() {
+    // Clear existing content
+    this.scenarios.clear();
+    this.stories.clear();
+    this.registry = {
+      scenarios: {},
+      stories: {},
+      errors: []
+    };
     this.isLoaded = false;
+    
     return await this.loadAllContent();
   }
 

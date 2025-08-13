@@ -31,15 +31,7 @@
                 "type": "string",
                 "description": "Path to detailed analysis markdown file"
               },
-              "difficulty": {
-                "type": "string",
-                "enum": ["beginner", "intermediate", "advanced"],
-                "description": "Complexity level of the scenario"
-              },
-              "author": {
-                "type": "string",
-                "description": "Creator of the scenario"
-              },
+
               "version": {
                 "type": "string",
                 "description": "Version tracking for the scenario"

@@ -105,6 +105,145 @@ export class StorytellerUI {
     this.ui.resetToDefaultState();
   }
 
+  // NEW: Display story metadata (description, author, etc.)
+  displayStoryMetadata(metadata) {
+    if (!metadata) return;
+    
+    console.log('📖 Displaying story metadata:', metadata.title);
+    
+    // Update story panel header with title and description
+    const storyHeader = this.storyElements.storyPanel?.querySelector('.story-header h3');
+    if (storyHeader && metadata.title) {
+      storyHeader.textContent = `📚 ${metadata.title}`;
+    }
+    
+    // Show description if available
+    if (metadata.description) {
+      // Create or update description element
+      let descriptionElement = this.storyElements.storyPanel?.querySelector('.story-description');
+      if (!descriptionElement) {
+        descriptionElement = document.createElement('div');
+        descriptionElement.className = 'story-description';
+        descriptionElement.style.cssText = 'margin: 1rem 0; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 6px; font-style: italic;';
+        
+        // Insert after story header
+        const storyHeader = this.storyElements.storyPanel?.querySelector('.story-header');
+        if (storyHeader) {
+          storyHeader.insertAdjacentElement('afterend', descriptionElement);
+        }
+      }
+      descriptionElement.textContent = metadata.description;
+    }
+    
+    // Show additional metadata (author, duration, difficulty)
+    if (metadata.author || metadata.estimated_duration || metadata.difficulty) {
+      let metaElement = this.storyElements.storyPanel?.querySelector('.story-meta');
+      if (!metaElement) {
+        metaElement = document.createElement('div');
+        metaElement.className = 'story-meta';
+        metaElement.style.cssText = 'margin: 0.5rem 0; font-size: 0.9em; opacity: 0.9;';
+        
+        const descElement = this.storyElements.storyPanel?.querySelector('.story-description');
+        if (descElement) {
+          descElement.insertAdjacentElement('afterend', metaElement);
+        }
+      }
+      
+      const metaParts = [];
+      if (metadata.author) metaParts.push(`👤 ${metadata.author}`);
+      if (metadata.estimated_duration) metaParts.push(`⏱️ ${metadata.estimated_duration}`);
+      if (metadata.difficulty) metaParts.push(`📊 ${metadata.difficulty}`);
+      
+      metaElement.textContent = metaParts.join(' • ');
+    }
+  }
+
+  // NEW: Display chapter content (introduction, setup, insights, etc.)
+  displayChapterContent(chapter) {
+    if (!chapter || !chapter.narrative) return;
+    
+    console.log('📖 Displaying chapter content:', chapter.title);
+    
+    const narrative = chapter.narrative;
+    
+    // Update chapter title
+    if (this.storyElements.storyChapterTitle) {
+      this.storyElements.storyChapterTitle.textContent = chapter.title;
+    }
+    
+    // Create or update chapter content area
+    let chapterContentArea = this.storyElements.storyPanel?.querySelector('.chapter-content');
+    if (!chapterContentArea) {
+      chapterContentArea = document.createElement('div');
+      chapterContentArea.className = 'chapter-content';
+      chapterContentArea.style.cssText = 'margin: 1.5rem 0; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 4px solid rgba(255,255,255,0.3);';
+      
+      // Insert before story navigation
+      const storyNavigation = this.storyElements.storyNavigation;
+      if (storyNavigation) {
+        storyNavigation.insertAdjacentElement('beforebegin', chapterContentArea);
+      }
+    }
+    
+    // Build chapter content HTML
+    let contentHTML = '';
+    
+    if (narrative.introduction) {
+      contentHTML += `<div class="narrative-section">
+        <h4>📖 Introduction</h4>
+        <p style="line-height: 1.6; margin-bottom: 1rem;">${narrative.introduction}</p>
+      </div>`;
+    }
+    
+    if (narrative.setup) {
+      contentHTML += `<div class="narrative-section">
+        <h4>⚙️ Setup</h4>
+        <p style="line-height: 1.6; margin-bottom: 1rem;">${narrative.setup}</p>
+      </div>`;
+    }
+    
+    if (narrative.key_takeaway) {
+      contentHTML += `<div class="narrative-section">
+        <h4>💡 Key Takeaway</h4>
+        <p style="line-height: 1.6; margin-bottom: 1rem; font-weight: 500; background: rgba(255,255,255,0.1); padding: 1rem; border-radius: 6px;">${narrative.key_takeaway}</p>
+      </div>`;
+    }
+    
+    if (narrative.cliff_hanger) {
+      contentHTML += `<div class="narrative-section">
+        <h4>🎬 What's Next?</h4>
+        <p style="line-height: 1.6; margin-bottom: 1rem; font-style: italic; color: rgba(255,255,255,0.9);">${narrative.cliff_hanger}</p>
+      </div>`;
+    }
+    
+    chapterContentArea.innerHTML = contentHTML;
+    
+    // Scroll to chapter content
+    chapterContentArea.scrollIntoView({
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+
+  // NEW: Update chapter progress
+  updateChapterProgress(chapter, story) {
+    if (!story || !story.chapters) return;
+    
+    const currentChapterIndex = story.chapters.findIndex(ch => ch.title === chapter.title);
+    const totalChapters = story.chapters.length;
+    
+    // Update progress bar
+    if (this.storyElements.chapterProgress) {
+      const progressPercent = ((currentChapterIndex + 1) / totalChapters) * 100;
+      this.storyElements.chapterProgress.style.width = `${progressPercent}%`;
+    }
+    
+    // Update chapter counter
+    if (this.storyElements.chapterCounter) {
+      this.storyElements.chapterCounter.textContent = `Chapter ${currentChapterIndex + 1} of ${totalChapters}`;
+    }
+  }
+
   // NEW: Show story introduction
   showStoryIntroduction(introductionText) {
     if (!introductionText || !this.storyElements.storyIntroductionSection) {
@@ -311,8 +450,16 @@ export class StorytellerUI {
     // Exit button
     if (this.storyElements.storyExitBtn) {
       this.storyElements.storyExitBtn.onclick = () => {
-        if (this.onStoryExit) this.onStoryExit();
+        console.log('🚪 Exit Story button clicked');
+        if (this.onStoryExit) {
+          console.log('🚪 Calling onStoryExit callback');
+          this.onStoryExit();
+        } else {
+          console.error('🚪 No onStoryExit callback set!');
+        }
       };
+    } else {
+      console.error('🚪 Exit Story button not found in DOM!');
     }
   }
 

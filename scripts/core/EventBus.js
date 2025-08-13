@@ -52,6 +52,23 @@ export class EventBus {
   }
 
   /**
+   * Subscribe to an event once (auto-unsubscribe after first call)
+   * @param {string} event - Event name
+   * @param {function} callback - Event handler
+   */
+  once(event, callback) {
+    const onceWrapper = (data) => {
+      callback(data);
+      this.off(event, onceWrapper);
+    };
+    this.on(event, onceWrapper);
+    
+    if (this.debugMode) {
+      console.log(`📡 EventBus: Subscribed once to '${event}'`);
+    }
+  }
+
+  /**
    * Unsubscribe from an event
    * @param {string} event - Event name
    * @param {function} callback - Event handler to remove

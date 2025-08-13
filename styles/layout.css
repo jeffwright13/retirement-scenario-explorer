@@ -54,11 +54,25 @@
     padding: var(--space-6) var(--space-8);
     border-bottom: none;
     display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
   }
 
   .story-panel.story-active {
     display: block;
     animation: slideDown var(--transition-slow);
+  }
+
+  /* Add margin to main content when story mode is active */
+  body.story-mode .main-content {
+    margin-top: 200px; /* Adjust based on story panel height */
+    transition: margin-top var(--transition-base);
   }
 
   .story-header {
@@ -371,6 +385,8 @@
     margin: var(--space-5) 0;
     box-shadow: var(--shadow-md);
     animation: fadeIn var(--transition-base);
+    height: 500px;
+    min-height: 400px;
   }
 
   /* Force Plotly container to full width */

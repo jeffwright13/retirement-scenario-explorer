@@ -2,11 +2,9 @@
   "$schema": "../docs/scenario-schema.json",
   "jeffs-stage-1-no-growth": {
     "metadata": {
-      "title": "Jeff's Stage 1: No Growth (The Linear Drawdown Fantasy)",
-      "description": "Modeling retirement as if assets earn 0% - just a pile of money that shrinks linearly",
-      "tags": ["personal", "learning-journey", "no-growth", "beginner-mistake"],
-      "difficulty": "beginner",
-      "author": "Jeff Wright - Personal Experience"
+      "title": "Stage 1: No Growth Model",
+      "description": "Modeling retirement with 0% growth - assets treated as cash under a mattress",
+      "tags": ["personal", "learning-journey", "no-growth", "beginner-mistake"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -54,11 +52,9 @@
 
   "jeffs-stage-2-with-growth": {
     "metadata": {
-      "title": "Jeff's Stage 2: Compound Interest Discovery (The Relief)",
-      "description": "Same portfolio but with realistic growth rates - discovering how compound interest extends retirement",
-      "tags": ["personal", "learning-journey", "compound-interest", "discovery"],
-      "difficulty": "beginner",
-      "author": "Jeff Wright - Personal Experience"
+      "title": "Stage 2: With Growth Model",
+      "description": "Same scenario but with realistic compound growth rates on all assets",
+      "tags": ["personal", "learning-journey", "compound-interest", "discovery"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -109,11 +105,9 @@
 
   "jeffs-stage-3-inflation-reality": {
     "metadata": {
-      "title": "Jeff's Stage 3: Inflation Reality Check (The Gut Punch)",
-      "description": "Adding inflation to the model - watching expenses grow over time and shortening the runway",
-      "tags": ["personal", "learning-journey", "inflation", "reality-check"],
-      "difficulty": "intermediate",
-      "author": "Jeff Wright - Personal Experience"
+      "title": "Stage 3: With Inflation Model",
+      "description": "Adding realistic inflation to expenses - watching purchasing power erode over time",
+      "tags": ["personal", "learning-journey", "inflation", "reality-check"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -167,9 +161,7 @@
     "metadata": {
       "title": "Jeff's Stage 4: Social Security Game Changer (Guaranteed Income)",
       "description": "Adding Social Security to see how guaranteed income dramatically improves sustainability",
-      "tags": ["personal", "learning-journey", "social-security", "guaranteed-income"],
-      "difficulty": "intermediate",
-      "author": "Jeff Wright - Personal Experience"
+      "tags": ["personal", "learning-journey", "social-security", "guaranteed-income"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -230,9 +222,7 @@
     "metadata": {
       "title": "Jeff's Stage 5: Full Complexity (The Unknown Unknowns)",
       "description": "More sophisticated modeling with strategic withdrawal order and acknowledgment of remaining uncertainties",
-      "tags": ["personal", "learning-journey", "advanced", "unknown-unknowns"],
-      "difficulty": "advanced",
-      "author": "Jeff Wright - Personal Experience"
+      "tags": ["personal", "learning-journey"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -314,9 +304,7 @@
     "metadata": {
       "title": "Jeff's Stage 7: The Workable Solution (Hard Choices Pay Off)",
       "description": "A realistic plan that actually passes Monte Carlo analysis - with reduced expenses, delayed SS, and more assets",
-      "tags": ["personal", "learning-journey", "workable-solution", "monte-carlo-success"],
-      "difficulty": "advanced",
-      "author": "Jeff Wright - Personal Experience"
+      "tags": ["personal", "learning-journey", "workable-solution", "monte-carlo-success"]
     },
     "plan": {
       "monthly_expenses": 6000,
