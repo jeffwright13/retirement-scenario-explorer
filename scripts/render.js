@@ -246,12 +246,12 @@ export function renderChart(results, balanceHistory, title = "Retirement Simulat
   // ENHANCED: Render with explicit sizing
   try {
     Plotly.newPlot(chartArea, traces, layout, config).then(() => {
-      // Force resize after initial render
-      Plotly.Plots.resize(chartArea);
+      // Skip initial resize to avoid errors - chart should auto-size properly
+      console.log('📊 Chart rendered, skipping resize to avoid errors');
 
       // Add window resize handler
       const resizeHandler = () => {
-        if (chartArea.style.display !== 'none') {
+        if (chartArea.offsetParent !== null && chartArea.style.display !== 'none') {
           Plotly.Plots.resize(chartArea);
         }
       };

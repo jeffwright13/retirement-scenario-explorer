@@ -27,7 +27,7 @@ export class UIManager {
       scenarioJsonPreview: document.getElementById('scenario-json-preview'),
 
       // Control buttons
-      runBtn: document.getElementById('run-btn'),
+      runBtn: document.getElementById('run-btn-primary'),
       toggleJsonBtn: document.getElementById('toggle-json-btn'),
       toggleCsvBtn: document.getElementById('toggle-csv-btn'),
       selectJsonBtn: document.getElementById('select-json-btn'),
