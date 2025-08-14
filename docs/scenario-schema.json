@@ -98,6 +98,12 @@
                   "type": "number",
                   "description": "Starting balance (can be negative for planned expenses)"
                 },
+                "min_balance": {
+                  "type": "number",
+                  "minimum": 0,
+                  "default": 0,
+                  "description": "Minimum balance to maintain (e.g., emergency fund reserve). Asset cannot be drawn below this amount."
+                },
                 "return_schedule": {
                   "type": "string",
                   "description": "Reference to rate schedule for returns"

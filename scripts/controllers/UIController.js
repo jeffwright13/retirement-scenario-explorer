@@ -530,10 +530,39 @@ export class UIController {
         firstY: chartData[0]?.y?.slice(0, 3)
       });
       
+      // Smart tick filtering based on simulation length
+      let tickInterval;
+      if (results.length <= 24) {
+        tickInterval = 3; // Every 3 months for short simulations
+      } else if (results.length <= 60) {
+        tickInterval = 6; // Every 6 months for medium simulations
+      } else if (results.length <= 120) {
+        tickInterval = 12; // Every year for longer simulations
+      } else {
+        tickInterval = 24; // Every 2 years for very long simulations
+      }
+
+      // Get the x-axis labels (MM-YY dates) from the first trace
+      const xLabels = chartData[0]?.x || [];
+      const filteredTicks = xLabels.filter((_, i) => i % tickInterval === 0);
+
+      // Always include the last tick to show the end
+      if (xLabels.length > 0 && !filteredTicks.includes(xLabels[xLabels.length - 1])) {
+        filteredTicks.push(xLabels[xLabels.length - 1]);
+      }
+
       const layout = {
         title: '💰 Asset Balance Over Time',
-        xaxis: { title: 'Month' },
-        yaxis: { title: 'Balance ($)' },
+        xaxis: { 
+          title: 'Timeline (MM-YY)',
+          tickvals: filteredTicks,
+          ticktext: filteredTicks,
+          tickangle: -45
+        },
+        yaxis: { 
+          title: 'Balance ($)',
+          tickformat: '$,.0f'
+        },
         hovermode: 'x unified'
       };
 
@@ -554,6 +583,18 @@ export class UIController {
   }
 
   /**
+   * Convert hex color to RGB values
+   * @param {string} hex - Hex color string (e.g., '#ff0000')
+   * @returns {string} RGB values as comma-separated string (e.g., '255, 0, 0')
+   */
+  hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? 
+      `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : 
+      '107, 114, 128'; // Default gray
+  }
+
+  /**
    * Prepare chart data from simulation results and balance history
    */
   prepareChartData(results, balanceHistory = {}) {
@@ -566,8 +607,15 @@ export class UIController {
     console.log('🔍 Balance history keys:', Object.keys(balanceHistory));
     console.log('🔍 Balance history structure:', balanceHistory);
 
-    // Extract months from results
-    const months = results.map((_, index) => index + 1); // Start from month 1
+    // Create MM-YY formatted dates starting from current date
+    const startDate = new Date();
+    const months = results.map((_, index) => {
+      const date = new Date(startDate);
+      date.setMonth(date.getMonth() + index);
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = String(date.getFullYear()).slice(-2);
+      return `${month}-${year}`;
+    });
     
     const traces = [];
     
@@ -592,6 +640,11 @@ export class UIController {
         if (balances && Array.isArray(balances)) {
           const assetBalances = balances.map(balance => parseFloat(balance) || 0);
           
+          // Find the corresponding asset in the scenario to get min_balance
+          const scenarioAsset = results[0]?.scenario?.assets?.find(asset => asset.name === assetName);
+          const minBalance = scenarioAsset?.min_balance || 0;
+          
+          // Create main asset trace (total balance)
           traces.push({
             x: months,
             y: assetBalances,
@@ -605,8 +658,37 @@ export class UIController {
             opacity: 0.8
           });
           
+          // If asset has min_balance, add emergency fund visualization
+          if (minBalance > 0) {
+            // Create emergency fund baseline trace
+            const emergencyFundLine = assetBalances.map(balance => 
+              balance > 0 ? Math.min(balance, minBalance) : 0
+            );
+            
+            traces.push({
+              x: months,
+              y: emergencyFundLine,
+              type: 'scatter',
+              mode: 'lines',
+              name: `${assetName} (Emergency Fund)`,
+              line: { 
+                color: assetColors[assetName] || '#6b7280', 
+                width: 1,
+                dash: 'dash'
+              },
+              opacity: 0.4,
+              fill: 'tozeroy',
+              fillcolor: `rgba(${this.hexToRgb(assetColors[assetName] || '#6b7280')}, 0.1)`,
+              showlegend: false, // Don't clutter legend
+              hovertemplate: `${assetName} Emergency Fund<br>%{y:$,.0f}<extra></extra>`
+            });
+          }
+          
           if (assetName === 'Savings' && assetBalances.length > 2) {
             console.log(`🔍 ${assetName} first 3 months:`, assetBalances.slice(0, 3));
+            if (minBalance > 0) {
+              console.log(`🔍 ${assetName} emergency fund: $${minBalance.toLocaleString()}`);
+            }
           }
         }
       });

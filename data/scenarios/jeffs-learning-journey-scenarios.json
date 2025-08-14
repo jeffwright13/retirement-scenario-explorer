@@ -16,7 +16,8 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 70000,
+        "balance": 129000,
+        "min_balance": 60000,
         "return_schedule": "no_growth"
       },
       {
@@ -66,7 +67,8 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 70000,
+        "balance": 129000,
+        "min_balance": 60000,
         "return_schedule": "savings_growth"
       },
       {
@@ -120,7 +122,8 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 70000,
+        "balance": 129000,
+        "min_balance": 60000,
         "return_schedule": "savings_growth"
       },
       {
@@ -181,7 +184,8 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 70000,
+        "balance": 129000,
+        "min_balance": 60000,
         "return_schedule": "savings_growth"
       },
       {
@@ -248,7 +252,8 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 70000,
+        "balance": 129000,
+        "min_balance": 60000,
         "return_schedule": "conservative_growth"
       },
       {
@@ -324,7 +329,8 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 80000,
+        "balance": 129000,
+        "min_balance": 60000,
         "return_schedule": "savings_growth"
       },
       {

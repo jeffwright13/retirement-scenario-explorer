@@ -203,6 +203,24 @@ export class ValidationService {
       }
     }
 
+    // Min balance validation (emergency fund)
+    if ('min_balance' in asset) {
+      const minBalance = asset.min_balance;
+      if (typeof minBalance !== 'number') {
+        result.errors.push(`${assetPrefix}: min_balance must be a number`);
+      } else if (minBalance < 0) {
+        result.errors.push(`${assetPrefix}: min_balance cannot be negative`);
+      } else {
+        const assetValue = asset.initial_value ?? asset.balance ?? 0;
+        if (minBalance > assetValue) {
+          result.errors.push(`${assetPrefix}: min_balance ($${minBalance.toLocaleString()}) cannot exceed asset balance ($${assetValue.toLocaleString()})`);
+        } else if (minBalance > 0) {
+          const availableBalance = assetValue - minBalance;
+          result.suggestions.push(`${assetPrefix}: Emergency fund of $${minBalance.toLocaleString()} reserved, $${availableBalance.toLocaleString()} available for withdrawal`);
+        }
+      }
+    }
+
     // Name validation
     if (!asset.name) {
       result.suggestions.push(`${assetPrefix}: Consider adding a name for better identification`);

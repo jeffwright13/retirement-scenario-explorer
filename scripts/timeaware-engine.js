@@ -65,11 +65,26 @@ function withdrawFromSingleAsset(entry, assetMap, shortfall, log) {
     return shortfall;
   }
 
-  const withdrawal = Math.min(asset.balance, shortfall);
+  // Calculate available balance (respecting min_balance for emergency funds)
+  const minBalance = asset.min_balance || 0;
+  const availableBalance = Math.max(0, asset.balance - minBalance);
+  
+  if (availableBalance <= 0) {
+    // Asset is protected by min_balance (emergency fund) - cannot withdraw
+    return shortfall;
+  }
+
+  const withdrawal = Math.min(availableBalance, shortfall);
   asset.balance -= withdrawal;
 
   if (withdrawal > 0) {
-    log.withdrawals.push({ from: asset.name, amount: withdrawal });
+    log.withdrawals.push({ 
+      from: asset.name, 
+      amount: withdrawal,
+      remainingBalance: asset.balance,
+      minBalance: minBalance,
+      availableBalance: availableBalance - withdrawal
+    });
   }
 
   return shortfall - withdrawal;
@@ -79,14 +94,21 @@ function withdrawFromSingleAsset(entry, assetMap, shortfall, log) {
  * Withdraw proportionally from multiple assets based on weights
  */
 function withdrawProportionally(assetGroup, assetMap, shortfall, log) {
-  // Get available assets with their weights
+  // Get available assets with their weights (respecting min_balance)
   const availableAssets = assetGroup
-    .map(entry => ({
-      entry,
-      asset: assetMap[entry.account],
-      weight: entry.weight || 0
-    }))
-    .filter(({ asset, weight }) => asset && asset.balance > 0 && weight > 0);
+    .map(entry => {
+      const asset = assetMap[entry.account];
+      const minBalance = asset?.min_balance || 0;
+      const availableBalance = asset ? Math.max(0, asset.balance - minBalance) : 0;
+      
+      return {
+        entry,
+        asset,
+        weight: entry.weight || 0,
+        availableBalance
+      };
+    })
+    .filter(({ asset, weight, availableBalance }) => asset && availableBalance > 0 && weight > 0);
 
   if (availableAssets.length === 0) {
     return shortfall; // No assets available
@@ -96,22 +118,22 @@ function withdrawProportionally(assetGroup, assetMap, shortfall, log) {
   const totalWeight = availableAssets.reduce((sum, { weight }) => sum + weight, 0);
   const normalizedWeights = availableAssets.map(({ weight }) => weight / totalWeight);
 
-  // Calculate total available balance
-  const totalAvailable = availableAssets.reduce((sum, { asset }) => sum + asset.balance, 0);
+  // Calculate total available balance (respecting min_balance)
+  const totalAvailable = availableAssets.reduce((sum, { availableBalance }) => sum + availableBalance, 0);
 
   // Don't withdraw more than available
   const actualWithdrawal = Math.min(shortfall, totalAvailable);
   let remainingToWithdraw = actualWithdrawal;
 
   // Withdraw proportionally from each asset
-  availableAssets.forEach(({ entry, asset }, index) => {
+  availableAssets.forEach(({ entry, asset, availableBalance }, index) => {
     if (remainingToWithdraw <= 0.01) return; // Small threshold to avoid floating point issues
 
     const proportion = normalizedWeights[index];
     let targetWithdrawal = actualWithdrawal * proportion;
 
-    // Don't withdraw more than the asset has
-    targetWithdrawal = Math.min(targetWithdrawal, asset.balance);
+    // Don't withdraw more than the asset has available (respecting min_balance)
+    targetWithdrawal = Math.min(targetWithdrawal, availableBalance);
 
     // Don't withdraw more than we still need
     targetWithdrawal = Math.min(targetWithdrawal, remainingToWithdraw);
@@ -119,11 +141,16 @@ function withdrawProportionally(assetGroup, assetMap, shortfall, log) {
     if (targetWithdrawal > 0.01) { // Small threshold
       asset.balance -= targetWithdrawal;
       remainingToWithdraw -= targetWithdrawal;
+      
+      const minBalance = asset.min_balance || 0;
       log.withdrawals.push({
         from: asset.name,
         amount: targetWithdrawal,
         weight: entry.weight,
-        proportion: proportion
+        proportion: proportion,
+        remainingBalance: asset.balance,
+        minBalance: minBalance,
+        availableBalance: Math.max(0, asset.balance - minBalance)
       });
     }
   });
