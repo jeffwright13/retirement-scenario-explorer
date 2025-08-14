@@ -6,31 +6,35 @@
 const sampleScenarios = {
   basicRetirement: {
     name: "Basic Retirement Test",
+    plan: {
+      monthly_expenses: 4000,
+      duration_months: 24
+    },
     assets: [
-      { name: 'Savings', initial_balance: 50000, min_balance: 10000 },
-      { name: 'Investment', initial_balance: 100000, min_balance: 0 },
-      { name: 'Traditional IRA', initial_balance: 75000, min_balance: 0 }
+      { name: 'Savings', balance: 50000, min_balance: 10000 },
+      { name: 'Investment', balance: 100000, min_balance: 0 },
+      { name: 'Traditional IRA', balance: 75000, min_balance: 0 }
     ],
     income: [
       { 
         name: 'Social Security', 
         start_month: 12, 
-        amount: 2000,
-        stop_month: null // Ongoing
+        amount: 2000
       }
-    ],
-    expenses: [
-      { name: 'Living Expenses', amount: 4000, frequency: 'monthly' }
     ]
   },
 
   complexScenario: {
     name: "Complex Scenario Test",
+    plan: {
+      monthly_expenses: 5800, // 5000 + 800
+      duration_months: 36
+    },
     assets: [
-      { name: 'Savings', initial_balance: 75000, min_balance: 15000 },
-      { name: 'Investment', initial_balance: 200000, min_balance: 0 },
-      { name: 'Traditional IRA', initial_balance: 150000, min_balance: 0 },
-      { name: 'Roth IRA', initial_balance: 50000, min_balance: 0 }
+      { name: 'Savings', balance: 75000, min_balance: 15000 },
+      { name: 'Investment', balance: 200000, min_balance: 0 },
+      { name: 'Traditional IRA', balance: 150000, min_balance: 0 },
+      { name: 'Roth IRA', balance: 50000, min_balance: 0 }
     ],
     income: [
       { 
@@ -43,10 +47,6 @@ const sampleScenarios = {
         start_month: 12, 
         amount: 1200 
       }
-    ],
-    expenses: [
-      { name: 'Living Expenses', amount: 5000, frequency: 'monthly' },
-      { name: 'Healthcare', amount: 800, frequency: 'monthly' }
     ]
   }
 };

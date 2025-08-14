@@ -32,7 +32,9 @@ module.exports = {
   moduleFileExtensions: ['js', 'json'],
   
   // Transform configuration for ES modules
-  transform: {},
+  transform: {
+    '^.+\\.js$': 'babel-jest',
+  },
   transformIgnorePatterns: [
     'node_modules/(?!(.*\\.mjs$))'
   ],
