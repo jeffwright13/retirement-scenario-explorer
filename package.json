@@ -1,0 +1,44 @@
+{
+  "name": "retirement-scenario-explorer",
+  "version": "1.0.0",
+  "description": "📈 A lightweight, browser-based tool for modeling and visualizing **retirement financial scenarios**.   Built with plain HTML, CSS, and JavaScript — **no backend**, no installs, and no build tools required.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jeffwright13/retirement-scenario-explorer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/jeffwright13/retirement-scenario-explorer/issues"
+  },
+  "homepage": "https://github.com/jeffwright13/retirement-scenario-explorer#readme",
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.7.0",
+    "husky": "^9.1.7",
+    "jest": "^30.0.5",
+    "jest-environment-jsdom": "^30.0.5",
+    "jsdom": "^26.1.0",
+    "lint-staged": "^15.2.11"
+  },
+  "lint-staged": {
+    "*.js": [
+      "npm test -- --findRelatedTests --passWithNoTests"
+    ]
+  }
+}
