@@ -467,6 +467,9 @@ export class UIController {
     try {
       console.log('📊 Displaying simulation results:', data);
       
+      // Store scenario data in controller state for use by any method
+      this.currentScenarioData = data.scenarioData;
+      
       // Extract the actual results array - handle nested structure
       let resultsArray = data.results;
       if (data.results && data.results.results && Array.isArray(data.results.results)) {
@@ -518,7 +521,7 @@ export class UIController {
 
     try {
       // Create chart data from simulation results and balance history
-      const chartData = this.prepareChartData(results, balanceHistory);
+      const chartData = this.prepareChartData(results, balanceHistory, this.currentScenarioData);
       
       console.log('📊 Plotly chart data:', chartData);
       console.log('📊 Chart data sample:', {
@@ -552,7 +555,7 @@ export class UIController {
       }
 
       const layout = {
-        title: '💰 Asset Balance Over Time',
+        title: '💰 Assets & Income Events Over Time',
         xaxis: { 
           title: 'Timeline (MM-YY)',
           tickvals: filteredTicks,
@@ -560,10 +563,14 @@ export class UIController {
           tickangle: -45
         },
         yaxis: { 
-          title: 'Balance ($)',
+          title: 'Balance & Income ($)',
           tickformat: '$,.0f'
         },
-        hovermode: 'x unified'
+        hovermode: 'x unified',
+        legend: {
+          groupclick: 'toggleitem',
+          tracegroupgap: 10
+        }
       };
 
       const config = {
@@ -597,7 +604,7 @@ export class UIController {
   /**
    * Prepare chart data from simulation results and balance history
    */
-  prepareChartData(results, balanceHistory = {}) {
+  prepareChartData(results, balanceHistory = {}, scenario = null) {
     if (!results || !Array.isArray(results)) {
       console.warn('❌ Invalid results data for chart');
       return [];
@@ -619,10 +626,16 @@ export class UIController {
     
     const traces = [];
     
+    // Extract scenario data for income events
+    const incomeEvents = scenario?.income || [];
+    console.log('🔍 Scenario passed to chart:', !!scenario);
+    console.log('🔍 Income events from scenario:', incomeEvents);
+    
     if (balanceHistory && Object.keys(balanceHistory).length > 0) {
       // Use balance history data to create individual asset traces
       const assetNames = Object.keys(balanceHistory);
       console.log('🔍 Asset names found:', assetNames);
+      console.log('🔍 Income events found:', incomeEvents.length);
       
       // Define colors for each asset type
       const assetColors = {
@@ -630,6 +643,16 @@ export class UIController {
         'Investment': '#3b82f6',        // Blue  
         'Traditional IRA': '#f59e0b',   // Amber
         'Roth IRA': '#8b5cf6'          // Purple
+      };
+      
+      // Define colors for income events
+      const incomeColors = {
+        'Social Security': '#059669',    // Dark green
+        'Healthcare Cost Shock': '#dc2626', // Red
+        'Future Market Crash': '#991b1b',   // Dark red
+        'Market Crash': '#991b1b',          // Dark red
+        'SSDI': '#059669',                  // Dark green
+        'Pension': '#0369a1'                // Dark blue
       };
       
       let totalBalance = [];
@@ -641,7 +664,7 @@ export class UIController {
           const assetBalances = balances.map(balance => parseFloat(balance) || 0);
           
           // Find the corresponding asset in the scenario to get min_balance
-          const scenarioAsset = results[0]?.scenario?.assets?.find(asset => asset.name === assetName);
+          const scenarioAsset = scenario?.assets?.find(asset => asset.name === assetName);
           const minBalance = scenarioAsset?.min_balance || 0;
           
           // Create main asset trace (total balance)
@@ -651,11 +674,9 @@ export class UIController {
             type: 'scatter',
             mode: 'lines',
             name: assetName,
-            line: { 
-              color: assetColors[assetName] || '#6b7280', 
-              width: 2 
-            },
-            opacity: 0.8
+            line: { color: assetColors[assetName] || '#6b7280', width: 2 },
+            opacity: 0.8,
+            hovertemplate: `${assetName}<br>%{y:$,.0f}<br>Month: %{x}<extra></extra>`
           });
           
           // If asset has min_balance, add emergency fund visualization
@@ -693,6 +714,47 @@ export class UIController {
         }
       });
       
+      // Add income event traces to show when events occur
+      incomeEvents.forEach(incomeEvent => {
+        if (incomeEvent.start_month && incomeEvent.amount !== 0) {
+          // Create income event trace showing when the event occurs
+          const incomeTrace = months.map((_, index) => {
+            const currentMonth = index + 1;
+            const startMonth = incomeEvent.start_month;
+            const stopMonth = incomeEvent.stop_month;
+            
+            // Show income amount during active period, 0 otherwise
+            if (currentMonth >= startMonth) {
+              // If no stop_month, continue to end (ongoing income like Social Security)
+              if (!stopMonth || currentMonth <= stopMonth) {
+                return incomeEvent.amount;
+              }
+            }
+            return 0;
+          });
+          
+          // Only add trace if it has non-zero values
+          if (incomeTrace.some(value => value !== 0)) {
+            const eventColor = incomeColors[incomeEvent.name] || '#6b7280';
+            const isNegative = incomeEvent.amount < 0;
+            
+            traces.push({
+              x: months,
+              y: incomeTrace,
+              type: 'scatter',
+              mode: 'lines',
+              name: `${incomeEvent.name} (Income)`,
+              line: { 
+                color: eventColor, 
+                width: 2
+              },
+              opacity: 0.7,
+              hovertemplate: `${incomeEvent.name}<br>%{y:$,.0f}<br>Month: %{x}<extra></extra>`
+            });
+          }
+        }
+      });
+      
       // Calculate total balance for the total trace
       totalBalance = results.map((_, index) => {
         let total = 0;
@@ -714,8 +776,8 @@ export class UIController {
         name: 'Total Assets',
         line: { 
           color: '#1f2937', 
-          width: 3,
-          dash: 'dot'
+          width: 2,
+          dash: 'dash'
         },
         opacity: 0.9
       });

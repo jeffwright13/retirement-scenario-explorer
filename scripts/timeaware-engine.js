@@ -170,11 +170,18 @@ export function simulateScenarioAdvanced(scenario) {
   }
 
   // Deep copy assets to avoid mutation
-  const assets = JSON.parse(JSON.stringify(scenario.assets));
+  const allAssets = JSON.parse(JSON.stringify(scenario.assets));
+  
+  // Separate immediate vs delayed assets
+  const immediateAssets = allAssets.filter(asset => !asset.start_month || asset.start_month <= 1);
+  const delayedAssets = allAssets.filter(asset => asset.start_month && asset.start_month > 1);
+  
+  // Initialize with immediate assets only
+  const assets = [...immediateAssets];
   const drawOrder = scenario.order?.sort((a, b) => a.order - b.order) ||
-                   assets.map((asset, index) => ({ account: asset.name, order: index + 1 }));
-  const assetMap = Object.fromEntries(assets.map((a) => [a.name, a]));
-  const assetNames = assets.map((a) => a.name);
+                   allAssets.map((asset, index) => ({ account: asset.name, order: index + 1 }));
+  const assetMap = Object.fromEntries(immediateAssets.map((a) => [a.name, a]));
+  const allAssetNames = allAssets.map((a) => a.name); // All asset names for balance history
   const incomeSources = scenario.income || [];
   const depositEvents = scenario.deposits || [];
   const results = [];
@@ -185,10 +192,11 @@ export function simulateScenarioAdvanced(scenario) {
   const minDuration = Math.min(12, maxDuration); // Minimum 12 months or total duration
 
   console.log(`Auto-stop enabled: ${stopOnShortfall}, Min duration: ${minDuration}, Max duration: ${maxDuration}`);
+  console.log(`Immediate assets: ${immediateAssets.length}, Delayed assets: ${delayedAssets.length}`);
 
-  // Track balance history
+  // Track balance history for ALL assets (including delayed ones)
   const balanceHistory = {};
-  for (const name of assetNames) {
+  for (const name of allAssetNames) {
     balanceHistory[name] = [];
   }
 
@@ -251,14 +259,38 @@ export function simulateScenarioAdvanced(scenario) {
     }
   }
 
+  // Activate delayed assets when their start_month is reached
+  function activateDelayedAssets(month) {
+    const currentMonth = month + 1; // Convert 0-based to 1-based month
+    
+    for (const delayedAsset of delayedAssets) {
+      if (delayedAsset.start_month === currentMonth && !assetMap[delayedAsset.name]) {
+        // Activate the delayed asset
+        console.log(`🎯 Activating delayed asset "${delayedAsset.name}" at month ${currentMonth}`);
+        
+        // Add to active assets
+        assets.push(delayedAsset);
+        assetMap[delayedAsset.name] = delayedAsset;
+        
+        // Initialize balance history with zeros for previous months
+        for (let i = 0; i < currentMonth - 1; i++) {
+          balanceHistory[delayedAsset.name].push(0);
+        }
+      }
+    }
+  }
+
   // ---- MAIN SIMULATION LOOP ----
   let actualDuration = maxDuration;
 
   for (let month = 0; month < maxDuration; month++) {
-    // 1. Apply deposits
+    // 1. Activate delayed assets if their start_month is reached
+    activateDelayedAssets(month);
+
+    // 2. Apply deposits
     applyDeposits(month);
 
-    // 2. Calculate income and expenses
+    // 3. Calculate income and expenses
     const income = getMonthlyIncome(incomeSources, month + 1);
     const monthlyExpenses = getInflationAdjustedExpenses(month);
     const shortfall = monthlyExpenses - income;
@@ -299,8 +331,15 @@ export function simulateScenarioAdvanced(scenario) {
     // 6. Record results and balances
     results.push(log);
 
-    for (const asset of assets) {
-      balanceHistory[asset.name].push(asset.balance);
+    // Record balances for all assets (including delayed ones)
+    for (const assetName of allAssetNames) {
+      if (assetMap[assetName]) {
+        // Asset is active - record its balance
+        balanceHistory[assetName].push(assetMap[assetName].balance);
+      } else {
+        // Asset is not yet active - record zero
+        balanceHistory[assetName].push(0);
+      }
     }
 
     // 7. Check auto-stop condition
@@ -313,15 +352,19 @@ export function simulateScenarioAdvanced(scenario) {
 
   // ---- POST-SIMULATION: BUILD CSV ----
   const csvRows = [];
-  const realAssetNames = assets.filter(a => !a.dynamic || a.balance > 0).map(a => a.name);
-  csvRows.push(["Month", "Date", "Income", "Expenses", "Shortfall", ...realAssetNames]);
+  // Use all asset names (including delayed ones) for CSV output
+  const csvAssetNames = allAssetNames.filter(name => {
+    // Include assets that were ever active (have non-zero balance at some point)
+    return balanceHistory[name] && balanceHistory[name].some(balance => balance !== 0);
+  });
+  csvRows.push(["Month", "Date", "Income", "Expenses", "Shortfall", ...csvAssetNames]);
 
   for (let m = 0; m < actualDuration; m++) {
     const now = new Date();
     const date = new Date(now.getFullYear(), now.getMonth() + m);
     const r = results[m];
 
-    const assetCells = realAssetNames.map((name) => {
+    const assetCells = csvAssetNames.map((name) => {
       const v = balanceHistory[name]?.[m];
       return typeof v === "number" ? v.toFixed(2) : "0.00";
     });

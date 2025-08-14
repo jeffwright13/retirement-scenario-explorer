@@ -64,7 +64,7 @@
       },
       {
         "title": "Chapter 4: The Social Security Lifeline - When Guaranteed Income Saves the Day",
-        "scenario_key": "jeffs-stage-4-with-social-security",
+        "scenario_key": "jeffs-stage-4a-with-social-security",
         "narrative": {
           "introduction": "After the inflation gut-punch, I desperately searched for hope. Then I remembered: Social Security! We've been paying into it for decades. It's guaranteed income that (mostly) adjusts for inflation.\n\nMy estimated benefit at age 62: $2,442/month. That would reduce our monthly shortfall from $8,500 to just $6,058. Surely that makes a difference?",
           "setup": "Same scenario with compound growth and inflation, but now adding $2,442/month of Social Security starting at age 62 (month 24).\n\nGuaranteed income that never runs out and adjusts for inflation. This has to help.",
@@ -81,7 +81,7 @@
       },
       {
         "title": "Chapter 4B: The SSDI Wild Card - When Disability Becomes Financial Opportunity",
-        "scenario_key": "jeffs-stage-4-with-social-security",
+        "scenario_key": "jeffs-stage-4b-with-social-security-disability",
         "narrative": {
           "introduction": "Wait a minute. I'm getting ahead of myself. I mentioned my neurological condition in the beginning, but I haven't talked about the elephant in the room: my pending Social Security Disability (SSDI) application.\n\nMost people don't realize this, but SSDI isn't some small safety net payment. If approved, you get your FULL retirement benefit amount - immediately. No early filing penalty. No waiting until 62.\n\nMy estimated full retirement benefit is around $2,800/month. If SSDI gets approved, I could start receiving that in just 6 months instead of waiting 2 years for the reduced $2,442 early retirement amount.\n\nLet me model the SSDI scenario...",
 
@@ -122,7 +122,7 @@
       },
       {
         "title": "Chapter 6: The Monte Carlo Apocalypse - When Statistics Destroy Your Dreams",
-        "scenario_key": "jeffs-stage-4-with-social-security",
+        "scenario_key": "jeffs-stage-4a-with-social-security",
         "narrative": {
           "introduction": "I was feeling pretty smart about my retirement model. Compound interest ✓, inflation ✓, Social Security ✓. My deterministic model showed we'd make it to our late 70s.\n\nThen I discovered Monte Carlo analysis. Instead of assuming steady 6.5% returns, what if I ran 50 different scenarios with realistic market volatility? What's the worst that could happen?\n\n*Narrator: It was much worse than he imagined.*",
           "setup": "Same exact Stage 4 scenario (compound growth + inflation + Social Security), but now tested against 50 different market return sequences. Real-world volatility instead of smooth, steady gains.\n\nThis is where the rubber meets the road.",

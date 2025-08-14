@@ -175,10 +175,26 @@ export class ContentService {
    * Basic scenario validation
    */
   validateScenario(scenario) {
-    return scenario.plan &&
-           scenario.assets &&
-           Array.isArray(scenario.assets) &&
-           typeof scenario.plan.monthly_expenses === 'number';
+    const hasValidPlan = scenario.plan;
+    const hasValidAssets = scenario.assets && Array.isArray(scenario.assets);
+    const hasValidExpenses = typeof scenario.plan?.monthly_expenses === 'number';
+    
+    const isValid = hasValidPlan && hasValidAssets && hasValidExpenses;
+    
+    if (!isValid) {
+      console.warn('❌ Scenario validation failed:', {
+        hasValidPlan,
+        hasValidAssets,
+        hasValidExpenses,
+        planExists: !!scenario.plan,
+        assetsExists: !!scenario.assets,
+        assetsIsArray: Array.isArray(scenario.assets),
+        expensesType: typeof scenario.plan?.monthly_expenses,
+        expensesValue: scenario.plan?.monthly_expenses
+      });
+    }
+    
+    return isValid;
   }
 
   /**

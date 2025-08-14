@@ -160,9 +160,9 @@
     }
   },
 
-  "jeffs-stage-4-with-social-security": {
+  "jeffs-stage-4a-with-social-security": {
     "metadata": {
-      "title": "Jeff's Stage 4: Social Security Game Changer (Guaranteed Income)",
+      "title": "Stage 4a: Social Security Income",
       "description": "Adding Social Security to see how guaranteed income dramatically improves sustainability",
       "tags": ["personal", "learning-journey", "social-security", "guaranteed-income"]
     },
@@ -222,9 +222,71 @@
     }
   },
 
+  "jeffs-stage-4b-with-social-security-disability": {
+    "metadata": {
+      "title": "Stage 4b: Social Security Disability Income",
+      "description": "Adding Social Security Disability to see how FRA income taken at 60 years old dramatically improves sustainability",
+      "tags": ["personal", "learning-journey", "social-security", "guaranteed-income"]
+    },
+    "plan": {
+      "monthly_expenses": 8500,
+      "duration_months": 300,
+      "inflation_schedule": "realistic_inflation",
+      "stop_on_shortfall": true
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 3650,
+        "start_month": 6,
+        "notes": "Claiming at age 60 - and at FRA rate"
+      }
+    ],
+    "assets": [
+      {
+        "name": "Savings",
+        "type": "taxable",
+        "balance": 129000,
+        "min_balance": 60000,
+        "return_schedule": "savings_growth"
+      },
+      {
+        "name": "Investment",
+        "type": "taxable",
+        "balance": 513000,
+        "return_schedule": "investment_growth"
+      },
+      {
+        "name": "Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 323000,
+        "return_schedule": "ira_growth"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 12000,
+        "return_schedule": "roth_growth"
+      }
+    ],
+    "order": [
+      {"account": "Savings", "order": 1},
+      {"account": "Investment", "order": 2},
+      {"account": "Traditional IRA", "order": 3},
+      {"account": "Roth IRA", "order": 4}
+    ],
+    "rate_schedules": {
+      "realistic_inflation": {"type": "fixed", "rate": 0.035},
+      "savings_growth": {"type": "fixed", "rate": 0.037},
+      "investment_growth": {"type": "fixed", "rate": 0.065},
+      "ira_growth": {"type": "fixed", "rate": 0.0625},
+      "roth_growth": {"type": "fixed", "rate": 0.07}
+    }
+  },
+
   "jeffs-stage-5-full-complexity": {
     "metadata": {
-      "title": "Jeff's Stage 5: Full Complexity (The Unknown Unknowns)",
+      "title": "Stage 5: Full Complexity",
       "description": "More sophisticated modeling with strategic withdrawal order and acknowledgment of remaining uncertainties",
       "tags": ["personal", "learning-journey"]
     },
@@ -246,6 +308,13 @@
         "amount": -1200,
         "start_month": 180,
         "notes": "Modeling increased healthcare costs later in retirement"
+      },
+      {
+        "name": "Future Market Crash",
+        "amount": -150000,
+        "start_month": 84,
+        "stop_month": 84,
+        "notes": "Modeling a major market downturn in year 7"
       }
     ],
     "assets": [
@@ -273,13 +342,6 @@
         "type": "tax_free",
         "balance": 12000,
         "return_schedule": "aggressive_growth"
-      },
-      {
-        "name": "Future Market Crash",
-        "type": "taxable",
-        "balance": -150000,
-        "start_month": 84,
-        "notes": "Modeling a major market downturn in year 7"
       }
     ],
     "order": [
@@ -305,14 +367,14 @@
     }
   },
 
-  "jeffs-stage-7-workable-solution": {
+  "jeffs-stage-6-workable-solution": {
     "metadata": {
-      "title": "Jeff's Stage 7: The Workable Solution (Hard Choices Pay Off)",
+      "title": "Stage 6: The Workable Solution (Hard Choices Pay Off)",
       "description": "A realistic plan that actually passes Monte Carlo analysis - with reduced expenses, delayed SS, and more assets",
       "tags": ["personal", "learning-journey", "workable-solution", "monte-carlo-success"]
     },
     "plan": {
-      "monthly_expenses": 6000,
+      "monthly_expenses": 5500,
       "duration_months": 360,
       "inflation_schedule": "realistic_inflation",
       "stop_on_shortfall": true
@@ -320,9 +382,9 @@
     "income": [
       {
         "name": "Social Security (Full Benefits)",
-        "amount": 3200,
-        "start_month": 84,
-        "notes": "Delayed to age 67 for higher benefits - $758/month more than early claiming"
+        "amount": 3650,
+        "start_month": 6,
+        "notes": "SSDI approval; much reduced income; increase emergency fund to $80k"
       }
     ],
     "assets": [
@@ -330,7 +392,7 @@
         "name": "Savings",
         "type": "taxable",
         "balance": 129000,
-        "min_balance": 60000,
+        "min_balance": 80000,
         "return_schedule": "savings_growth"
       },
       {
