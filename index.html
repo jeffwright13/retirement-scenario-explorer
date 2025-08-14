@@ -146,10 +146,10 @@
     <div class="scenario-mode-container" id="scenario-mode-container">
       <!-- Tab Navigation -->
       <div class="scenario-tabs">
-        <button class="tab-button active" data-tab="input">📊 Input</button>
+        <button class="tab-button" data-tab="input">📝 Input</button>
         <button class="tab-button" data-tab="simulation">🚀 Simulation</button>
         <button class="tab-button" data-tab="results">📈 Results</button>
-        <button class="tab-button" data-tab="compare">🔄 Compare</button>
+        <!-- Compare tab removed - no implementation yet -->
       </div>
 
       <!-- Tab Content -->
@@ -269,6 +269,13 @@
           <!-- Chart Area -->
           <div id="chart-area" class="chart-area"></div>
 
+          <!-- Monte Carlo Charts Container (unified results display) -->
+          <div id="monte-carlo-charts" class="monte-carlo-charts"></div>
+          
+          <!-- Monte Carlo Results Summary -->
+          <div id="monte-carlo-summary" class="monte-carlo-results"></div>
+          <div id="monte-carlo-insights" class="monte-carlo-insights"></div>
+
           <!-- Simulation Insights -->
           <div class="simulation-insights" id="simulation-insights">
             <h3>💡 Key Insights</h3>
@@ -285,26 +292,7 @@
           </div>
         </div>
 
-        <!-- Compare Tab -->
-        <div class="tab-panel" id="compare-tab">
-          <div class="tab-panel-header">
-            <h3>🔄 Compare Scenarios</h3>
-            <p>Side-by-side scenario comparison (Coming Soon)</p>
-          </div>
-          
-          <div class="compare-placeholder">
-            <div class="placeholder-content">
-              <h4>🚧 Under Development</h4>
-              <p>Scenario comparison features will be available in a future update.</p>
-              <ul>
-                <li>Side-by-side chart comparisons</li>
-                <li>Key metrics comparison table</li>
-                <li>Risk analysis differences</li>
-                <li>Recommendation engine</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        <!-- Compare tab removed - no implementation yet -->
       </div>
 
 
@@ -364,15 +352,8 @@
           <div id="monte-carlo-progress-text"></div>
         </div>
         
-        <!-- Monte Carlo Charts Container (moved up, near the action) -->
-        <div id="monte-carlo-charts" class="monte-carlo-charts"></div>
-        
         <!-- Monte Carlo Error Display -->
         <div id="monte-carlo-error" class="error-display" style="display: none;"></div>
-        
-        <!-- Monte Carlo Results (detailed info stays lower) -->
-        <div id="monte-carlo-summary" class="monte-carlo-results"></div>
-        <div id="monte-carlo-insights" class="monte-carlo-insights"></div>
       </div>
       </div>
     </div>

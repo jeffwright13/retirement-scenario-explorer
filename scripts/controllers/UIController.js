@@ -83,12 +83,19 @@ export class UIController {
       this.runButton.addEventListener('click', () => {
         console.log('🚀 Main Run Simulation button clicked!', {
           hasCurrentScenario: !!this.currentScenario,
-          scenarioTitle: this.currentScenario?.metadata?.title
+          scenarioTitle: this.currentScenario?.metadata?.title,
+          monthlyExpenses: this.currentScenario?.plan?.monthly_expenses,
+          annualExpenses: (this.currentScenario?.plan?.monthly_expenses || 0) * 12
         });
         
         if (this.currentScenario) {
+          console.log('🔥 UIController: About to emit simulation:run with current scenario data:', {
+            monthlyExpenses: this.currentScenario.plan?.monthly_expenses,
+            annualExpenses: (this.currentScenario.plan?.monthly_expenses || 0) * 12,
+            scenarioTitle: this.currentScenario.metadata?.title
+          });
           this.eventBus.emit('simulation:run', this.currentScenario);
-          console.log('📡 Emitted simulation:run event with scenario');
+          console.log('📡 UIController: simulation:run event emitted successfully');
         } else {
           this.showError('Please select a scenario before running simulation');
         }
@@ -136,12 +143,8 @@ export class UIController {
       });
     }
 
-    const runAdvancedBtn = document.getElementById('run-btn-advanced');
-    if (runAdvancedBtn) {
-      runAdvancedBtn.addEventListener('click', () => {
-        this.runAdvancedSimulation();
-      });
-    }
+    // Advanced Run Button removed - was causing duplicate simulation runs
+    // All advanced functionality has been moved elsewhere in the UX
 
     console.log('🔧 UI event listeners setup complete');
   }
@@ -153,20 +156,38 @@ export class UIController {
     this.eventBus.on('scenarios:loaded', (scenarios) => this.handleScenariosLoaded(scenarios));
     this.eventBus.on('stories:loaded', (stories) => this.handleStoriesLoaded(stories));
     this.eventBus.on('scenario:selected', (data) => this.handleScenarioSelectedData(data));
-    this.eventBus.on('scenario:updated', (data) => this.handleScenarioUpdatedComplete(data));
+    this.eventBus.on('scenario:data-changed', (data) => this.handleScenarioDataChanged(data));
     this.eventBus.on('content:errors', (errors) => this.handleContentErrors(errors));
     this.eventBus.on('simulation:regular-completed', () => this.showExportCsvButton());
     this.eventBus.on('simulation:started', () => this.hideExportCsvButton());
-    this.eventBus.on('insights:generated', (data) => this.handleInsightsGenerated(data));
   }
 
   /**
    * Set up simulation-related event listeners
+   * FIXED: Only handle regular simulations, not Monte Carlo iterations
    */
   setupSimulationEventListeners() {
-    this.eventBus.on('simulation:started', (data) => this.handleSimulationStarted(data));
-    this.eventBus.on('simulation:completed', (data) => this.handleSimulationCompleted(data));
-    this.eventBus.on('simulation:failed', (data) => this.handleSimulationFailed(data));
+    // Only handle regular (non-Monte Carlo) simulation events
+    this.eventBus.on('simulation:started', (data) => {
+      // Don't disable main button for Monte Carlo simulations
+      if (!data?.context?.isMonteCarlo) {
+        this.handleSimulationStarted(data);
+      }
+    });
+    
+    this.eventBus.on('simulation:completed', (data) => {
+      // Only handle regular simulation completion
+      if (!data?.context?.isMonteCarlo) {
+        this.handleSimulationCompleted(data);
+      }
+    });
+    
+    this.eventBus.on('simulation:failed', (data) => {
+      // Only handle regular simulation failures
+      if (!data?.context?.isMonteCarlo) {
+        this.handleSimulationFailed(data);
+      }
+    });
   }
 
   /**
@@ -217,59 +238,29 @@ export class UIController {
   }
 
   /**
-   * Handle scenario updated data from event bus (e.g., after JSON editing)
-   * PROPER EVENT BUS PATTERN: This component updates its own UI sections in response to events
+   * Handle scenario data changes from event bus (e.g., after JSON editing, scenario selection)
+   * CLEAN ARCHITECTURE: UIController only handles Key Assumptions, not Key Insights
    */
-  handleScenarioUpdatedComplete(data) {
-    console.log('🔄 UIController received scenario:updated event:', data);
+  handleScenarioDataChanged(data) {
+    console.log('🔄 UIController received scenario:data-changed event:', data);
     
     if (data.scenarioData) {
       this.currentScenario = data.scenarioData;
       
-      // 1. Update Key Assumptions section
+      // UIController responsibility: Update Key Assumptions section only
       const synopsis = this.extractKeyAssumptions(data.scenarioData);
       this.updateScenarioDetails(data.scenarioData, synopsis);
-      console.log('✅ UIController updated Key Assumptions from scenario:updated event');
       
-      // 2. Update Key Insights section with new scenario data
-      this.regenerateKeyInsights(data.scenarioData);
-    }
-  }
-
-  /**
-   * Regenerate Key Insights based on updated scenario data
-   * PROPER EVENT BUS PATTERN: Request insights generation via event bus
-   */
-  regenerateKeyInsights(scenarioData) {
-    console.log('💡 Regenerating Key Insights for updated scenario data');
-    
-    // PROPER EVENT BUS PATTERN: Request insights generation from SimulationService
-    this.eventBus.emit('insights:generate-static', {
-      scenarioData: scenarioData,
-      requestId: 'scenario-updated-insights'
-    });
-    
-    console.log('📡 Emitted insights:generate-static event for scenario update');
-  }
-
-  /**
-   * Handle generated insights from SimulationService
-   * PROPER EVENT BUS PATTERN: Display insights when received via event bus
-   */
-  handleInsightsGenerated(data) {
-    console.log('✅ UIController received insights:generated event:', data);
-    
-    if (data.insights && data.requestId === 'scenario-updated-insights') {
-      // Display the updated insights
-      this.displayInsights(data.insights);
-      
-      console.log('✅ Key Insights updated with new scenario data:', {
-        insightsCount: data.insights.length,
-        monthlyExpenses: data.scenarioData?.plan?.monthly_expenses,
-        annualExpenses: (data.scenarioData?.plan?.monthly_expenses || 0) * 12
+      console.log('✅ UIController updated Key Assumptions from scenario:data-changed event', {
+        trigger: data.trigger,
+        monthlyExpenses: data.scenarioData?.plan?.monthly_expenses
       });
+      
+      // Key Insights are now handled by dedicated InsightsController
     }
   }
+
+  // Key Insights methods removed - now handled by dedicated InsightsController
 
   /**
    * Handle scenario selection (legacy method - keeping for compatibility)
@@ -753,12 +744,22 @@ export class UIController {
       // Update current scenario
       this.currentScenario = parsedScenario;
       
-      // PROPER EVENT BUS PATTERN: Just emit the event, let everyone else update themselves
-      this.eventBus.emit('scenario:updated', {
-        scenarioData: parsedScenario
+      // CLEAN ARCHITECTURE: Emit single, clear event for scenario data changes
+      const eventData = {
+        scenarioData: parsedScenario,
+        trigger: 'json-edit',
+        timestamp: Date.now()
+      };
+      
+      console.log('🔥 UIController: About to emit scenario:data-changed event!', {
+        monthlyExpenses: parsedScenario?.plan?.monthly_expenses,
+        annualExpenses: (parsedScenario?.plan?.monthly_expenses || 0) * 12,
+        trigger: eventData.trigger
       });
       
-      console.log('📡 Emitted scenario:updated event after JSON save - letting components update themselves');
+      this.eventBus.emit('scenario:data-changed', eventData);
+      
+      console.log('📡 UIController: scenario:data-changed event emitted successfully');
       
       // Show success feedback
       feedback.className = 'validation-feedback success';
@@ -859,27 +860,8 @@ export class UIController {
     }
   }
 
-  /**
-   * Run advanced simulation with custom JSON
-   */
-  runAdvancedSimulation() {
-    const jsonInput = document.getElementById('json-input');
-    if (jsonInput && jsonInput.value.trim()) {
-      try {
-        const customScenario = JSON.parse(jsonInput.value);
-        this.eventBus.emit('simulation:run', customScenario);
-        console.log('🚀 Running advanced simulation with custom scenario');
-      } catch (error) {
-        this.showError(`Invalid JSON: ${error.message}`);
-      }
-    } else if (this.currentScenario) {
-      // Fall back to current scenario if no custom JSON
-      this.eventBus.emit('simulation:run', this.currentScenario);
-      console.log('🚀 Running advanced simulation with current scenario');
-    } else {
-      this.showError('Please select a scenario or provide custom JSON');
-    }
-  }
+  // runAdvancedSimulation method removed - was obsolete holdover causing duplicate simulation runs
+  // All advanced functionality has been moved elsewhere in the UX
 
   /**
    * Show chart area for simulation results

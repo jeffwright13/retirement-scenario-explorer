@@ -9,12 +9,13 @@ import { SimulationService } from './services/SimulationService.js';
 import { ValidationService } from './services/ValidationService.js';
 import { MonteCarloService } from './services/MonteCarloService.js';
 import { StoryEngineService } from './services/StoryEngineService.js';
-import { ModeController } from './controllers/ModeController.js';
-import { TabController } from './controllers/TabController.js';
-import { StoryController } from './controllers/StoryController.js';
-import { ScenarioController } from './controllers/ScenarioController.js';
 import { UIController } from './controllers/UIController.js';
+import { ScenarioController } from './controllers/ScenarioController.js';
+import { StoryController } from './controllers/StoryController.js';
+import { TabController } from './controllers/TabController.js';
+import { ModeController } from './controllers/ModeController.js';
 import { MonteCarloController } from './controllers/MonteCarloController.js';
+import { InsightsController } from './controllers/InsightsController.js';
 import { MonteCarloChart } from './components/MonteCarloChart.js';
 import { MonteCarloUI } from './ui/MonteCarloUI.js';
 import { StoryUI } from './ui/StoryUI.js';
@@ -74,9 +75,15 @@ class RetirementScenarioApp {
     );
     
     this.uiController = new UIController(this.eventBus);
-    this.monteCarloController = new MonteCarloController(this.eventBus);
+    this.monteCarloController = new MonteCarloController(
+      this.eventBus,
+      this.monteCarloService,
+      this.monteCarloChart,
+      this.monteCarloUI
+    );
     this.monteCarloChart = new MonteCarloChart(this.eventBus);
     this.monteCarloUI = new MonteCarloUI(this.eventBus);
+    this.insightsController = new InsightsController(this.eventBus);
   }
 
   /**

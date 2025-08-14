@@ -47,6 +47,7 @@ class TabController {
    */
   setupEventListeners() {
     // Listen for simulation completion to auto-switch to Results tab
+    // Both regular and Monte Carlo results now display in Results tab for unified UX
     this.eventBus.on('simulation:regular-completed', () => this.switchToTab('results'));
     this.eventBus.on('simulation:monte-carlo-completed', () => this.switchToTab('results'));
     
@@ -108,6 +109,9 @@ class TabController {
     const previousTab = this.currentTab;
     this.currentTab = tabId;
     
+    // Smooth scroll to tab area for better UX
+    this.scrollToTabArea();
+    
     // Emit tab change event
     this.eventBus.emit('tab:changed', {
       previousTab,
@@ -116,6 +120,21 @@ class TabController {
     
     // Handle tab-specific logic
     this.handleTabSwitch(tabId);
+  }
+
+  /**
+   * Smooth scroll to tab area for better UX
+   */
+  scrollToTabArea() {
+    const tabContainer = document.querySelector('.scenario-tabs');
+    if (tabContainer) {
+      tabContainer.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      });
+      console.log('📑 Smooth scrolled to tab area');
+    }
   }
 
   /**

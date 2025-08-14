@@ -505,38 +505,7 @@
     font-size: var(--font-size-sm);
   }
 
-  /* Compare Tab Placeholder */
-  .compare-placeholder {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 300px;
-    background: var(--color-gray-50);
-    border: 2px dashed var(--color-gray-300);
-    border-radius: var(--radius-md);
-  }
-
-  .placeholder-content {
-    text-align: center;
-    max-width: 400px;
-    padding: var(--space-6);
-  }
-
-  .placeholder-content h4 {
-    color: var(--color-gray-700);
-    margin-bottom: var(--space-4);
-  }
-
-  .placeholder-content p {
-    color: var(--color-gray-600);
-    margin-bottom: var(--space-4);
-  }
-
-  .placeholder-content ul {
-    text-align: left;
-    color: var(--color-gray-600);
-    font-size: var(--font-size-sm);
-  }
+  /* Compare tab CSS removed - no implementation yet */
 
   /* Form styling within tabs */
   .tab-panel .form-label {

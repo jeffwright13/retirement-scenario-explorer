@@ -19,7 +19,8 @@ export class ScenarioController {
     // Scenario events
     this.eventBus.on('scenario:select', (scenarioKey) => this.selectScenario(scenarioKey));
     this.eventBus.on('scenario:run-simulation', (data) => this.runSimulation(data));
-    this.eventBus.on('simulation:run', (scenarioData) => this.runSimulation(scenarioData));
+    // REMOVED: simulation:run listener - was causing duplicate simulations with stale data
+    // SimulationService is the correct handler for simulation:run events
     this.eventBus.on('scenario:validate', (scenarioData) => this.validateScenario(scenarioData));
     this.eventBus.on('scenario:load-custom', (scenarioData) => this.loadCustomScenario(scenarioData));
     
@@ -52,6 +53,13 @@ export class ScenarioController {
         scenario,
         validation,
         key: scenarioKey
+      });
+      
+      // CLEAN ARCHITECTURE: Also emit scenario data change event for UI updates
+      this.eventBus.emit('scenario:data-changed', {
+        scenarioData: scenario,
+        trigger: 'scenario-selection',
+        timestamp: Date.now()
       });
       
       // Show preview/summary
@@ -108,7 +116,14 @@ export class ScenarioController {
    */
   async runSimulation(data = {}) {
     const scenarioData = data.scenario || this.currentScenario;
-    const context = data.context || {};
+    // Extract context from either data.context or data._context (for Monte Carlo)
+    const context = data.context || data._context || {};
+    
+    console.log('🎯 ScenarioController: runSimulation called with context:', {
+      hasContext: !!context,
+      isMonteCarlo: context.isMonteCarlo,
+      contextKeys: Object.keys(context)
+    });
     
     if (!scenarioData) {
       this.eventBus.emit('error', 'No scenario selected for simulation');

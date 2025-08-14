@@ -17,30 +17,68 @@ export class SimulationService {
     // Listen for simulation run requests
     this.eventBus.on('simulation:run', async (scenarioData) => {
       console.log('🎯 SimulationService: Received simulation:run event');
+      
+      // Extract Monte Carlo context if present (from MonteCarloService)
+      const context = scenarioData._context || {};
+      console.log('🔍 SimulationService: Extracted context:', {
+        hasContext: !!context,
+        isMonteCarlo: context.isMonteCarlo,
+        contextKeys: Object.keys(context)
+      });
+      
       try {
-        await this.runSimulation(scenarioData);
+        await this.runSimulation(scenarioData, context);
       } catch (error) {
         console.error('❌ SimulationService: Simulation failed:', error);
-        this.eventBus.emit('simulation:error', { error: error.message, scenarioData });
+        this.eventBus.emit('simulation:error', { error: error.message, scenarioData, context });
       }
     });
   
-    // Listen for static insights generation requests (for scenario updates)
-    this.eventBus.on('insights:generate-static', (data) => {
-      console.log('💡 SimulationService: Received insights:generate-static event');
+    // CLEAN ARCHITECTURE: Listen for insights generation requests
+    this.eventBus.on('insights:generate-request', (data) => {
+      console.log('🔥 SimulationService: Received insights:generate-request event!');
+      console.log('🔍 Request details:', {
+        trigger: data.trigger,
+        hasScenarioData: !!data.scenarioData,
+        hasSimulationResults: !!data.simulationResults,
+        monthlyExpenses: data.scenarioData?.plan?.monthly_expenses,
+        annualExpenses: (data.scenarioData?.plan?.monthly_expenses || 0) * 12,
+        requestId: data.requestId
+      });
+      
       try {
-        const insights = this.generateInsights([], data.scenarioData, {});
-        this.eventBus.emit('insights:generated', {
+        // Generate insights based on scenario data and optional simulation results
+        const insights = this.generateInsights(
+          data.simulationResults || [], 
+          data.scenarioData, 
+          { trigger: data.trigger }
+        );
+        
+        // CLEAN EVENT: Emit UI update event, not generic 'insights:generated'
+        this.eventBus.emit('ui:insights-display-update', {
           insights: insights,
           requestId: data.requestId,
+          trigger: data.trigger,
           scenarioData: data.scenarioData
         });
-        console.log('✅ SimulationService: Static insights generated and emitted');
+        
+        console.log('✅ SimulationService: Insights generated and UI update event emitted', {
+          insightsCount: insights.length,
+          trigger: data.trigger,
+          monthlyExpenses: data.scenarioData?.plan?.monthly_expenses,
+          annualExpenses: (data.scenarioData?.plan?.monthly_expenses || 0) * 12
+        });
       } catch (error) {
-        console.error('❌ SimulationService: Failed to generate static insights:', error);
-        this.eventBus.emit('insights:error', { error: error.message, requestId: data.requestId });
+        console.error('❌ SimulationService: Failed to generate insights:', error);
+        this.eventBus.emit('insights:error', { 
+          error: error.message, 
+          requestId: data.requestId,
+          trigger: data.trigger
+        });
       }
     });
+  
+    // Old insights:generate-static listener removed - now using insights:generate-request
   }
 
   /**

@@ -238,10 +238,11 @@ export class MonteCarloService {
       this.eventBus.on(completeEvent, handleComplete);
       this.eventBus.on(errorEvent, handleError);
 
-      // Include simulation ID in the scenario data
+      // Include simulation ID and Monte Carlo context in the scenario data
       this.eventBus.emit('simulation:run', { 
         ...scenarioData, 
-        _simulationId: simulationId 
+        _simulationId: simulationId,
+        _context: { isMonteCarlo: true }
       });
     });
   }
