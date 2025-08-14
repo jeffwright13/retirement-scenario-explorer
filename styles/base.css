@@ -9,8 +9,8 @@ body {
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-normal);
     line-height: var(--line-height-normal);
-    color: var(--color-gray-900);
-    background: #8fbc8f; /* Sage green background matching current design */
+    color: var(--text-primary);
+    background: var(--background-page); /* Shared neutral background for both modes */
     min-height: 100vh;
     padding: var(--space-5);
   }

@@ -15,15 +15,7 @@ body.story-mode {
     --theme-gradient-primary: linear-gradient(135deg, var(--theme-primary-500) 0%, var(--theme-primary-600) 100%);
   }
 
-  /* Hide getting started panel in story mode */
-  body.story-mode .getting-started-panel {
-    display: none !important;
-  }
-
-  /* Show story panel in story mode */
-  body.story-mode .story-panel {
-    display: block !important;
-  }
+  /* Mode-specific visibility handled by JavaScript */
 
   /* ===== STORY-SPECIFIC COMPONENTS ===== */
 

@@ -8,12 +8,16 @@ import { ContentService } from './services/ContentService.js';
 import { SimulationService } from './services/SimulationService.js';
 import { ValidationService } from './services/ValidationService.js';
 import { MonteCarloService } from './services/MonteCarloService.js';
+import { StoryEngineService } from './services/StoryEngineService.js';
+import { ModeController } from './controllers/ModeController.js';
+import { TabController } from './controllers/TabController.js';
 import { StoryController } from './controllers/StoryController.js';
 import { ScenarioController } from './controllers/ScenarioController.js';
 import { UIController } from './controllers/UIController.js';
 import { MonteCarloController } from './controllers/MonteCarloController.js';
 import { MonteCarloChart } from './components/MonteCarloChart.js';
 import { MonteCarloUI } from './ui/MonteCarloUI.js';
+import { StoryUI } from './ui/StoryUI.js';
 
 class RetirementScenarioApp {
   constructor() {
@@ -38,15 +42,27 @@ class RetirementScenarioApp {
     this.simulationService = new SimulationService(this.eventBus);
     this.validationService = new ValidationService(this.eventBus);
     this.monteCarloService = new MonteCarloService(this.eventBus);
+    this.storyEngineService = new StoryEngineService(this.eventBus);
   }
 
   /**
    * Initialize all controllers
    */
   initializeControllers() {
+    // Initialize mode controller first to handle mode switching
+    this.modeController = new ModeController(this.eventBus);
+    
+    // Initialize tab controller for Scenario Mode tabbed interface
+    this.tabController = new TabController(this.eventBus);
+    
+    // Initialize UI components
+    this.storyUI = new StoryUI(this.eventBus);
+    
     this.storyController = new StoryController(
       this.contentService, 
-      this.simulationService, 
+      this.simulationService,
+      this.storyEngineService,
+      this.storyUI,
       this.eventBus
     );
     
@@ -73,7 +89,10 @@ class RetirementScenarioApp {
       // Setup global error handling
       this.setupErrorHandling();
       
-      // Initialize UI first
+      // Initialize mode controller first
+      this.modeController.initialize();
+      
+      // Initialize UI
       this.uiController.initialize();
       
       // Load all content

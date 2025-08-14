@@ -24,6 +24,23 @@ export class SimulationService {
         this.eventBus.emit('simulation:error', { error: error.message, scenarioData });
       }
     });
+  
+    // Listen for static insights generation requests (for scenario updates)
+    this.eventBus.on('insights:generate-static', (data) => {
+      console.log('💡 SimulationService: Received insights:generate-static event');
+      try {
+        const insights = this.generateInsights([], data.scenarioData, {});
+        this.eventBus.emit('insights:generated', {
+          insights: insights,
+          requestId: data.requestId,
+          scenarioData: data.scenarioData
+        });
+        console.log('✅ SimulationService: Static insights generated and emitted');
+      } catch (error) {
+        console.error('❌ SimulationService: Failed to generate static insights:', error);
+        this.eventBus.emit('insights:error', { error: error.message, requestId: data.requestId });
+      }
+    });
   }
 
   /**
@@ -181,7 +198,7 @@ export class SimulationService {
       });
     }
 
-    // Asset allocation insights
+    // Enhanced Asset and Cash Flow Analysis
     if (scenarioData.assets && scenarioData.assets.length > 0) {
       const totalAssets = scenarioData.assets.reduce((sum, asset) => sum + (asset.balance || asset.initial_value || 0), 0);
       insights.push({
@@ -189,7 +206,51 @@ export class SimulationService {
         message: `💰 Starting with $${totalAssets.toLocaleString()} in assets`,
         priority: 'info'
       });
+      
+      // Asset depletion analysis
+      const depletedAssets = this.analyzeAssetDepletion(results, scenarioData);
+      if (depletedAssets.length > 0) {
+        insights.push({
+          type: 'warning',
+          message: `⚠️ Asset Alert: ${depletedAssets.length} asset(s) may be fully depleted: ${depletedAssets.join(', ')}`,
+          priority: 'high'
+        });
+      }
+      
+      // Withdrawal rate analysis
+      const withdrawalRate = this.calculateWithdrawalRate(monthlyExpenses, totalAssets);
+      if (withdrawalRate > 4.5) {
+        insights.push({
+          type: 'critical',
+          message: `🚨 High Risk: ${withdrawalRate.toFixed(1)}% withdrawal rate exceeds safe 4% rule`,
+          priority: 'high'
+        });
+      } else if (withdrawalRate > 3.5) {
+        insights.push({
+          type: 'warning',
+          message: `⚠️ Moderate Risk: ${withdrawalRate.toFixed(1)}% withdrawal rate approaching 4% limit`,
+          priority: 'medium'
+        });
+      } else {
+        insights.push({
+          type: 'success',
+          message: `✅ Conservative: ${withdrawalRate.toFixed(1)}% withdrawal rate within safe range`,
+          priority: 'info'
+        });
+      }
     }
+
+    // Income adequacy analysis
+    const incomeInsights = this.analyzeIncomeAdequacy(results, scenarioData);
+    insights.push(...incomeInsights);
+    
+    // Cash flow timing analysis
+    const cashFlowInsights = this.analyzeCashFlowTiming(results, scenarioData);
+    insights.push(...cashFlowInsights);
+    
+    // Risk and diversification analysis
+    const riskInsights = this.analyzeRiskFactors(results, scenarioData);
+    insights.push(...riskInsights);
 
     // Story-specific insights
     if (context.isStoryMode && context.chapter) {
@@ -197,6 +258,197 @@ export class SimulationService {
       insights.push(...storyInsights);
     }
 
+    return insights;
+  }
+
+  /**
+   * Analyze asset depletion patterns
+   */
+  analyzeAssetDepletion(results, scenarioData) {
+    const depletedAssets = [];
+    
+    if (!scenarioData.assets || !Array.isArray(results)) return depletedAssets;
+    
+    // Check final balances for each asset type
+    const finalResult = results[results.length - 1];
+    if (finalResult && finalResult.balances) {
+      scenarioData.assets.forEach(asset => {
+        const finalBalance = finalResult.balances[asset.name] || 0;
+        const initialBalance = asset.balance || asset.initial_value || 0;
+        
+        // Consider asset depleted if less than 5% of original value
+        if (finalBalance < (initialBalance * 0.05)) {
+          depletedAssets.push(asset.name);
+        }
+      });
+    }
+    
+    return depletedAssets;
+  }
+
+  /**
+   * Calculate annual withdrawal rate
+   */
+  calculateWithdrawalRate(monthlyExpenses, totalAssets) {
+    if (!monthlyExpenses || !totalAssets || totalAssets === 0) return 0;
+    const annualExpenses = monthlyExpenses * 12;
+    return (annualExpenses / totalAssets) * 100;
+  }
+
+  /**
+   * Analyze income adequacy throughout simulation
+   */
+  analyzeIncomeAdequacy(results, scenarioData) {
+    const insights = [];
+    
+    if (!scenarioData.income || !Array.isArray(results)) return insights;
+    
+    const monthlyExpenses = scenarioData.plan?.monthly_expenses || 0;
+    const totalMonthlyIncome = scenarioData.income.reduce((sum, income) => {
+      return sum + (income.monthly_amount || 0);
+    }, 0);
+    
+    const incomeRatio = totalMonthlyIncome / monthlyExpenses;
+    
+    if (incomeRatio >= 1.0) {
+      insights.push({
+        type: 'success',
+        message: `💰 Income covers ${(incomeRatio * 100).toFixed(0)}% of expenses - excellent coverage`,
+        priority: 'info'
+      });
+    } else if (incomeRatio >= 0.7) {
+      insights.push({
+        type: 'info',
+        message: `💵 Income covers ${(incomeRatio * 100).toFixed(0)}% of expenses - asset drawdown needed`,
+        priority: 'info'
+      });
+    } else {
+      insights.push({
+        type: 'warning',
+        message: `⚠️ Income only covers ${(incomeRatio * 100).toFixed(0)}% of expenses - heavy asset reliance`,
+        priority: 'medium'
+      });
+    }
+    
+    // Analyze income timing
+    const delayedIncome = scenarioData.income.filter(income => (income.start_month || 1) > 1);
+    if (delayedIncome.length > 0) {
+      insights.push({
+        type: 'info',
+        message: `⏰ ${delayedIncome.length} income source(s) start later - early years rely more on assets`,
+        priority: 'info'
+      });
+    }
+    
+    return insights;
+  }
+
+  /**
+   * Analyze cash flow timing and patterns
+   */
+  analyzeCashFlowTiming(results, scenarioData) {
+    const insights = [];
+    
+    if (!Array.isArray(results) || results.length === 0) return insights;
+    
+    // Find periods of negative cash flow
+    const negativeMonths = results.filter(r => r.shortfall > 0).length;
+    const totalMonths = results.length;
+    
+    if (negativeMonths > 0) {
+      const negativePercentage = (negativeMonths / totalMonths) * 100;
+      
+      if (negativePercentage > 50) {
+        insights.push({
+          type: 'critical',
+          message: `🚨 Cash Flow Crisis: ${negativePercentage.toFixed(0)}% of months show shortfalls`,
+          priority: 'high'
+        });
+      } else if (negativePercentage > 25) {
+        insights.push({
+          type: 'warning',
+          message: `⚠️ Cash Flow Concern: ${negativePercentage.toFixed(0)}% of months show shortfalls`,
+          priority: 'medium'
+        });
+      }
+    }
+    
+    // Analyze early vs late period performance
+    const earlyResults = results.slice(0, Math.min(60, Math.floor(results.length / 3))); // First 5 years or 1/3
+    const lateResults = results.slice(-Math.min(60, Math.floor(results.length / 3))); // Last 5 years or 1/3
+    
+    const earlyShortfalls = earlyResults.filter(r => r.shortfall > 0).length;
+    const lateShortfalls = lateResults.filter(r => r.shortfall > 0).length;
+    
+    if (earlyShortfalls > 0 && lateShortfalls === 0) {
+      insights.push({
+        type: 'info',
+        message: `📈 Cash flow improves over time - early years tighter than later years`,
+        priority: 'info'
+      });
+    } else if (earlyShortfalls === 0 && lateShortfalls > 0) {
+      insights.push({
+        type: 'warning',
+        message: `📉 Cash flow deteriorates over time - later years become problematic`,
+        priority: 'medium'
+      });
+    }
+    
+    return insights;
+  }
+
+  /**
+   * Analyze risk factors and diversification
+   */
+  analyzeRiskFactors(results, scenarioData) {
+    const insights = [];
+    
+    if (!scenarioData.assets) return insights;
+    
+    // Asset concentration analysis
+    const totalAssets = scenarioData.assets.reduce((sum, asset) => sum + (asset.balance || 0), 0);
+    const largestAsset = Math.max(...scenarioData.assets.map(asset => asset.balance || 0));
+    const concentrationRatio = largestAsset / totalAssets;
+    
+    if (concentrationRatio > 0.7) {
+      insights.push({
+        type: 'warning',
+        message: `⚠️ High Concentration: ${(concentrationRatio * 100).toFixed(0)}% in single asset - consider diversification`,
+        priority: 'medium'
+      });
+    } else if (concentrationRatio > 0.5) {
+      insights.push({
+        type: 'info',
+        message: `💡 Moderate Concentration: ${(concentrationRatio * 100).toFixed(0)}% in largest asset`,
+        priority: 'info'
+      });
+    }
+    
+    // Liquidity analysis
+    const liquidAssets = scenarioData.assets.filter(asset => 
+      asset.name && (asset.name.toLowerCase().includes('cash') || 
+                    asset.name.toLowerCase().includes('savings') ||
+                    asset.name.toLowerCase().includes('checking'))
+    );
+    
+    const liquidTotal = liquidAssets.reduce((sum, asset) => sum + (asset.balance || 0), 0);
+    const monthlyExpenses = scenarioData.plan?.monthly_expenses || 0;
+    const emergencyMonths = monthlyExpenses > 0 ? liquidTotal / monthlyExpenses : 0;
+    
+    if (emergencyMonths < 3) {
+      insights.push({
+        type: 'warning',
+        message: `⚠️ Low Liquidity: Only ${emergencyMonths.toFixed(1)} months of expenses in liquid assets`,
+        priority: 'medium'
+      });
+    } else if (emergencyMonths >= 6) {
+      insights.push({
+        type: 'success',
+        message: `✅ Good Liquidity: ${emergencyMonths.toFixed(1)} months of expenses in liquid assets`,
+        priority: 'info'
+      });
+    }
+    
     return insights;
   }
 

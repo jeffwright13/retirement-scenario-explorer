@@ -19,6 +19,7 @@ export class ScenarioController {
     // Scenario events
     this.eventBus.on('scenario:select', (scenarioKey) => this.selectScenario(scenarioKey));
     this.eventBus.on('scenario:run-simulation', (data) => this.runSimulation(data));
+    this.eventBus.on('simulation:run', (scenarioData) => this.runSimulation(scenarioData));
     this.eventBus.on('scenario:validate', (scenarioData) => this.validateScenario(scenarioData));
     this.eventBus.on('scenario:load-custom', (scenarioData) => this.loadCustomScenario(scenarioData));
     
@@ -180,6 +181,12 @@ export class ScenarioController {
       assetSummary: this.generateAssetSummary(scenario.assets || [])
     };
     
+    this.eventBus.emit('scenario:loaded', {
+      scenarioKey: scenario.key,
+      scenario: scenario,
+      scenarioSynopsis: this.extractKeyAssumptions(scenario)
+    });
+    
     this.eventBus.emit('scenario:preview-generated', {
       scenario,
       preview
@@ -217,37 +224,78 @@ export class ScenarioController {
   }
 
   /**
-   * Extract key assumptions from scenario
+   * Extract comprehensive scenario synopsis for one-glance overview
    * @param {Object} scenario - Scenario data
-   * @returns {Array} Key assumptions
+   * @returns {Object} Organized scenario synopsis
    */
   extractKeyAssumptions(scenario) {
-    const assumptions = [];
+    const synopsis = {
+      plan: [],
+      assets: [],
+      income: [],
+      schedules: [],
+      order: []
+    };
     
+    // Plan Configuration
     if (scenario.plan?.monthly_expenses) {
-      assumptions.push(`Monthly expenses: $${scenario.plan.monthly_expenses.toLocaleString()}`);
+      synopsis.plan.push(`Monthly expenses: $${scenario.plan.monthly_expenses.toLocaleString()}`);
     }
-    
     if (scenario.plan?.retirement_age) {
-      assumptions.push(`Retirement age: ${scenario.plan.retirement_age}`);
+      synopsis.plan.push(`Retirement age: ${scenario.plan.retirement_age}`);
     }
-    
     if (scenario.plan?.life_expectancy) {
-      assumptions.push(`Life expectancy: ${scenario.plan.life_expectancy}`);
+      synopsis.plan.push(`Life expectancy: ${scenario.plan.life_expectancy}`);
     }
     
-    // Asset-specific assumptions
-    if (scenario.assets) {
-      const avgGrowthRate = scenario.assets
-        .filter(asset => asset.annual_growth_rate)
-        .reduce((sum, asset, _, arr) => sum + asset.annual_growth_rate / arr.length, 0);
+    // Assets Overview
+    if (scenario.assets && scenario.assets.length > 0) {
+      const totalAssets = scenario.assets.reduce((sum, asset) => sum + (asset.balance || 0), 0);
+      synopsis.assets.push(`Total assets: $${totalAssets.toLocaleString()}`);
       
-      if (avgGrowthRate > 0) {
-        assumptions.push(`Average growth rate: ${(avgGrowthRate * 100).toFixed(1)}%`);
-      }
+      scenario.assets.forEach(asset => {
+        const details = [];
+        details.push(`$${(asset.balance || 0).toLocaleString()}`);
+        if (asset.type) details.push(asset.type);
+        if (asset.return_schedule) details.push(`${asset.return_schedule} returns`);
+        if (asset.min_balance) details.push(`min: $${asset.min_balance.toLocaleString()}`);
+        synopsis.assets.push(`${asset.name}: ${details.join(', ')}`);
+      });
     }
     
-    return assumptions;
+    // Income Sources
+    if (scenario.income && scenario.income.length > 0) {
+      scenario.income.forEach(income => {
+        const details = [];
+        details.push(`$${(income.monthly_amount || 0).toLocaleString()}/month`);
+        if (income.start_month) details.push(`starts month ${income.start_month}`);
+        if (income.end_month) details.push(`ends month ${income.end_month}`);
+        if (income.inflation_schedule) details.push(`${income.inflation_schedule} inflation`);
+        synopsis.income.push(`${income.name}: ${details.join(', ')}`);
+      });
+    }
+    
+    // Rate Schedules
+    if (scenario.rate_schedules) {
+      Object.entries(scenario.rate_schedules).forEach(([name, schedule]) => {
+        if (schedule.type === 'fixed') {
+          synopsis.schedules.push(`${name}: ${(schedule.rate * 100).toFixed(1)}% fixed`);
+        } else if (schedule.type === 'variable') {
+          synopsis.schedules.push(`${name}: variable (${schedule.rates?.length || 0} periods)`);
+        } else {
+          synopsis.schedules.push(`${name}: ${schedule.type}`);
+        }
+      });
+    }
+    
+    // Drawdown Order
+    if (scenario.order && scenario.order.length > 0) {
+      synopsis.order = scenario.order
+        .sort((a, b) => a.order - b.order)
+        .map(item => `${item.order}. ${item.account}`);
+    }
+    
+    return synopsis;
   }
 
   /**

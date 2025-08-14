@@ -1,28 +1,37 @@
 /**
  * Story Controller - Manages story mode functionality
- * Handles story selection, chapter navigation, and story-driven simulation
+ * Orchestrates StoryEngineService and StoryUI for complete story experience
  */
 export class StoryController {
-  constructor(contentService, simulationService, eventBus) {
+  constructor(contentService, simulationService, storyEngineService, storyUI, eventBus) {
     this.contentService = contentService;
     this.simulationService = simulationService;
+    this.storyEngineService = storyEngineService;
+    this.storyUI = storyUI;
     this.eventBus = eventBus;
     
-    this.currentStory = null;
-    this.currentChapter = null;
     this.isStoryMode = false;
     
     this.setupEventListeners();
+    console.log('🎭 StoryController created with new architecture');
   }
 
   setupEventListeners() {
-    // Story mode events
+    // Story mode events (compatible with new ModeController)
     this.eventBus.on('story:toggle-mode', () => this.toggleStoryMode());
     this.eventBus.on('story:select', (storyKey) => this.selectStory(storyKey));
     this.eventBus.on('story:start', () => this.startStory());
     this.eventBus.on('story:next', () => this.nextChapter());
     this.eventBus.on('story:previous', () => this.previousChapter());
     this.eventBus.on('story:exit', () => this.exitStoryMode());
+    
+    // Mode controller events
+    this.eventBus.on('mode:story-entered', () => this.handleModeEntered());
+    this.eventBus.on('mode:scenario-entered', () => this.handleModeExited());
+    
+    // Story engine events
+    this.eventBus.on('story:run-simulation', () => this.runChapterSimulation());
+    this.eventBus.on('story:request-processed-narrative', () => this.sendProcessedNarrative());
     
     // Content events
     this.eventBus.on('stories:loaded', (stories) => this.handleStoriesLoaded(stories));
@@ -40,94 +49,118 @@ export class StoryController {
   }
 
   /**
-   * Enter story mode
+   * Enter story mode (now delegates to ModeController)
    */
   enterStoryMode() {
-    console.log('🎭 Entering story mode');
+    console.log('🎭 Entering story mode via ModeController');
+    this.eventBus.emit('mode:switch-to-story');
+  }
+  
+  /**
+   * Handle mode entered from ModeController
+   */
+  handleModeEntered() {
+    console.log('🎭 Story mode entered via ModeController');
     this.isStoryMode = true;
+    // Legacy event for backward compatibility
     this.eventBus.emit('story:mode-entered');
   }
 
   /**
-   * Exit story mode
+   * Exit story mode (now delegates to ModeController)
    */
   exitStoryMode() {
-    console.log('🎭 Exiting story mode in StoryController');
-    console.log('🎭 Current story mode state:', this.isStoryMode);
+    console.log('🎭 Exiting story mode via ModeController');
+    this.eventBus.emit('mode:switch-to-scenario');
+  }
+  
+  /**
+   * Handle mode exited from ModeController
+   */
+  handleModeExited() {
+    console.log('🎭 Story mode exited via ModeController');
     this.isStoryMode = false;
     this.currentStory = null;
     this.currentChapter = null;
-    console.log('🎭 Emitting story:mode-exited event');
+    // Legacy event for backward compatibility
     this.eventBus.emit('story:mode-exited');
   }
 
   /**
-   * Select and initialize a story
-   * @param {string} storyKey - Story identifier
+   * Select a story
    */
-  async selectStory(storyKey) {
-    if (!storyKey) return;
-
+  selectStory(storyKey) {
+    console.log(` Selecting story: ${storyKey}`);
+    
     try {
-      console.log(`📚 Starting story: ${storyKey}`);
+      // Load story from content service
+      const stories = this.contentService.getStories();
+      if (!stories[storyKey]) {
+        throw new Error(`Story '${storyKey}' not found`);
+      }
       
-      const story = await this.contentService.getStory(storyKey);
-      this.currentStory = story;
-      this.currentChapter = 0;
+      // Use story engine to load the story
+      this.storyEngineService.loadStory(storyKey, stories);
       
-      // Emit story started event with introduction
-      this.eventBus.emit('story:started', {
-        story,
-        introduction: story.metadata?.introduction,
-        totalChapters: story.chapters.length
-      });
+      // Start with first chapter
+      this.startStory();
       
-      // Load first chapter
-      await this.loadCurrentChapter();
+      console.log(` Story selected and loaded: ${stories[storyKey].metadata.title}`);
+      this.eventBus.emit('story:selected', { storyKey, story: stories[storyKey] });
       
     } catch (error) {
-      console.error('Failed to start story:', error);
-      this.eventBus.emit('error', `Failed to start story: ${error.message}`);
+      console.error(' Error selecting story:', error);
+      this.eventBus.emit('story:error', { message: error.message });
     }
   }
 
   /**
-   * Start the current story (load first chapter)
+   * Start the current story
    */
-  async startStory() {
-    if (!this.currentStory) {
-      this.eventBus.emit('error', 'No story selected');
-      return;
-    }
+  startStory() {
+    console.log(' Starting story');
     
-    this.currentChapter = 0;
-    await this.loadCurrentChapter();
+    // Navigate to first chapter using story engine
+    const firstChapter = this.storyEngineService.goToChapter(0);
+    
+    if (firstChapter) {
+      this.eventBus.emit('story:started', { 
+        story: this.storyEngineService.currentStory, 
+        chapter: firstChapter 
+      });
+    } else {
+      console.warn(' No chapters found in story');
+    }
   }
 
   /**
    * Navigate to next chapter
    */
-  async nextChapter() {
-    if (!this.canGoNext()) {
-      console.log('📖 Already at last chapter');
-      return;
-    }
+  nextChapter() {
+    console.log(' Navigating to next chapter');
     
-    this.currentChapter++;
-    await this.loadCurrentChapter();
+    const nextChapter = this.storyEngineService.nextChapter();
+    
+    if (nextChapter) {
+      console.log(` Advanced to chapter: ${nextChapter.title}`);
+    } else {
+      console.log(' Reached end of story or no story active');
+    }
   }
 
   /**
    * Navigate to previous chapter
    */
-  async previousChapter() {
-    if (!this.canGoPrevious()) {
-      console.log('📖 Already at first chapter');
-      return;
-    }
+  previousChapter() {
+    console.log(' Navigating to previous chapter');
     
-    this.currentChapter--;
-    await this.loadCurrentChapter();
+    const previousChapter = this.storyEngineService.previousChapter();
+    
+    if (previousChapter) {
+      console.log(` Went back to chapter: ${previousChapter.title}`);
+    } else {
+      console.log(' Reached start of story or no story active');
+    }
   }
 
   /**
@@ -139,8 +172,8 @@ export class StoryController {
       return;
     }
 
-    const chapter = this.getCurrentChapterData();
-    console.log(`📖 Loading chapter ${chapter.chapterNumber}: ${chapter.title}`);
+    const chapter = this.storyEngineService.getCurrentChapter();
+    console.log(` Loading chapter ${chapter.chapterNumber}: ${chapter.title}`);
 
     // Emit chapter loaded event
     this.eventBus.emit('chapter:loaded', chapter);
@@ -155,13 +188,13 @@ export class StoryController {
         chapter,
         context: {
           isStoryMode: true,
-          storyKey: this.currentStory.key,
+          storyKey: this.storyEngineService.currentStory.key,
           chapterNumber: chapter.chapterNumber
         }
       });
       
     } catch (error) {
-      console.warn(`⚠️ Chapter scenario issue: ${error.message}`);
+      console.warn(` Chapter scenario issue: ${error.message}`);
       this.eventBus.emit('chapter:scenario-error', {
         chapter,
         error: error.message
@@ -173,114 +206,32 @@ export class StoryController {
    * Run simulation for current chapter
    */
   async runChapterSimulation() {
-    if (!this.isValidChapter()) {
-      this.eventBus.emit('error', 'No valid chapter to simulate');
-      return;
-    }
-
-    const chapter = this.getCurrentChapterData();
+    console.log(' Running chapter simulation');
     
     try {
-      const scenario = await this.contentService.getScenario(chapter.scenario_key);
-      
-      // Run simulation with story context
-      const context = {
-        isStoryMode: true,
-        storyKey: this.currentStory.key,
-        chapter: chapter,
-        chapterNumber: chapter.chapterNumber
-      };
-      
-      const result = await this.simulationService.runSimulation(scenario, context);
-      
-      // Emit story-specific simulation complete event
-      this.eventBus.emit('story:simulation-completed', {
-        result,
-        chapter,
-        nextAction: this.getNextAction()
-      });
-      
-      return result;
-      
+      await this.storyEngineService.runChapterSimulation();
     } catch (error) {
-      console.error('Story simulation failed:', error);
-      this.eventBus.emit('story:simulation-failed', { error, chapter });
-      throw error;
+      console.error(' Simulation error:', error);
+      this.eventBus.emit('story:error', { message: 'Simulation failed: ' + error.message });
     }
   }
 
   /**
-   * Get current chapter data with metadata
-   * @returns {Object|null} Chapter data with additional metadata
+   * Send processed narrative to UI
    */
-  getCurrentChapterData() {
-    if (!this.isValidChapter()) return null;
-    
-    const chapter = this.currentStory.chapters[this.currentChapter];
-    return {
-      ...chapter,
-      chapterNumber: this.currentChapter + 1,
-      totalChapters: this.currentStory.chapters.length,
-      isFirstChapter: this.currentChapter === 0,
-      isLastChapter: this.currentChapter === this.currentStory.chapters.length - 1,
-      storyTitle: this.currentStory.metadata?.title || 'Unknown Story'
-    };
-  }
-
-  /**
-   * Get next action for story progression
-   * @returns {Object|null} Next action object
-   */
-  getNextAction() {
-    const chapter = this.getCurrentChapterData();
-    if (!chapter) return null;
-
-    if (chapter.isLastChapter) {
-      return {
-        type: 'story_complete',
-        title: 'Story Complete!',
-        description: `You've completed "${chapter.storyTitle}".`,
-        action: 'Exit Story Mode',
-        buttonText: 'Exit Story'
-      };
+  sendProcessedNarrative() {
+    const narrative = this.storyEngineService.getProcessedNarrative();
+    if (narrative && this.storyUI) {
+      this.storyUI.updateProcessedNarrative(narrative);
     }
-
-    const nextChapter = this.currentStory.chapters[this.currentChapter + 1];
-    return {
-      type: 'next_chapter',
-      title: `Next: ${nextChapter.title}`,
-      description: nextChapter.narrative?.introduction || 'Continue your journey...',
-      action: `Continue to Chapter ${this.currentChapter + 2}`,
-      buttonText: 'Next Chapter'
-    };
   }
 
   /**
-   * Get current story progress
-   * @returns {Object|null} Progress information
-   */
-  getProgress() {
-    if (!this.isStoryMode || !this.currentStory) return null;
-
-    return {
-      storyTitle: this.currentStory.metadata?.title || 'Unknown',
-      storyKey: this.currentStory.key,
-      currentChapter: this.currentChapter + 1,
-      totalChapters: this.currentStory.chapters.length,
-      progress: ((this.currentChapter + 1) / this.currentStory.chapters.length) * 100,
-      canGoNext: this.canGoNext(),
-      canGoPrevious: this.canGoPrevious(),
-      isComplete: this.currentChapter === this.currentStory.chapters.length - 1
-    };
-  }
-
-  /**
-   * Handle stories loaded event
-   * @param {Array} stories - Available stories
+   * Handle stories loaded
    */
   handleStoriesLoaded(stories) {
-    console.log(`📚 ${stories.length} stories available`);
-    this.eventBus.emit('story:stories-available', stories);
+    console.log(' Stories loaded in StoryController');
+    // Stories are now available for selection via StoryUI
   }
 
   /**

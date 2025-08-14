@@ -40,40 +40,52 @@
 
     /* ===== COLORS - NEUTRAL PALETTE ===== */
     --color-white: #ffffff;
-    --color-gray-50: #f9fafb;
-    --color-gray-100: #f3f4f6;
-    --color-gray-200: #e5e7eb;
-    --color-gray-300: #d1d5db;
-    --color-gray-400: #9ca3af;
-    --color-gray-500: #6b7280;
-    --color-gray-600: #4b5563;
-    --color-gray-700: #374151;
-    --color-gray-800: #1f2937;
-    --color-gray-900: #111827;
+    --color-gray-50: #fafaf9;    /* Warm neutral - perfect background */
+    --color-gray-100: #f5f5f4;  /* Slightly warmer gray */
+    --color-gray-200: #e7e5e4;  /* Warm gray for borders */
+    --color-gray-300: #d6d3d1;  /* Muted warm gray */
+    --color-gray-400: #a8a29e;  /* Balanced neutral */
+    --color-gray-500: #78716c;  /* Warm mid-gray */
+    --color-gray-600: #57534e;  /* Rich warm gray */
+    --color-gray-700: #44403c;  /* Deep warm gray */
+    --color-gray-800: #292524;  /* Very dark warm gray */
+    --color-gray-900: #1c1917;  /* Almost black warm gray */
 
-    /* ===== COLORS - GREEN THEME (Scenario Mode) ===== */
-    --color-green-50: #f0f9f0;
-    --color-green-100: #dcf2dc;
-    --color-green-200: #b8e5b8;
-    --color-green-300: #85d485;
-    --color-green-400: #4ade80;
-    --color-green-500: #22c55e;
-    --color-green-600: #16a34a;
-    --color-green-700: #15803d;
-    --color-green-800: #166534;
-    --color-green-900: #14532d;
+    /* ===== COLORS - GREEN THEME (Scenario Mode - Cooler & Softer) ===== */
+    --color-green-50: #f0fdf4;   /* Very light cool green */
+    --color-green-100: #dcfce7;  /* Light cool green */
+    --color-green-200: #bbf7d0;  /* Soft cool green */
+    --color-green-300: #86efac;  /* Gentle cool green */
+    --color-green-400: #4ade80;  /* Medium cool green */
+    --color-green-500: #10b981;  /* Primary cool green - softer than before */
+    --color-green-600: #059669;  /* Deep cool green */
+    --color-green-700: #047857;  /* Rich cool green */
+    --color-green-800: #065f46;  /* Dark cool green */
+    --color-green-900: #064e3b;  /* Very dark cool green */
 
-    /* ===== COLORS - BLUE THEME (Story Mode) ===== */
-    --color-blue-50: #eff6ff;
-    --color-blue-100: #dbeafe;
-    --color-blue-200: #bfdbfe;
-    --color-blue-300: #93c5fd;
-    --color-blue-400: #60a5fa;
-    --color-blue-500: #3b82f6;
-    --color-blue-600: #2563eb;
-    --color-blue-700: #1d4ed8;
-    --color-blue-800: #1e40af;
-    --color-blue-900: #1e3a8a;
+    /* ===== COLORS - BLUE THEME (Story Mode - Warmer & Narrative) ===== */
+    --color-blue-50: #eff6ff;   /* Very light warm blue */
+    --color-blue-100: #dbeafe;  /* Light warm blue */
+    --color-blue-200: #bfdbfe;  /* Soft warm blue */
+    --color-blue-300: #93c5fd;  /* Gentle warm blue */
+    --color-blue-400: #60a5fa;  /* Medium warm blue */
+    --color-blue-500: #3b82f6;  /* Primary story blue - warmer than before */
+    --color-blue-600: #2563eb;  /* Deep warm blue */
+    --color-blue-700: #1d4ed8;  /* Rich story blue */
+    --color-blue-800: #1e40af;  /* Dark warm blue */
+    --color-blue-900: #1e3a8a;  /* Very dark story blue */
+
+    /* ===== COLORS - ORANGE THEME (Monte Carlo & Accents) ===== */
+    --color-orange-50: #fff7ed;   /* Very light warm orange */
+    --color-orange-100: #ffedd5;  /* Light warm orange */
+    --color-orange-200: #fed7aa;  /* Soft orange */
+    --color-orange-300: #fdba74;  /* Gentle orange */
+    --color-orange-400: #fb923c;  /* Medium orange */
+    --color-orange-500: #f97316;  /* Vibrant orange */
+    --color-orange-600: #ea580c;  /* Deep orange */
+    --color-orange-700: #c2410c;  /* Rich orange */
+    --color-orange-800: #9a3412;  /* Dark orange */
+    --color-orange-900: #7c2d12;  /* Very dark orange */
 
     /* ===== COLORS - PURPLE THEME (Advanced Mode) ===== */
     --color-purple-50: #faf5ff;
@@ -135,6 +147,22 @@
     --z-popover: 1060;
     --z-tooltip: 1070;
 
+    /* ===== DESIGN SYSTEM - SHARED VARIABLES ===== */
+    --background-page: var(--color-gray-50);        /* Shared neutral background */
+    --background-card: var(--color-white);          /* Card backgrounds */
+    --background-subtle: var(--color-gray-100);     /* Subtle backgrounds */
+    --border-color: var(--color-gray-200);          /* Standard borders */
+    --border-color-muted: var(--color-gray-100);    /* Muted borders */
+    --text-primary: var(--color-gray-900);          /* Primary text */
+    --text-secondary: var(--color-gray-600);        /* Secondary text */
+    --text-muted: var(--color-gray-500);            /* Muted text */
+
+    /* ===== INTERACTION STATES ===== */
+    --hover-brightness: 1.1;                        /* Brightness multiplier for hover */
+    --active-brightness: 0.95;                      /* Brightness multiplier for active */
+    --focus-ring-width: 2px;                        /* Focus ring width */
+    --focus-ring-offset: 2px;                       /* Focus ring offset */
+
     /* ===== THEME DEFAULTS (GREEN - SCENARIO MODE) ===== */
     --theme-primary-50: var(--color-green-50);
     --theme-primary-100: var(--color-green-100);
@@ -144,7 +172,9 @@
     --theme-primary-900: var(--color-green-900);
 
     --theme-gradient-primary: linear-gradient(135deg, var(--theme-primary-500) 0%, var(--theme-primary-600) 100%);
-    --theme-gradient-header: linear-gradient(135deg, var(--color-gray-700) 0%, var(--color-gray-800) 100%);
+    --theme-gradient-header: linear-gradient(135deg, var(--theme-primary-600) 0%, var(--theme-primary-700) 100%);
+    --theme-gradient-button: linear-gradient(135deg, var(--theme-primary-500) 0%, var(--theme-primary-600) 100%);
+    --theme-pattern-header: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><g fill="%23ffffff" fill-opacity="0.02"><polygon points="0,0 20,20 0,20"/></g></svg>');
 
     /* ===== COMPONENT SPECIFIC ===== */
     --header-height: 120px;
@@ -173,6 +203,22 @@
     --theme-primary-900: var(--color-blue-900);
 
     --theme-gradient-primary: linear-gradient(135deg, var(--theme-primary-500) 0%, var(--theme-primary-600) 100%);
+    --theme-gradient-header: linear-gradient(135deg, var(--theme-primary-600) 0%, var(--theme-primary-700) 100%);
+    --theme-gradient-button: linear-gradient(135deg, var(--theme-primary-500) 0%, var(--theme-primary-600) 100%);
+    --theme-pattern-header: url('data:image/svg+xml,<svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><g fill="%23ffffff" fill-opacity="0.02"><polygon points="0,0 20,20 0,20"/></g></svg>');
+  }
+
+  /* Monte Carlo Theme (Orange) */
+  .theme-monte-carlo {
+    --theme-primary-50: var(--color-orange-50);
+    --theme-primary-100: var(--color-orange-100);
+    --theme-primary-500: var(--color-orange-500);
+    --theme-primary-600: var(--color-orange-600);
+    --theme-primary-700: var(--color-orange-700);
+    --theme-primary-900: var(--color-orange-900);
+
+    --theme-gradient-primary: linear-gradient(135deg, var(--theme-primary-500) 0%, var(--theme-primary-600) 100%);
+    --theme-gradient-button: linear-gradient(135deg, var(--theme-primary-500) 0%, var(--theme-primary-600) 100%);
   }
 
   /* Advanced Mode Theme (Purple) */

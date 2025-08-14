@@ -32,15 +32,15 @@ export class UIController {
     this.scenarioDropdown = document.getElementById('scenario-dropdown');
     this.storyDropdown = document.getElementById('story-dropdown');
     this.runButton = document.getElementById('run-btn-primary');
-    this.jsonPreview = document.getElementById('scenario-json-preview');
+    // Note: jsonPreview is no longer used - we have enhanced config synopsis instead
+    this.jsonPreview = null; // Deprecated - using enhanced config synopsis
     
     // Results elements
     this.resultsSection = document.getElementById('main-content'); // Main results container
     this.chartArea = document.getElementById('chart-area');
     this.insightsSection = document.getElementById('simulation-insights');
     
-    // Story mode elements
-    this.storyModeToggle = document.getElementById('story-mode-toggle');
+    // Story mode elements (managed by ModeController)
     this.storyPanel = document.getElementById('story-panel');
     
     // Debug: Log which elements were found
@@ -73,7 +73,7 @@ export class UIController {
       this.scenarioDropdown.addEventListener('change', (e) => {
         const scenarioKey = e.target.value;
         if (scenarioKey) {
-          this.eventBus.emit('scenario:selected', scenarioKey);
+          this.eventBus.emit('scenario:select', scenarioKey);
         }
       });
     }
@@ -97,18 +97,35 @@ export class UIController {
       console.warn('❌ Run button not found during event listener setup');
     }
 
-    // Story mode toggle
-    if (this.storyModeToggle) {
-      this.storyModeToggle.addEventListener('click', () => {
-        this.eventBus.emit('story:mode-toggle');
-      });
-    }
+    // Story mode toggle now handled by ModeController
 
-    // Advanced buttons
+    // Enhanced Input Tab buttons
     const toggleJsonBtn = document.getElementById('toggle-json-btn');
     if (toggleJsonBtn) {
       toggleJsonBtn.addEventListener('click', () => {
         this.toggleJsonEditor();
+      });
+    }
+
+    // JSON Editor buttons
+    const saveJsonBtn = document.getElementById('save-json-btn');
+    if (saveJsonBtn) {
+      saveJsonBtn.addEventListener('click', () => {
+        this.saveJsonChanges();
+      });
+    }
+
+    const cancelJsonBtn = document.getElementById('cancel-json-btn');
+    if (cancelJsonBtn) {
+      cancelJsonBtn.addEventListener('click', () => {
+        this.cancelJsonChanges();
+      });
+    }
+
+    const validateJsonBtn = document.getElementById('validate-json-btn');
+    if (validateJsonBtn) {
+      validateJsonBtn.addEventListener('click', () => {
+        this.validateJson();
       });
     }
 
@@ -135,8 +152,12 @@ export class UIController {
   setupContentEventListeners() {
     this.eventBus.on('scenarios:loaded', (scenarios) => this.handleScenariosLoaded(scenarios));
     this.eventBus.on('stories:loaded', (stories) => this.handleStoriesLoaded(stories));
-    this.eventBus.on('scenario:selected', (scenarioKey) => this.handleScenarioSelected(scenarioKey));
+    this.eventBus.on('scenario:selected', (data) => this.handleScenarioSelectedData(data));
+    this.eventBus.on('scenario:updated', (data) => this.handleScenarioUpdatedComplete(data));
     this.eventBus.on('content:errors', (errors) => this.handleContentErrors(errors));
+    this.eventBus.on('simulation:regular-completed', () => this.showExportCsvButton());
+    this.eventBus.on('simulation:started', () => this.hideExportCsvButton());
+    this.eventBus.on('insights:generated', (data) => this.handleInsightsGenerated(data));
   }
 
   /**
@@ -152,8 +173,8 @@ export class UIController {
    * Set up story-related event listeners
    */
   setupStoryEventListeners() {
-    this.eventBus.on('story:mode-entered', () => this.handleStoryModeEntered());
-    this.eventBus.on('story:mode-exited', () => this.handleStoryModeExited());
+    // Mode switching now handled by ModeController
+    // Keep story-specific UI events
   }
 
   // === EVENT HANDLERS ===
@@ -175,7 +196,83 @@ export class UIController {
   }
 
   /**
-   * Handle scenario selection
+   * Handle scenario selection data from ScenarioController
+   */
+  handleScenarioSelectedData(data) {
+    try {
+      this.currentScenario = data.scenario;
+      this.updateJsonPreview(data.scenario);
+      this.showSuccess(`Scenario loaded: ${data.scenario.metadata?.title || data.key}`);
+      
+      // Listen for scenario synopsis from ScenarioController (proper event bus flow)
+      this.eventBus.once('scenario:loaded', (synopsisData) => {
+        if (synopsisData.scenarioSynopsis) {
+          this.updateScenarioDetails(synopsisData.scenario, synopsisData.scenarioSynopsis);
+        }
+      });
+      
+    } catch (error) {
+      this.showError(`Failed to handle scenario data: ${error.message}`);
+    }
+  }
+
+  /**
+   * Handle scenario updated data from event bus (e.g., after JSON editing)
+   * PROPER EVENT BUS PATTERN: This component updates its own UI sections in response to events
+   */
+  handleScenarioUpdatedComplete(data) {
+    console.log('🔄 UIController received scenario:updated event:', data);
+    
+    if (data.scenarioData) {
+      this.currentScenario = data.scenarioData;
+      
+      // 1. Update Key Assumptions section
+      const synopsis = this.extractKeyAssumptions(data.scenarioData);
+      this.updateScenarioDetails(data.scenarioData, synopsis);
+      console.log('✅ UIController updated Key Assumptions from scenario:updated event');
+      
+      // 2. Update Key Insights section with new scenario data
+      this.regenerateKeyInsights(data.scenarioData);
+    }
+  }
+
+  /**
+   * Regenerate Key Insights based on updated scenario data
+   * PROPER EVENT BUS PATTERN: Request insights generation via event bus
+   */
+  regenerateKeyInsights(scenarioData) {
+    console.log('💡 Regenerating Key Insights for updated scenario data');
+    
+    // PROPER EVENT BUS PATTERN: Request insights generation from SimulationService
+    this.eventBus.emit('insights:generate-static', {
+      scenarioData: scenarioData,
+      requestId: 'scenario-updated-insights'
+    });
+    
+    console.log('📡 Emitted insights:generate-static event for scenario update');
+  }
+
+  /**
+   * Handle generated insights from SimulationService
+   * PROPER EVENT BUS PATTERN: Display insights when received via event bus
+   */
+  handleInsightsGenerated(data) {
+    console.log('✅ UIController received insights:generated event:', data);
+    
+    if (data.insights && data.requestId === 'scenario-updated-insights') {
+      // Display the updated insights
+      this.displayInsights(data.insights);
+      
+      console.log('✅ Key Insights updated with new scenario data:', {
+        insightsCount: data.insights.length,
+        monthlyExpenses: data.scenarioData?.plan?.monthly_expenses,
+        annualExpenses: (data.scenarioData?.plan?.monthly_expenses || 0) * 12
+      });
+    }
+  }
+
+  /**
+   * Handle scenario selection (legacy method - keeping for compatibility)
    */
   async handleScenarioSelected(scenarioKey) {
     try {
@@ -187,9 +284,6 @@ export class UIController {
         this.currentScenario = data.scenario;
         this.updateJsonPreview(data.scenario);
         this.showSuccess(`Scenario loaded: ${data.scenario.metadata?.title || scenarioKey}`);
-        
-        // Emit a different event to avoid infinite loop
-        this.eventBus.emit('scenario:loaded', { scenarioKey, scenario: data.scenario });
       });
 
       // Listen for potential errors
@@ -244,23 +338,7 @@ export class UIController {
     this.showError(`Simulation failed: ${data.error?.message || 'Unknown error'}`);
   }
 
-  /**
-   * Handle story mode entered
-   */
-  handleStoryModeEntered() {
-    if (this.storyPanel) {
-      this.storyPanel.style.display = 'block';
-    }
-  }
-
-  /**
-   * Handle story mode exited
-   */
-  handleStoryModeExited() {
-    if (this.storyPanel) {
-      this.storyPanel.style.display = 'none';
-    }
-  }
+  // Story mode display now handled by ModeController CSS classes
 
   // === UI METHODS ===
 
@@ -301,104 +379,458 @@ export class UIController {
   }
 
   /**
-   * Update JSON preview
+   * Update scenario display (replaces old JSON preview functionality)
    */
-  updateJsonPreview(scenario) {
-    console.log('🔍 updateJsonPreview called:', {
-      hasJsonPreview: !!this.jsonPreview,
+  updateScenarioDisplay(scenario) {
+    console.log('🔍 updateScenarioDisplay called:', {
       scenarioKeys: Object.keys(scenario || {}),
-      jsonPreviewElement: this.jsonPreview
+      hasMetadata: !!(scenario && scenario.metadata)
     });
     
-    if (this.jsonPreview) {
-      this.jsonPreview.textContent = JSON.stringify(scenario, null, 2);
-      
-      // Keep the details section collapsed by default
-      const detailsElement = this.jsonPreview.closest('details');
-      if (detailsElement) {
-        detailsElement.open = false;
-      }
-      
-      // Show the scenario preview section
-      const scenarioPreview = document.getElementById('scenario-preview');
-      if (scenarioPreview) {
-        scenarioPreview.style.display = 'block';
-      }
-      
-      // Update scenario details
-      this.updateScenarioDetails(scenario);
-      
-      console.log('✅ JSON preview updated and made visible');
+    // Show the scenario preview section
+    const scenarioPreview = document.getElementById('scenario-preview');
+    if (scenarioPreview) {
+      scenarioPreview.classList.remove('hidden');
+      console.log('✅ Scenario preview section made visible');
     } else {
-      console.error('❌ jsonPreview element not found!');
+      console.error('❌ scenario-preview element not found!');
+      return;
     }
+    
+    // Update scenario details and enhanced configuration synopsis
+    this.updateScenarioDetails(scenario);
+    
+    console.log('✅ Scenario display updated and made visible');
+  }
+  
+  /**
+   * Legacy method - redirects to new updateScenarioDisplay
+   * @deprecated Use updateScenarioDisplay instead
+   */
+  updateJsonPreview(scenario) {
+    console.log('⚠️ updateJsonPreview is deprecated, using updateScenarioDisplay');
+    this.updateScenarioDisplay(scenario);
   }
 
   /**
    * Update scenario details in the preview section
    */
-  updateScenarioDetails(scenario) {
+  updateScenarioDetails(scenario, scenarioSynopsis = null) {
     // Update scenario description
     const descriptionElement = document.getElementById('scenario-description');
     if (descriptionElement && scenario.metadata) {
       descriptionElement.textContent = scenario.metadata.description || 'No description available';
     }
     
-    // Update key assumptions
+    // Update key assumptions with comprehensive synopsis
     const assumptionsList = document.getElementById('key-assumptions-list');
-    if (assumptionsList && scenario.plan) {
+    if (assumptionsList && scenarioSynopsis) {
       assumptionsList.innerHTML = '';
       
-      // Add key assumptions based on scenario data
-      const assumptions = [
-        `Monthly expenses: $${scenario.plan.monthly_expenses?.toLocaleString() || 'N/A'}`,
-        `Duration: ${scenario.plan.duration_months || 'N/A'} months`,
-        `Assets: ${scenario.assets?.length || 0} accounts`,
-        `Income sources: ${scenario.income?.length || 0}`
-      ];
+      const synopsis = scenarioSynopsis;
       
-      assumptions.forEach(assumption => {
-        const li = document.createElement('li');
-        li.textContent = assumption;
-        assumptionsList.appendChild(li);
-      });
+      // Plan Configuration
+      if (synopsis.plan && synopsis.plan.length > 0) {
+        const planHeader = document.createElement('li');
+        planHeader.innerHTML = '<strong>📋 Plan:</strong>';
+        assumptionsList.appendChild(planHeader);
+        synopsis.plan.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `&nbsp;&nbsp;• ${item}`;
+          li.style.fontSize = '0.9em';
+          assumptionsList.appendChild(li);
+        });
+      }
+      
+      // Assets
+      if (synopsis.assets && synopsis.assets.length > 0) {
+        const assetsHeader = document.createElement('li');
+        assetsHeader.innerHTML = '<strong>💰 Assets:</strong>';
+        assumptionsList.appendChild(assetsHeader);
+        synopsis.assets.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `&nbsp;&nbsp;• ${item}`;
+          li.style.fontSize = '0.9em';
+          assumptionsList.appendChild(li);
+        });
+      }
+      
+      // Income Sources
+      if (synopsis.income && synopsis.income.length > 0) {
+        const incomeHeader = document.createElement('li');
+        incomeHeader.innerHTML = '<strong>💵 Income:</strong>';
+        assumptionsList.appendChild(incomeHeader);
+        synopsis.income.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `&nbsp;&nbsp;• ${item}`;
+          li.style.fontSize = '0.9em';
+          assumptionsList.appendChild(li);
+        });
+      }
+      
+      // Rate Schedules
+      if (synopsis.schedules && synopsis.schedules.length > 0) {
+        const schedulesHeader = document.createElement('li');
+        schedulesHeader.innerHTML = '<strong>📈 Rate Schedules:</strong>';
+        assumptionsList.appendChild(schedulesHeader);
+        synopsis.schedules.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `&nbsp;&nbsp;• ${item}`;
+          li.style.fontSize = '0.9em';
+          assumptionsList.appendChild(li);
+        });
+      }
+      
+      // Drawdown Order
+      if (synopsis.drawdownOrder && synopsis.drawdownOrder.length > 0) {
+        const drawdownHeader = document.createElement('li');
+        drawdownHeader.innerHTML = '<strong>🔄 Drawdown Order:</strong>';
+        assumptionsList.appendChild(drawdownHeader);
+        synopsis.drawdownOrder.forEach(item => {
+          const li = document.createElement('li');
+          li.innerHTML = `&nbsp;&nbsp;• ${item}`;
+          li.style.fontSize = '0.9em';
+          assumptionsList.appendChild(li);
+        });
+      }
     }
+    
+    // Update enhanced configuration synopsis
+    this.updateConfigurationSynopsis(scenario, scenarioSynopsis);
+  }
+  
+  /**
+   * Update the enhanced configuration synopsis with detailed breakdown
+   */
+  updateConfigurationSynopsis(scenario, scenarioSynopsis = null) {
+    if (!scenario) return;
+    
+    // Update financial overview
+    this.updateFinancialOverview(scenario);
+    
+    // Update asset breakdown
+    this.updateAssetBreakdown(scenario);
+    
+    // Update income breakdown
+    this.updateIncomeBreakdown(scenario);
+  }
+  
+  /**
+   * Update financial overview section
+   */
+  updateFinancialOverview(scenario) {
+    // Calculate total assets
+    let totalAssets = 0;
+    if (scenario.assets && Array.isArray(scenario.assets)) {
+      totalAssets = scenario.assets.reduce((sum, asset) => {
+        return sum + (asset.balance || 0);
+      }, 0);
+    }
+    
+    // Get monthly expenses
+    const monthlyExpenses = scenario.plan?.monthly_expenses || 0;
+    
+    // Count income sources
+    const incomeCount = scenario.income ? scenario.income.length : 0;
+    
+    // Get simulation duration
+    const duration = scenario.plan?.duration_months || 0;
+    const durationYears = Math.round(duration / 12);
+    
+    // Update DOM elements
+    this.updateConfigValue('config-total-assets', this.formatCurrency(totalAssets));
+    this.updateConfigValue('config-monthly-expenses', this.formatCurrency(monthlyExpenses));
+    this.updateConfigValue('config-income-count', `${incomeCount} source${incomeCount !== 1 ? 's' : ''}`);
+    this.updateConfigValue('config-duration', `${durationYears} years (${duration} months)`);
+  }
+  
+  /**
+   * Update asset breakdown section
+   */
+  updateAssetBreakdown(scenario) {
+    const container = document.getElementById('config-assets-breakdown');
+    if (!container || !scenario.assets) return;
+    
+    container.innerHTML = '';
+    
+    scenario.assets.forEach(asset => {
+      const item = document.createElement('div');
+      item.className = 'breakdown-item';
+      
+      const label = document.createElement('span');
+      label.className = 'breakdown-label';
+      label.textContent = asset.name || 'Unnamed Asset';
+      
+      const value = document.createElement('span');
+      value.className = 'breakdown-value';
+      value.textContent = this.formatCurrency(asset.balance || 0);
+      
+      item.appendChild(label);
+      item.appendChild(value);
+      container.appendChild(item);
+    });
+  }
+  
+  /**
+   * Update income breakdown section
+   */
+  updateIncomeBreakdown(scenario) {
+    const container = document.getElementById('config-income-breakdown');
+    if (!container || !scenario.income) return;
+    
+    container.innerHTML = '';
+    
+    scenario.income.forEach(income => {
+      const item = document.createElement('div');
+      item.className = 'breakdown-item';
+      
+      const label = document.createElement('span');
+      label.className = 'breakdown-label';
+      label.textContent = income.name || 'Unnamed Income';
+      
+      const value = document.createElement('span');
+      value.className = 'breakdown-value';
+      const monthlyAmount = income.monthly_amount || 0;
+      const startMonth = income.start_month || 1;
+      value.textContent = `${this.formatCurrency(monthlyAmount)}/mo (starts month ${startMonth})`;
+      
+      item.appendChild(label);
+      item.appendChild(value);
+      container.appendChild(item);
+    });
+  }
+  
+  /**
+   * Helper method to update config values
+   */
+  updateConfigValue(elementId, value) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.textContent = value;
+    }
+  }
+  
+  /**
+   * Helper method to format currency
+   */
+  formatCurrency(amount) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
   }
 
   /**
    * Toggle JSON editor visibility
    */
   toggleJsonEditor() {
-    const jsonContainer = document.getElementById('json-container');
-    if (jsonContainer) {
-      const isCollapsed = jsonContainer.classList.contains('json-container--collapsed');
+    const jsonEditorSection = document.getElementById('json-editor-section');
+    const configSynopsis = document.getElementById('scenario-config-synopsis');
+    
+    if (jsonEditorSection && configSynopsis) {
+      const isHidden = jsonEditorSection.style.display === 'none';
       
-      if (isCollapsed) {
-        jsonContainer.classList.remove('json-container--collapsed');
-        jsonContainer.style.display = 'block';
-      } else {
-        jsonContainer.classList.add('json-container--collapsed');
-        jsonContainer.style.display = 'none';
-      }
-      
-      const toggleBtn = document.getElementById('toggle-json-btn');
-      if (toggleBtn) {
-        toggleBtn.textContent = isCollapsed ? 'Hide JSON Editor' : 'Edit JSON';
-      }
-      
-      // Populate JSON editor with current scenario
-      if (isCollapsed && this.currentScenario) {
-        const jsonInput = document.getElementById('json-input');
-        if (jsonInput) {
-          jsonInput.value = JSON.stringify(this.currentScenario, null, 2);
+      if (isHidden) {
+        // Show JSON editor, hide config synopsis
+        jsonEditorSection.style.display = 'block';
+        configSynopsis.style.display = 'none';
+        
+        // Populate JSON editor with current scenario
+        if (this.currentScenario) {
+          const jsonEditor = document.getElementById('json-editor');
+          if (jsonEditor) {
+            jsonEditor.value = JSON.stringify(this.currentScenario, null, 2);
+          }
         }
+        
+        console.log('🔧 JSON editor shown');
+      } else {
+        // Hide JSON editor, show config synopsis
+        jsonEditorSection.style.display = 'none';
+        configSynopsis.style.display = 'block';
+        
+        console.log('🔧 JSON editor hidden');
       }
-      
-      console.log(`🔧 JSON editor ${isCollapsed ? 'shown' : 'hidden'}`);
     } else {
-      console.warn('❌ JSON container not found');
+      console.warn('❌ JSON editor section or config synopsis not found');
     }
   }
+  
+  /**
+   * Extract comprehensive scenario synopsis for one-glance overview
+   * (Same logic as ScenarioController.extractKeyAssumptions)
+   */
+  extractKeyAssumptions(scenario) {
+    const synopsis = {
+      plan: [],
+      assets: [],
+      income: [],
+      schedules: [],
+      drawdownOrder: []
+    };
+    
+    // Plan Configuration
+    if (scenario.plan?.monthly_expenses) {
+      synopsis.plan.push(`Monthly expenses: $${scenario.plan.monthly_expenses.toLocaleString()}`);
+    }
+    if (scenario.plan?.retirement_age) {
+      synopsis.plan.push(`Retirement age: ${scenario.plan.retirement_age}`);
+    }
+    if (scenario.plan?.life_expectancy) {
+      synopsis.plan.push(`Life expectancy: ${scenario.plan.life_expectancy}`);
+    }
+    
+    // Assets Overview
+    if (scenario.assets && scenario.assets.length > 0) {
+      const totalAssets = scenario.assets.reduce((sum, asset) => sum + (asset.balance || 0), 0);
+      synopsis.assets.push(`Total assets: $${totalAssets.toLocaleString()}`);
+      
+      scenario.assets.forEach(asset => {
+        const details = [];
+        details.push(`$${(asset.balance || 0).toLocaleString()}`);
+        if (asset.type) details.push(asset.type);
+        if (asset.return_schedule) details.push(`${asset.return_schedule} returns`);
+        if (asset.min_balance) details.push(`min: $${asset.min_balance.toLocaleString()}`);
+        synopsis.assets.push(`${asset.name}: ${details.join(', ')}`);
+      });
+    }
+    
+    // Income Sources
+    if (scenario.income && scenario.income.length > 0) {
+      scenario.income.forEach(income => {
+        const details = [];
+        details.push(`$${(income.monthly_amount || 0).toLocaleString()}/month`);
+        if (income.start_month) details.push(`starts month ${income.start_month}`);
+        if (income.end_month) details.push(`ends month ${income.end_month}`);
+        if (income.inflation_schedule) details.push(`${income.inflation_schedule} inflation`);
+        synopsis.income.push(`${income.name}: ${details.join(', ')}`);
+      });
+    }
+    
+    // Rate Schedules
+    if (scenario.rate_schedules) {
+      Object.entries(scenario.rate_schedules).forEach(([name, schedule]) => {
+        if (schedule.type === 'fixed') {
+          synopsis.schedules.push(`${name}: ${(schedule.rate * 100).toFixed(1)}% fixed`);
+        } else if (schedule.type === 'variable') {
+          synopsis.schedules.push(`${name}: variable (${schedule.rates?.length || 0} periods)`);
+        } else {
+          synopsis.schedules.push(`${name}: ${schedule.type}`);
+        }
+      });
+    }
+    
+    // Drawdown Order
+    if (scenario.order && scenario.order.length > 0) {
+      synopsis.drawdownOrder = scenario.order
+        .sort((a, b) => a.order - b.order)
+        .map(item => `${item.order}. ${item.account}`);
+    }
+    
+    return synopsis;
+  }
+
+  /**
+   * Save JSON editor changes
+   */
+  saveJsonChanges() {
+    const jsonEditor = document.getElementById('json-editor');
+    const feedback = document.getElementById('json-validation-feedback');
+    
+    if (!jsonEditor || !feedback) return;
+    
+    try {
+      const jsonText = jsonEditor.value;
+      const parsedScenario = JSON.parse(jsonText);
+      
+      // Basic validation
+      if (!parsedScenario.metadata || !parsedScenario.plan) {
+        throw new Error('Invalid scenario structure: missing metadata or plan');
+      }
+      
+      // Update current scenario
+      this.currentScenario = parsedScenario;
+      
+      // PROPER EVENT BUS PATTERN: Just emit the event, let everyone else update themselves
+      this.eventBus.emit('scenario:updated', {
+        scenarioData: parsedScenario
+      });
+      
+      console.log('📡 Emitted scenario:updated event after JSON save - letting components update themselves');
+      
+      // Show success feedback
+      feedback.className = 'validation-feedback success';
+      feedback.textContent = '✅ Scenario updated successfully!';
+      
+      // Hide JSON editor after successful save
+      setTimeout(() => {
+        this.toggleJsonEditor();
+        feedback.style.display = 'none';
+      }, 2000);
+      
+      console.log('💾 JSON changes saved successfully - all UI elements updated');
+      
+    } catch (error) {
+      // Show error feedback
+      feedback.className = 'validation-feedback error';
+      feedback.textContent = `❌ Error: ${error.message}`;
+      console.error('❌ JSON save error:', error);
+    }
+  }
+  
+  /**
+   * Cancel JSON editor changes
+   */
+  cancelJsonChanges() {
+    const feedback = document.getElementById('json-validation-feedback');
+    if (feedback) {
+      feedback.style.display = 'none';
+    }
+    this.toggleJsonEditor();
+    console.log('❌ JSON changes cancelled');
+  }
+  
+  /**
+   * Validate JSON without saving
+   */
+  validateJson() {
+    const jsonEditor = document.getElementById('json-editor');
+    const feedback = document.getElementById('json-validation-feedback');
+    
+    if (!jsonEditor || !feedback) return;
+    
+    try {
+      const jsonText = jsonEditor.value;
+      const parsedScenario = JSON.parse(jsonText);
+      
+      // Basic validation
+      if (!parsedScenario.metadata) {
+        throw new Error('Missing metadata section');
+      }
+      if (!parsedScenario.plan) {
+        throw new Error('Missing plan section');
+      }
+      if (!parsedScenario.assets || !Array.isArray(parsedScenario.assets)) {
+        throw new Error('Missing or invalid assets array');
+      }
+      
+      // Show success feedback
+      feedback.className = 'validation-feedback success';
+      feedback.textContent = '✅ JSON is valid and ready to save!';
+      
+      console.log('✅ JSON validation passed');
+      
+    } catch (error) {
+      // Show error feedback
+      feedback.className = 'validation-feedback error';
+      feedback.textContent = `❌ Validation Error: ${error.message}`;
+      console.error('❌ JSON validation error:', error);
+    }
+  }
+  
+  // refreshConfigSynopsis method removed - synopsis now updates automatically via event bus
 
   /**
    * Toggle CSV export visibility
@@ -939,7 +1371,7 @@ export class UIController {
     if (!this.runButton) return;
     
     this.runButton.disabled = isLoading;
-    this.runButton.textContent = isLoading ? 'Running...' : 'Run Simulation';
+    this.runButton.textContent = isLoading ? 'Running...' : '🚀 Run Single Scenario';
   }
 
   /**
@@ -976,5 +1408,25 @@ export class UIController {
   showWarning(message) {
     console.warn('⚠️', message);
     // Could implement toast notifications here
+  }
+
+  /**
+   * Show Export CSV button after single scenario simulation completes
+   */
+  showExportCsvButton() {
+    const csvButton = document.getElementById('toggle-csv-btn');
+    if (csvButton) {
+      csvButton.style.display = 'inline-block';
+    }
+  }
+
+  /**
+   * Hide Export CSV button when simulation starts
+   */
+  hideExportCsvButton() {
+    const csvButton = document.getElementById('toggle-csv-btn');
+    if (csvButton) {
+      csvButton.style.display = 'none';
+    }
   }
 }

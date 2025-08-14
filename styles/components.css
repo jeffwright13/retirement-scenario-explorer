@@ -58,38 +58,79 @@
 
   /* Button Variants */
   .btn--primary {
-    background: var(--theme-gradient-primary);
+    background: var(--theme-gradient-button);
     color: var(--color-white);
+    box-shadow: var(--shadow-md);
   }
 
   .btn--primary:hover {
-    background: linear-gradient(135deg, var(--theme-primary-600) 0%, var(--theme-primary-700) 100%);
+    filter: brightness(var(--hover-brightness));
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn--primary:active {
+    filter: brightness(var(--active-brightness));
+  }
+
+  .btn--primary:focus {
+    outline: var(--focus-ring-width) solid var(--theme-primary-500);
+    outline-offset: var(--focus-ring-offset);
   }
 
   .btn--secondary {
-    background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-200) 100%);
-    color: var(--color-gray-700);
-    border-color: var(--color-gray-300);
+    background: var(--background-card);
+    color: var(--text-secondary);
+    border: 2px solid var(--border-color);
+    box-shadow: var(--shadow-sm);
   }
 
   .btn--secondary:hover {
-    background: linear-gradient(135deg, var(--color-gray-200) 0%, var(--color-gray-300) 100%);
-    border-color: var(--color-gray-400);
+    background: var(--background-subtle);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+    filter: brightness(var(--hover-brightness));
+  }
+
+  .btn--secondary:active {
+    filter: brightness(var(--active-brightness));
   }
 
   .btn--success {
     background: linear-gradient(135deg, var(--color-success-500) 0%, var(--color-success-600) 100%);
     color: var(--color-white);
+    box-shadow: var(--shadow-md);
   }
 
   .btn--success:hover {
-    background: linear-gradient(135deg, var(--color-success-600) 0%, var(--color-success-600) 100%);
+    filter: brightness(var(--hover-brightness));
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn--success:active {
+    filter: brightness(var(--active-brightness));
   }
 
   .btn--success.loading {
     background: var(--color-gray-500);
     cursor: not-allowed;
     pointer-events: none;
+  }
+
+  /* Monte Carlo Button - Orange Theme */
+  .btn--monte-carlo {
+    background: linear-gradient(135deg, var(--color-orange-500) 0%, var(--color-orange-600) 100%);
+    color: var(--color-white);
+    box-shadow: var(--shadow-md);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .btn--monte-carlo:hover {
+    filter: brightness(var(--hover-brightness));
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn--monte-carlo:active {
+    filter: brightness(var(--active-brightness));
   }
 
   .btn--advanced {
@@ -108,6 +149,15 @@
 
   .btn--purple:hover {
     background: linear-gradient(135deg, var(--color-purple-600) 0%, var(--color-purple-700) 100%);
+  }
+
+  .btn--monte-carlo {
+    background: linear-gradient(135deg, var(--color-orange-500) 0%, var(--color-orange-600) 100%);
+    color: var(--color-white);
+  }
+
+  .btn--monte-carlo:hover {
+    background: linear-gradient(135deg, var(--color-orange-600) 0%, var(--color-orange-700) 100%);
   }
 
   /* Specialized Button Types */
@@ -157,28 +207,32 @@
 
   .btn--dismiss:hover {
     background: rgba(255, 255, 255, 0.3);
-    transform: none;
   }
 
   .btn--story-nav {
-    flex: 1;
-    padding: var(--space-3) var(--space-6);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: var(--radius-base);
     background: rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.3);
     color: var(--color-white);
-    font-weight: var(--font-weight-semibold);
-    cursor: pointer;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
     transition: all var(--transition-base);
-    font-size: var(--font-size-base);
-    display: flex;
-    justify-content: center;
+    cursor: pointer;
+    display: inline-flex;
     align-items: center;
+    gap: var(--space-2);
   }
 
-  .btn--story-nav:hover:not(:disabled) {
+  .btn--story-nav:hover {
     background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    filter: brightness(var(--hover-brightness));
     transform: translateY(-1px);
+  }
+
+  .btn--story-nav:active {
+    filter: brightness(var(--active-brightness));
+    transform: translateY(0);
   }
 
   .btn--story-nav:disabled {
@@ -187,12 +241,30 @@
     transform: none;
   }
 
+  .btn--story-exit {
+    background: var(--theme-gradient-button);
+    color: var(--color-white);
+    border: none;
+    padding: var(--space-3) var(--space-5);
+    border-radius: var(--radius-md);
+    font-weight: var(--font-weight-medium);
+    transition: all var(--transition-base);
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn--story-exit:hover {
+    filter: brightness(1.05); /* Softer hover state */
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+  }
+
   .btn--story-nav.btn--prev {
-    /* Specific styling for previous button if needed */
+    margin-right: auto;
   }
 
   .btn--story-nav.btn--next {
-    /* Specific styling for next button if needed */
+    margin-left: auto;
   }
 
   .btn--complete {
@@ -276,6 +348,80 @@
     font-size: var(--font-size-base);
     background: var(--color-white);
     color: var(--color-gray-900);
+  }
+
+  /* ===== TABS - CONSISTENT DESIGN SYSTEM ===== */
+  .tab-navigation {
+    display: flex;
+    border-bottom: 2px solid var(--border-color-muted);
+    background: var(--background-card);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    overflow: hidden;
+  }
+
+  .tab-button {
+    flex: 1;
+    padding: var(--space-4) var(--space-6);
+    background: var(--background-subtle);
+    border: none;
+    color: var(--text-secondary);
+    font-weight: var(--font-weight-medium);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    position: relative;
+    border-bottom: 3px solid transparent;
+  }
+
+  .tab-button:hover {
+    background: var(--background-card);
+    color: var(--text-primary);
+    filter: brightness(var(--hover-brightness));
+  }
+
+  .tab-button.active {
+    background: var(--background-card);
+    color: var(--theme-primary-700);
+    border-bottom-color: var(--theme-primary-500);
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .tab-button:focus {
+    outline: var(--focus-ring-width) solid var(--theme-primary-500);
+    outline-offset: -2px;
+    z-index: 1;
+  }
+
+  .tab-content {
+    background: var(--background-card);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-base);
+    border: 1px solid var(--border-color-muted);
+    border-top: none;
+  }
+
+  .tab-panel {
+    display: none;
+  }
+
+  .tab-panel.active {
+    display: block;
+    animation: fadeIn 0.2s ease-in-out;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ===== CARDS ===== */
+  .card {
+    background: var(--background-card);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-base);
+    padding: var(--space-6);
+    border: 1px solid var(--border-color);
   }
 
   /* ===== ANIMATIONS ===== */

@@ -20,22 +20,26 @@
   <link rel="stylesheet" href="styles/utilities.css">
 </head>
 <body>
-  <div class="container">
-    <!-- Main header -->
-    <div class="header">
+  <div class="app-container">
+    <!-- Mode Selector Header -->
+    <div class="mode-selector-header">
       <h1>💰 Retirement Scenario Explorer</h1>
       <p>Will your assets and strategy stand the test of time?</p>
-
-      <!-- Story Mode Toggle -->
-      <div class="story-mode-toggle">
-        <button id="story-mode-toggle" class="btn btn--story-toggle">
+      
+      <!-- Mode Toggle -->
+      <div class="mode-toggle">
+        <button id="scenario-mode-btn" class="btn btn--mode-toggle btn--mode-active">
+          📊 Scenario Mode
+        </button>
+        <button id="story-mode-btn" class="btn btn--mode-toggle">
           📚 Story Mode
         </button>
       </div>
     </div>
 
-    <!-- Story Panel (hidden by default) -->
-    <div class="story-panel" id="story-panel">
+    <!-- Story Mode Container -->
+    <div class="story-mode-container" id="story-mode-container">
+      <div class="story-panel" id="story-panel">
       <div class="story-header">
         <h3>📚 Storyteller Mode</h3>
         <button id="story-exit-btn" class="btn btn--exit-story">Exit Story</button>
@@ -135,86 +139,175 @@
           </details>
         </div>
       </details>
+      </div>
     </div>
 
-    <!-- Getting Started Panel -->
-    <div class="getting-started-panel" id="getting-started-panel">
-      <div class="getting-started-header" id="getting-started-header">
-        <h3>📊 Scenario Explorer</h3>
-        <span class="collapse-indicator">🔽</span>
+    <!-- Scenario Mode Container -->
+    <div class="scenario-mode-container" id="scenario-mode-container">
+      <!-- Tab Navigation -->
+      <div class="scenario-tabs">
+        <button class="tab-button active" data-tab="input">📊 Input</button>
+        <button class="tab-button" data-tab="simulation">🚀 Simulation</button>
+        <button class="tab-button" data-tab="results">📈 Results</button>
+        <button class="tab-button" data-tab="compare">🔄 Compare</button>
       </div>
-      <div class="getting-started-content">
-        <div class="scenario-selector">
-          <select id="scenario-dropdown" class="form-select scenario-dropdown">
-            <option value="">Choose a Scenario...</option>
-          </select>
-        </div>
-        <div class="scenario-preview" id="scenario-preview">
-          <h4>📋 Scenario Details:</h4>
-          <p id="scenario-description"></p>
 
-          <div class="key-assumptions" id="key-assumptions">
-            <h4>🔑 Key Assumptions</h4>
-            <ul id="key-assumptions-list"></ul>
+      <!-- Tab Content -->
+      <div class="tab-content">
+        <!-- Input Tab -->
+        <div class="tab-panel active" id="input-tab">
+          <div class="tab-panel-header">
+            <h3>📊 Scenario Input</h3>
+            <p>Select and configure your retirement scenario</p>
           </div>
+          
+          <div class="scenario-selector">
+            <label for="scenario-dropdown" class="form-label">Choose Scenario:</label>
+            <select id="scenario-dropdown" class="form-select scenario-dropdown">
+              <option value="">Choose a Scenario...</option>
+            </select>
+          </div>
+          
+          <div class="scenario-preview hidden" id="scenario-preview">
+            <h4>📋 Scenario Details:</h4>
+            <p id="scenario-description"></p>
 
-          <details>
-            <summary>👀 Peek at JSON Configuration</summary>
-            <pre id="scenario-json-preview" class="code-preview"></pre>
-          </details>
+            <!-- Enhanced Configuration Synopsis -->
+            <div class="scenario-config-synopsis" id="scenario-config-synopsis">
+              <div class="config-section">
+                <h4>🔑 Key Assumptions</h4>
+                <ul id="key-assumptions-list"></ul>
+              </div>
+              
+              <div class="config-section">
+                <h4>💰 Financial Overview</h4>
+                <div class="config-grid">
+                  <div class="config-item">
+                    <span class="config-label">Starting Assets:</span>
+                    <span class="config-value" id="config-total-assets">--</span>
+                  </div>
+                  <div class="config-item">
+                    <span class="config-label">Monthly Expenses:</span>
+                    <span class="config-value" id="config-monthly-expenses">--</span>
+                  </div>
+                  <div class="config-item">
+                    <span class="config-label">Income Sources:</span>
+                    <span class="config-value" id="config-income-count">--</span>
+                  </div>
+                  <div class="config-item">
+                    <span class="config-label">Simulation Duration:</span>
+                    <span class="config-value" id="config-duration">--</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="config-section">
+                <h4>📊 Asset Breakdown</h4>
+                <div id="config-assets-breakdown" class="assets-breakdown"></div>
+              </div>
+              
+              <div class="config-section">
+                <h4>💵 Income Streams</h4>
+                <div id="config-income-breakdown" class="income-breakdown"></div>
+              </div>
+              
+              <div class="config-actions">
+                <button id="toggle-json-btn" class="btn btn--primary">📝 Edit Scenario Data</button>
+              </div>
+            </div>
+            
+            <!-- JSON Editor (initially hidden) -->
+            <div class="json-editor-section" id="json-editor-section" style="display: none;">
+              <div class="json-editor-header">
+                <h4>📝 Edit Scenario Configuration</h4>
+                <p>Modify the scenario data directly. Changes will be validated before saving.</p>
+              </div>
+              <div class="json-editor-container">
+                <textarea id="json-editor" class="json-editor" rows="20" placeholder="Scenario JSON will appear here..."></textarea>
+              </div>
+              <div class="json-editor-actions">
+                <button id="save-json-btn" class="btn btn--success">💾 Save Changes</button>
+                <button id="cancel-json-btn" class="btn btn--secondary">❌ Cancel</button>
+                <button id="validate-json-btn" class="btn btn--secondary">✅ Validate JSON</button>
+              </div>
+              <div id="json-validation-feedback" class="validation-feedback"></div>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <div class="main-content">
-      <!-- Control Panel -->
-      <div class="control-panel">
-        <div class="control-group">
-          <h3>🚀 Simulation</h3>
-          <p>Select a scenario above, then run the simulation to see your financial projection.</p>
-          <button id="run-btn-primary" class="btn btn--success btn--large">
-            🚀 Run Simulation
-          </button>
-        </div>
-      </div>
-
-      <!-- Chart Area -->
-      <div id="chart-area" class="chart-area"></div>
-
-      <!-- Simulation Insights -->
-      <div class="simulation-insights" id="simulation-insights">
-        <h3>💡 Key Insights</h3>
-        <ul id="insights-list"></ul>
-      </div>
-
-      <!-- Coming Up Next -->
-      <div class="next-scenario-suggestion" id="next-scenario-suggestion">
-        <h4>📈 Coming Up Next...</h4>
-        <p id="next-scenario-description"></p>
-        <button class="btn btn--next-scenario" id="load-next-scenario">
-          <!-- Text set dynamically -->
-        </button>
-      </div>
-
-      <!-- Advanced Options -->
-      <details class="advanced-options" id="advanced-options">
-        <summary class="advanced-summary">Advanced Options</summary>
-        <div class="advanced-options-content">
-          <div class="advanced-button-group">
-            <button id="toggle-json-btn" class="btn btn--advanced">Edit JSON</button>
-            <button id="toggle-csv-btn" class="btn btn--advanced">Export CSV Data</button>
-            <button id="start-monte-carlo" class="btn btn--advanced btn--monte-carlo">
+        <!-- Simulation Tab -->
+        <div class="tab-panel" id="simulation-tab">
+          <div class="tab-panel-header">
+            <h3>🚀 Run Simulation</h3>
+            <p>Execute your retirement scenario analysis</p>
+          </div>
+          
+          <div class="simulation-controls">
+            <button id="run-btn-primary" class="btn btn--success btn--large">
+              🚀 Run Single Scenario
+            </button>
+            <button id="start-monte-carlo" class="btn btn--monte-carlo btn--large">
               🎲 Monte Carlo Analysis
             </button>
-            <button id="run-btn-advanced" class="btn btn--advanced btn--purple">
-              ⚡ Run Custom Scenario
-            </button>
-            <p class="advanced-note">
-              Edits made here will persist immediately - no need to explicitly save. Execute the new scenario by pressing the Run Custom Scenario button.
-            </p>
+          </div>
+          
+          <div class="simulation-options">
+            <button id="toggle-csv-btn" class="btn btn--secondary" style="display: none;">📊 Export CSV Data</button>
+          </div>
+          
+          <div class="simulation-status" id="simulation-status">
+            <!-- Progress indicators and status messages will appear here -->
           </div>
         </div>
-      </details>
+
+        <!-- Results Tab -->
+        <div class="tab-panel" id="results-tab">
+          <div class="tab-panel-header">
+            <h3>📈 Results & Analysis</h3>
+          </div>
+          
+          <!-- Chart Area -->
+          <div id="chart-area" class="chart-area"></div>
+
+          <!-- Simulation Insights -->
+          <div class="simulation-insights" id="simulation-insights">
+            <h3>💡 Key Insights</h3>
+            <ul id="insights-list"></ul>
+          </div>
+
+          <!-- Coming Up Next -->
+          <div class="next-scenario-suggestion" id="next-scenario-suggestion">
+            <h4>📈 Coming Up Next...</h4>
+            <p id="next-scenario-description"></p>
+            <button class="btn btn--next-scenario" id="load-next-scenario">
+              <!-- Text set dynamically -->
+            </button>
+          </div>
+        </div>
+
+        <!-- Compare Tab -->
+        <div class="tab-panel" id="compare-tab">
+          <div class="tab-panel-header">
+            <h3>🔄 Compare Scenarios</h3>
+            <p>Side-by-side scenario comparison (Coming Soon)</p>
+          </div>
+          
+          <div class="compare-placeholder">
+            <div class="placeholder-content">
+              <h4>🚧 Under Development</h4>
+              <p>Scenario comparison features will be available in a future update.</p>
+              <ul>
+                <li>Side-by-side chart comparisons</li>
+                <li>Key metrics comparison table</li>
+                <li>Risk analysis differences</li>
+                <li>Recommendation engine</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
 
       <!-- JSON Section -->
       <div class="json-section">
@@ -265,22 +358,22 @@
           </div>
         </div>
         
-        <!-- Monte Carlo Status -->
+        <!-- Monte Carlo Progress (minimal, near the action) -->
         <div class="monte-carlo-status-section">
-          <div id="monte-carlo-status" class="status ready">Ready</div>
           <progress id="monte-carlo-progress" max="100" value="0" style="display: none;"></progress>
           <div id="monte-carlo-progress-text"></div>
         </div>
         
+        <!-- Monte Carlo Charts Container (moved up, near the action) -->
+        <div id="monte-carlo-charts" class="monte-carlo-charts"></div>
+        
         <!-- Monte Carlo Error Display -->
         <div id="monte-carlo-error" class="error-display" style="display: none;"></div>
         
-        <!-- Monte Carlo Results -->
+        <!-- Monte Carlo Results (detailed info stays lower) -->
         <div id="monte-carlo-summary" class="monte-carlo-results"></div>
         <div id="monte-carlo-insights" class="monte-carlo-insights"></div>
-        
-        <!-- Monte Carlo Charts Container -->
-        <div id="monte-carlo-charts" class="monte-carlo-charts"></div>
+      </div>
       </div>
     </div>
   </div>

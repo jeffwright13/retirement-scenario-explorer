@@ -23,7 +23,7 @@ export class MonteCarloController {
     // Listen for scenario changes to update our state
     this.eventBus.on('scenario:selected', (data) => {
       this.currentScenarioData = data.scenario;
-      console.log('🎲 MonteCarloController: Scenario data updated via scenario:selected:', data.scenario?.name);
+      console.log('🎲 MonteCarloController: Scenario data updated via scenario:selected:', data.scenario?.metadata?.title);
     });
 
     // Also listen for scenario:loaded event (from UIController)
@@ -256,43 +256,41 @@ export class MonteCarloController {
   }
 
   /**
-   * Update status displays
+   * Update status displays based on current state
+   * Note: Main status element removed for cleaner UX - now uses progress text only
    */
   updateStatusDisplays() {
-    const statusElement = document.getElementById('monte-carlo-status');
+    const progressTextElement = document.getElementById('monte-carlo-progress-text');
     
-    if (statusElement) {
+    if (progressTextElement) {
       if (this.isAnalysisRunning) {
-        statusElement.textContent = 'Running Monte Carlo analysis...';
-        statusElement.className = 'status running';
+        // Progress text will be updated by progress handler
+        progressTextElement.style.display = 'block';
       } else if (this.currentAnalysis) {
         switch (this.currentAnalysis.status) {
           case 'completed':
-            statusElement.textContent = `Analysis completed (${this.currentAnalysis.duration}ms)`;
-            statusElement.className = 'status completed';
+            progressTextElement.textContent = `✅ Analysis completed in ${this.currentAnalysis.duration}ms`;
+            progressTextElement.className = 'progress-text completed';
             break;
           case 'error':
-            statusElement.textContent = `Analysis failed: ${this.currentAnalysis.error}`;
-            statusElement.className = 'status error';
+            progressTextElement.textContent = `❌ Analysis failed: ${this.currentAnalysis.error}`;
+            progressTextElement.className = 'progress-text error';
             break;
           case 'cancelled':
-            statusElement.textContent = 'Analysis cancelled';
-            statusElement.className = 'status cancelled';
+            progressTextElement.textContent = '⏹️ Analysis cancelled';
+            progressTextElement.className = 'progress-text cancelled';
             break;
           default:
-            statusElement.textContent = 'Ready';
-            statusElement.className = 'status ready';
+            progressTextElement.textContent = '';
+            progressTextElement.style.display = 'none';
         }
       } else {
-        statusElement.textContent = 'Ready';
-        statusElement.className = 'status ready';
+        progressTextElement.textContent = '';
+        progressTextElement.style.display = 'none';
       }
     }
   }
 
-  /**
-   * Display analysis results
-   */
   /**
    * Display Monte Carlo results in isolation - PREVENT MAIN CHART INTERFERENCE
    */
