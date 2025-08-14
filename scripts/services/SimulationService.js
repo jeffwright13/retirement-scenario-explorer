@@ -35,6 +35,10 @@ export class SimulationService {
   async runSimulation(scenarioData, context = {}) {
     try {
       console.log('🔄 SimulationService: Starting simulation...');
+      
+      // Extract simulation ID if present
+      const simulationId = scenarioData._simulationId;
+      
       this.eventBus.emit('simulation:started', { scenarioData, context });
       
       // Execute the core simulation
@@ -61,14 +65,28 @@ export class SimulationService {
         timestamp: new Date().toISOString()
       };
       
-      console.log('🎉 SimulationService: Emitting simulation:completed event');
-      this.eventBus.emit('simulation:completed', simulationResult);
+      // Emit to unique event if simulation ID exists, otherwise use generic
+      if (simulationId) {
+        console.log(`🎉 SimulationService: Emitting simulation:completed:${simulationId} event`);
+        this.eventBus.emit(`simulation:completed:${simulationId}`, simulationResult);
+      } else {
+        console.log('🎉 SimulationService: Emitting simulation:completed event');
+        this.eventBus.emit('simulation:completed', simulationResult);
+      }
+      
       console.log('✅ SimulationService: Simulation completed successfully');
       return simulationResult;
       
     } catch (error) {
       console.error('❌ SimulationService: Simulation failed:', error);
-      this.eventBus.emit('simulation:failed', { error, scenarioData, context });
+      
+      // Handle errors with unique events too
+      const simulationId = scenarioData._simulationId;
+      if (simulationId) {
+        this.eventBus.emit(`simulation:error:${simulationId}`, { error, scenarioData, context });
+      } else {
+        this.eventBus.emit('simulation:failed', { error, scenarioData, context });
+      }
       throw error;
     }
   }

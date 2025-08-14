@@ -1,0 +1,473 @@
+/**
+ * Monte Carlo Analysis Styles
+ * Styles for Monte Carlo analysis UI components and visualizations
+ */
+
+/* Monte Carlo Section */
+.monte-carlo-section {
+  margin-top: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--background-light);
+  transition: all 0.3s ease;
+}
+
+.monte-carlo-section--collapsed {
+  display: none;
+}
+
+.monte-carlo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #f8fafc;
+  color: #334155;
+  border-radius: 8px 8px 0 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.monte-carlo-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.monte-carlo-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Monte Carlo Configuration */
+.monte-carlo-config {
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--background-white);
+}
+
+.config-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.config-row button {
+  margin-left: auto;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.config-row label {
+  font-weight: 600;
+  color: var(--text-dark);
+  white-space: nowrap;
+}
+
+.config-row input {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  min-width: 120px;
+  background: white;
+  color: #374151;
+}
+
+.config-row input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
+/* Monte Carlo Status */
+.monte-carlo-status-section {
+  padding: 1rem 1.5rem;
+  background: var(--background-light);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.status {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+}
+
+.status.ready {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.status.running {
+  background: #fef3c7;
+  color: #92400e;
+  animation: pulse 2s infinite;
+}
+
+.status.completed {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status.cancelled {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+#monte-carlo-progress {
+  width: 100%;
+  height: 8px;
+  margin: 0.5rem 0;
+  border-radius: 4px;
+  appearance: none;
+}
+
+#monte-carlo-progress::-webkit-progress-bar {
+  background-color: var(--background-white);
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+#monte-carlo-progress::-webkit-progress-value {
+  background: #6366f1;
+  border-radius: 4px;
+}
+
+#monte-carlo-progress-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Error Display */
+.error-display {
+  background: var(--error-light);
+  border: 1px solid var(--error-color);
+  border-radius: 4px;
+  padding: 1rem;
+  margin: 1rem 1.5rem;
+}
+
+.error-message h4 {
+  color: var(--error-dark);
+  margin: 0 0 0.5rem 0;
+}
+
+.error-message p {
+  color: var(--error-dark);
+  margin: 0 0 1rem 0;
+}
+
+.error-message button {
+  background: var(--error-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Monte Carlo Results */
+.monte-carlo-results {
+  padding: 1.5rem;
+  background: var(--background-white);
+}
+
+.monte-carlo-summary h3 {
+  color: var(--text-dark);
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+}
+
+.success-rate {
+  background: var(--background-light);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.success-rate h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-dark);
+}
+
+.metric-value {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0.5rem 0;
+}
+
+.metric-value.good {
+  color: var(--success-color);
+}
+
+.metric-value.warning {
+  color: var(--warning-color);
+}
+
+.metric-value.critical {
+  color: var(--error-color);
+}
+
+.success-rate p {
+  margin: 0.5rem 0 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Final Balance Stats */
+.final-balance-stats {
+  background: var(--background-light);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.final-balance-stats h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-dark);
+}
+
+.percentile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.percentile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--background-white);
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.percentile .label {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.percentile .value {
+  font-weight: bold;
+  color: var(--text-dark);
+}
+
+/* Risk Metrics */
+.risk-metrics {
+  background: var(--background-light);
+  border-radius: 8px;
+  padding: 1.5rem;
+}
+
+.risk-metrics h4 {
+  margin: 0 0 1rem 0;
+  color: var(--text-dark);
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: var(--background-white);
+  border-radius: 4px;
+  border: 1px solid var(--border-color);
+}
+
+.metric .label {
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.metric .value {
+  font-weight: bold;
+  color: var(--text-dark);
+}
+
+/* Monte Carlo Insights */
+.monte-carlo-insights {
+  padding: 1.5rem;
+  background: var(--background-white);
+  border-top: 1px solid var(--border-color);
+}
+
+.monte-carlo-insights h3 {
+  color: var(--text-dark);
+  margin: 0 0 1rem 0;
+  font-size: 1.3rem;
+}
+
+.insight {
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+
+.insight.good {
+  background: var(--success-light);
+  border-left-color: var(--success-color);
+}
+
+.insight.warning {
+  background: var(--warning-light);
+  border-left-color: var(--warning-color);
+}
+
+.insight.critical {
+  background: var(--error-light);
+  border-left-color: var(--error-color);
+}
+
+.insight h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-dark);
+}
+
+.insight p {
+  margin: 0;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* Monte Carlo Charts */
+.monte-carlo-charts {
+  padding: 1.5rem;
+  background: var(--background-white);
+  border-top: 1px solid var(--border-color);
+}
+
+.monte-carlo-chart-container {
+  margin-bottom: 2rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.chart-header {
+  padding: 1rem 1.5rem;
+  background: var(--background-light);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.chart-header h4 {
+  margin: 0 0 0.5rem 0;
+  color: var(--text-dark);
+  font-size: 1.1rem;
+}
+
+.chart-description {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.chart-content {
+  padding: 1rem;
+  background: var(--background-white);
+  text-align: center;
+}
+
+.chart-content canvas {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+/* Monte Carlo Button Styles */
+.btn--monte-carlo {
+  background: #6366f1;
+  color: white;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.btn--monte-carlo:hover {
+  background: #4f46e5;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+}
+
+.btn--monte-carlo:disabled {
+  background: var(--neutral-color);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .config-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .config-row input {
+    width: 100%;
+  }
+  
+  .percentile-grid,
+  .metric-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .monte-carlo-header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .monte-carlo-actions {
+    justify-content: center;
+  }
+  
+  .metric-value {
+    font-size: 2rem;
+  }
+}
+
+/* Dark Theme Support */
+@media (prefers-color-scheme: dark) {
+  .monte-carlo-section {
+    background: var(--background-dark);
+    border-color: var(--border-dark);
+  }
+  
+  .monte-carlo-config {
+    background: var(--background-darker);
+  }
+  
+  .monte-carlo-results,
+  .monte-carlo-insights,
+  .monte-carlo-charts {
+    background: var(--background-darker);
+  }
+  
+  .chart-content {
+    background: var(--background-darker);
+  }
+}

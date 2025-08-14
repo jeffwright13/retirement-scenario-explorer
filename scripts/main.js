@@ -7,9 +7,13 @@ import { EventBus } from './core/EventBus.js';
 import { ContentService } from './services/ContentService.js';
 import { SimulationService } from './services/SimulationService.js';
 import { ValidationService } from './services/ValidationService.js';
+import { MonteCarloService } from './services/MonteCarloService.js';
 import { StoryController } from './controllers/StoryController.js';
 import { ScenarioController } from './controllers/ScenarioController.js';
 import { UIController } from './controllers/UIController.js';
+import { MonteCarloController } from './controllers/MonteCarloController.js';
+import { MonteCarloChart } from './components/MonteCarloChart.js';
+import { MonteCarloUI } from './ui/MonteCarloUI.js';
 
 class RetirementScenarioApp {
   constructor() {
@@ -33,6 +37,7 @@ class RetirementScenarioApp {
     this.contentService = new ContentService(this.eventBus);
     this.simulationService = new SimulationService(this.eventBus);
     this.validationService = new ValidationService(this.eventBus);
+    this.monteCarloService = new MonteCarloService(this.eventBus);
   }
 
   /**
@@ -53,6 +58,9 @@ class RetirementScenarioApp {
     );
     
     this.uiController = new UIController(this.eventBus);
+    this.monteCarloController = new MonteCarloController(this.eventBus);
+    this.monteCarloChart = new MonteCarloChart(this.eventBus);
+    this.monteCarloUI = new MonteCarloUI(this.eventBus);
   }
 
   /**

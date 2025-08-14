@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="styles/base.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/components.css">
+  <link rel="stylesheet" href="styles/monte-carlo.css">
+  <link rel="stylesheet" href="styles/monte-carlo-charts.css">
   <link rel="stylesheet" href="styles/themes.css">
   <link rel="stylesheet" href="styles/utilities.css">
 </head>
@@ -201,6 +203,9 @@
           <div class="advanced-button-group">
             <button id="toggle-json-btn" class="btn btn--advanced">Edit JSON</button>
             <button id="toggle-csv-btn" class="btn btn--advanced">Export CSV Data</button>
+            <button id="start-monte-carlo" class="btn btn--advanced btn--monte-carlo">
+              🎲 Monte Carlo Analysis
+            </button>
             <button id="run-btn-advanced" class="btn btn--advanced btn--purple">
               ⚡ Run Custom Scenario
             </button>
@@ -233,6 +238,49 @@
           </div>
         </div>
         <pre id="csv-container" class="csv-container csv-container--collapsed"></pre>
+      </div>
+
+      <!-- Monte Carlo Section -->
+      <div class="monte-carlo-section monte-carlo-section--collapsed" id="monte-carlo-section">
+        <div class="monte-carlo-header">
+          <h3>🎲 Monte Carlo Analysis</h3>
+          <div class="monte-carlo-actions">
+            <button id="cancel-monte-carlo" class="btn btn--secondary btn--small" style="display: none;">Cancel</button>
+            <button id="export-monte-carlo" class="btn btn--secondary btn--small">Export Results</button>
+          </div>
+        </div>
+        
+        <!-- Monte Carlo Configuration -->
+        <div class="monte-carlo-config">
+          <div class="config-row">
+            <label for="monte-carlo-iterations">Iterations:</label>
+            <input type="number" id="monte-carlo-iterations" value="100" min="50" max="1000" step="50">
+            
+            <label for="monte-carlo-seed">Random Seed (optional):</label>
+            <input type="number" id="monte-carlo-seed" placeholder="Leave blank for random">
+            
+            <button id="run-monte-carlo-analysis" class="btn btn--monte-carlo">
+              🚀 Run Analysis
+            </button>
+          </div>
+        </div>
+        
+        <!-- Monte Carlo Status -->
+        <div class="monte-carlo-status-section">
+          <div id="monte-carlo-status" class="status ready">Ready</div>
+          <progress id="monte-carlo-progress" max="100" value="0" style="display: none;"></progress>
+          <div id="monte-carlo-progress-text"></div>
+        </div>
+        
+        <!-- Monte Carlo Error Display -->
+        <div id="monte-carlo-error" class="error-display" style="display: none;"></div>
+        
+        <!-- Monte Carlo Results -->
+        <div id="monte-carlo-summary" class="monte-carlo-results"></div>
+        <div id="monte-carlo-insights" class="monte-carlo-insights"></div>
+        
+        <!-- Monte Carlo Charts Container -->
+        <div id="monte-carlo-charts" class="monte-carlo-charts"></div>
       </div>
     </div>
   </div>
