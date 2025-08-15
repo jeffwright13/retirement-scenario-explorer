@@ -440,7 +440,7 @@ export class MonteCarloService {
       type: 'survival_time',
       title: 'How Long Will Your Money Last?',
       value: survivalStats.median,
-      description: `Median survival: ${medianYears} years. 25% of scenarios last ${p25Years} years or less, 75% last ${p75Years} years or more`,
+      description: `Median survival: ${medianYears} years. In the worst 25% of cases, money lasts ${p25Years} years or less. In 75% of cases, money lasts ${p75Years} years or less.`,
       severity: survivalStats.median >= 300 ? 'good' : survivalStats.median >= 180 ? 'warning' : 'critical'
     });
     
