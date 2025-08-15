@@ -341,13 +341,15 @@
                   <span class="config-hint">Confidence level</span>
                 </div>
                 
+                
                 <div class="config-item">
-                  <label for="monte-carlo-min-balance" class="config-label">Min Balance</label>
-                  <div class="input-with-unit">
-                    <span class="input-unit-prefix">$</span>
-                    <input type="number" id="monte-carlo-min-balance" class="config-input" value="0" min="0" step="1000">
-                  </div>
-                  <span class="config-hint">Inheritance goal</span>
+                  <label for="monte-carlo-return-model" class="config-label">Return Model</label>
+                  <select id="monte-carlo-return-model" class="config-input">
+                    <option value="simple-random">Simple Random</option>
+                    <option value="historical-bootstrap">Historical Bootstrap</option>
+                    <option value="historical-sequence">Historical Sequence</option>
+                  </select>
+                  <span class="config-hint">Market return modeling approach</span>
                 </div>
                 
                 <div class="config-item config-advanced">

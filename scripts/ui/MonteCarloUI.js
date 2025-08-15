@@ -40,8 +40,8 @@ export class MonteCarloUI {
     this.iterationsInput = document.getElementById('monte-carlo-iterations');
     this.seedInput = document.getElementById('monte-carlo-seed');
     this.targetYearsInput = document.getElementById('monte-carlo-target-years');
-    this.minBalanceInput = document.getElementById('monte-carlo-min-balance');
     this.successRateInput = document.getElementById('monte-carlo-success-rate');
+    this.returnModelSelect = document.getElementById('monte-carlo-return-model');
     this.configToggle = document.getElementById('show-monte-carlo-config');
     
     // Set up the prominent run button
@@ -161,13 +161,6 @@ export class MonteCarloUI {
     console.log(`🎲 MonteCarloUI: FINAL CONFIG - Using target months: ${config.targetSurvivalMonths} (${(config.targetSurvivalMonths/12).toFixed(1)} years)`);
     console.log(`🎲 MonteCarloUI: FULL CONFIG OBJECT:`, JSON.stringify(config, null, 2));
     
-    // Get minimum success balance
-    if (this.minBalanceInput && this.minBalanceInput.value) {
-      config.minimumSuccessBalance = parseFloat(this.minBalanceInput.value) || 0;
-      console.log(`🎲 MonteCarloUI: Minimum success balance: $${config.minimumSuccessBalance.toLocaleString()}`);
-    } else {
-      config.minimumSuccessBalance = 0; // Default: any positive balance is success
-    }
     
     // Get target success rate
     if (this.successRateInput && this.successRateInput.value) {
@@ -175,6 +168,14 @@ export class MonteCarloUI {
       console.log(`🎲 MonteCarloUI: Target success rate: ${config.targetSuccessRate * 100}%`);
     } else {
       config.targetSuccessRate = 0.80; // Default: 80% success rate
+    }
+    
+    // Get return model selection
+    if (this.returnModelSelect && this.returnModelSelect.value) {
+      config.returnModel = this.returnModelSelect.value;
+      console.log(`🎲 MonteCarloUI: Return model: ${config.returnModel}`);
+    } else {
+      config.returnModel = 'simple-random'; // Default model
     }
     
     // Add default variable ranges (can be extended with advanced UI)

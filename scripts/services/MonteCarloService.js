@@ -7,6 +7,7 @@ export class MonteCarloService {
     this.eventBus = eventBus;
     this.isRunning = false;
     this.currentAnalysis = null;
+    this.returnSequences = new Map(); // Store return sequences by simulation ID
     
     // Configuration defaults
     this.defaultConfig = {
@@ -162,16 +163,24 @@ export class MonteCarloService {
     
     for (let i = startIndex; i < endIndex && this.isRunning; i++) {
       // Generate random scenario variation
-      const randomScenario = this.generateRandomScenario(scenarioData, variableRanges, rng);
+      const randomScenario = this.generateRandomScenario(scenarioData, variableRanges, rng, config);
       
       // Run single simulation via event bus
       const result = await this.runSingleSimulation(randomScenario, i);
       
       if (result) {
+        // Calculate metrics for this individual simulation
+        const success = this.calculateIndividualSuccess(result, randomScenario, config);
+        const survivalTime = this.calculateIndividualSurvivalTime(result);
+        const finalBalance = this.calculateIndividualFinalBalance(result);
+        
         results.push({
           iteration: i,
           scenario: randomScenario,
           result: result,
+          success: success,
+          survivalTime: survivalTime, // in months
+          finalBalance: finalBalance,
           timestamp: Date.now()
         });
       }
@@ -210,6 +219,15 @@ export class MonteCarloService {
 
       console.log(`🔍 MonteCarloService: Running simulation ${iteration} with ID ${simulationId}`);
 
+      // Listen for return sequences generated for this simulation
+      const returnSequenceHandler = (data) => {
+        if (data.simulationId === simulationId) {
+          this.returnSequences.set(simulationId, data.returns);
+          console.log(`📈 MonteCarloService: Captured return sequence for simulation ${iteration}`);
+        }
+      };
+      this.eventBus.on('returnmodel:returns-generated', returnSequenceHandler);
+
       // Use unique event names to avoid collision
       const completeEvent = `simulation:completed:${simulationId}`;
       const errorEvent = `simulation:error:${simulationId}`;
@@ -218,11 +236,18 @@ export class MonteCarloService {
         clearTimeout(timeout);
         this.eventBus.off(completeEvent, handleComplete);
         this.eventBus.off(errorEvent, handleError);
+        this.eventBus.off('returnmodel:returns-generated', returnSequenceHandler);
         
         console.log(`🔍 MonteCarloService: Simulation ${iteration} completed via event bus:`, {
           hasResults: !!(data && data.results),
-          resultsLength: (data && data.results) ? data.results.length : 0
+          resultsLength: (data && data.results) ? data.results.length : 0,
+          hasReturnSequence: this.returnSequences.has(simulationId)
         });
+        
+        // Attach return sequence to result if available
+        if (this.returnSequences.has(simulationId)) {
+          data.returnSequence = this.returnSequences.get(simulationId);
+        }
         
         resolve(data);
       };
@@ -231,6 +256,7 @@ export class MonteCarloService {
         clearTimeout(timeout);
         this.eventBus.off(completeEvent, handleComplete);
         this.eventBus.off(errorEvent, handleError);
+        this.eventBus.off('returnmodel:returns-generated', returnSequenceHandler);
         reject(new Error(`Simulation ${iteration} failed: ${data.error}`));
       };
 
@@ -250,7 +276,7 @@ export class MonteCarloService {
   /**
    * Generate a random scenario variation based on variable ranges
    */
-  generateRandomScenario(baseScenario, variableRanges, rng) {
+  generateRandomScenario(baseScenario, variableRanges, rng, config) {
     const randomScenario = JSON.parse(JSON.stringify(baseScenario)); // Deep clone
     
     // Apply random variations based on variable ranges
@@ -258,6 +284,7 @@ export class MonteCarloService {
       const value = this.generateRandomValue(range, rng);
       this.setNestedProperty(randomScenario, path, value);
     }
+    
     
     return randomScenario;
   }
@@ -302,11 +329,13 @@ export class MonteCarloService {
     
     // Generate insights with target survival time
     const targetMonths = config.targetSurvivalMonths ?? 300; // Use user-specified target (default 25 years)
-    const minimumBalance = config.minimumSuccessBalance ?? 0;
-    const successRateData = this.calculateSuccessRate(results, targetMonths, minimumBalance);
+    const successRateData = this.calculateSuccessRate(results, targetMonths);
     const insights = this.generateInsights(statistics, results, scenarioData, config);
     
     const survivalStats = this.calculateSurvivalStatistics(results);
+    
+    // Identify key percentile scenarios and their return sequences
+    const keyScenarios = this.identifyKeyPercentileScenarios(results, metrics);
     
     return {
       statistics,
@@ -316,14 +345,98 @@ export class MonteCarloService {
       successRateData: successRateData, // Include full success rate info
       survivalStatistics: survivalStats,
       riskMetrics: this.calculateRiskMetrics(results),
+      keyScenarios: keyScenarios, // Include key percentile scenarios with return sequences
       metadata: {
         iterations: results.length,
         timestamp: Date.now(),
         scenarioId: scenarioData.metadata?.title || 'Unknown',
-        targetSurvivalMonths: targetMonths,
-        minimumSuccessBalance: minimumBalance
+        targetSurvivalMonths: targetMonths
       }
     };
+  }
+
+  /**
+   * Identify key percentile scenarios and extract their return sequences
+   */
+  identifyKeyPercentileScenarios(results, metrics) {
+    const keyScenarios = {};
+    
+    // Use final balance as the primary metric for percentile identification
+    const finalBalances = metrics.finalBalance;
+    if (!finalBalances || finalBalances.length === 0) {
+      console.warn('🔍 MonteCarloService: No final balances available for percentile analysis');
+      return keyScenarios;
+    }
+    
+    // Create array of results with their indices and final balances
+    const resultsWithBalances = results.map((result, index) => ({
+      index,
+      result,
+      finalBalance: finalBalances[index] || 0,
+      returnSequence: result.returnSequence
+    })).filter(item => item.returnSequence); // Only include results with return sequences
+    
+    if (resultsWithBalances.length === 0) {
+      console.warn('🔍 MonteCarloService: No results with return sequences available');
+      return keyScenarios;
+    }
+    
+    // Sort by final balance
+    resultsWithBalances.sort((a, b) => a.finalBalance - b.finalBalance);
+    
+    // Identify key percentile scenarios
+    const percentiles = {
+      worst: 0,      // 0th percentile (worst case)
+      p10: 10,       // 10th percentile
+      p25: 25,       // 25th percentile
+      median: 50,    // 50th percentile (median)
+      p75: 75,       // 75th percentile
+      p90: 90,       // 90th percentile
+      best: 100      // 100th percentile (best case)
+    };
+    
+    for (const [label, percentile] of Object.entries(percentiles)) {
+      let index;
+      if (percentile === 0) {
+        index = 0; // Worst case
+      } else if (percentile === 100) {
+        index = resultsWithBalances.length - 1; // Best case
+      } else {
+        index = Math.floor((percentile / 100) * (resultsWithBalances.length - 1));
+      }
+      
+      const scenario = resultsWithBalances[index];
+      if (scenario && scenario.returnSequence) {
+        keyScenarios[label] = {
+          percentile,
+          finalBalance: scenario.finalBalance,
+          simulationIndex: scenario.index,
+          returnSequence: scenario.returnSequence,
+          description: this.getPercentileDescription(label, percentile)
+        };
+        
+        console.log(`📈 MonteCarloService: Identified ${label} scenario (P${percentile}) with final balance $${scenario.finalBalance.toLocaleString()}`);
+      }
+    }
+    
+    return keyScenarios;
+  }
+  
+  /**
+   * Get description for percentile scenarios
+   */
+  getPercentileDescription(label, percentile) {
+    const descriptions = {
+      worst: 'Worst-case scenario with lowest final balance',
+      p10: '10th percentile - only 10% of scenarios performed worse',
+      p25: '25th percentile - only 25% of scenarios performed worse', 
+      median: 'Median scenario - 50% of scenarios performed better/worse',
+      p75: '75th percentile - only 25% of scenarios performed better',
+      p90: '90th percentile - only 10% of scenarios performed better',
+      best: 'Best-case scenario with highest final balance'
+    };
+    
+    return descriptions[label] || `${percentile}th percentile scenario`;
   }
 
   /**
@@ -446,17 +559,14 @@ export class MonteCarloService {
     
     // Success rate for user-specified target
     const targetMonths = config.targetSurvivalMonths ?? 300;
-    const minimumBalance = config.minimumSuccessBalance ?? 0;
     console.log(`🎲 MonteCarloService: RECEIVED CONFIG:`, JSON.stringify(config, null, 2));
-    console.log(`🎲 MonteCarloService: Using target months: ${targetMonths} (${(targetMonths/12).toFixed(1)} years), minimum balance: $${minimumBalance.toLocaleString()}`);
-    const successRateData = this.calculateSuccessRate(results, targetMonths, minimumBalance);
+    console.log(`🎲 MonteCarloService: Using target months: ${targetMonths} (${(targetMonths/12).toFixed(1)} years)`);
+    const successRateData = this.calculateSuccessRate(results, targetMonths);
     insights.push({
       type: 'target_success_rate',
       title: `${successRateData.targetYears}-Year Success Rate`,
       value: successRateData.rate,
-      description: minimumBalance > 0 
-        ? `${(successRateData.rate * 100).toFixed(1)}% of scenarios lasted at least ${successRateData.targetYears} years with $${minimumBalance.toLocaleString()}+ remaining`
-        : `${(successRateData.rate * 100).toFixed(1)}% of scenarios lasted at least ${successRateData.targetYears} years`,
+      description: `${(successRateData.rate * 100).toFixed(1)}% of scenarios lasted at least ${successRateData.targetYears} years`,
       severity: successRateData.rate > 0.8 ? 'good' : successRateData.rate > 0.6 ? 'warning' : 'critical'
     });
 
@@ -474,12 +584,10 @@ export class MonteCarloService {
       severity: targetSurvivalTime >= targetMonths ? 'good' : targetSurvivalTime >= (targetMonths * 0.8) ? 'warning' : 'critical'
     });
     
-    // Final balance insights - only include scenarios that meet minimum success balance
+    // Final balance insights
     const finalBalanceStats = statistics.finalBalance;
     if (finalBalanceStats) {
-      const minimumBalance = config.minimumSuccessBalance ?? 0;
-      
-      // Filter final balances to only include those meeting minimum success criteria
+      // Get final balances from all results
       const validFinalBalances = results
         .map(result => {
           if (!result || !result.result || !result.result.results) return null;
@@ -492,12 +600,11 @@ export class MonteCarloService {
             finalBalance = Object.values(lastMonth.assets).reduce((sum, balance) => sum + balance, 0);
           }
           
-          console.log(`🔍 Final Balance Check: finalBalance=${finalBalance}, minimumBalance=${minimumBalance}, meets criteria=${finalBalance >= minimumBalance}`);
-          return finalBalance >= minimumBalance ? finalBalance : null;
+          return finalBalance;
         })
         .filter(balance => balance !== null);
       
-      console.log(`🔍 Final Balance Filter: minimumBalance=${minimumBalance}, validFinalBalances.length=${validFinalBalances.length}, total results=${results.length}`);
+      console.log(`🔍 Final Balance Filter: validFinalBalances.length=${validFinalBalances.length}, total results=${results.length}`);
       console.log(`🔍 Sample valid final balances:`, validFinalBalances.slice(0, 5));
       
       if (validFinalBalances.length > 0) {
@@ -561,38 +668,131 @@ export class MonteCarloService {
   }
 
   /**
-   * Calculate success rate for a given target survival time and minimum balance
+   * Calculate success for an individual simulation result
    */
-  calculateSuccessRate(results, targetMonths, minimumBalance = 0) {
-    const survivalStats = this.calculateSurvivalStatistics(results);
+  calculateIndividualSuccess(result, scenarioData, config) {
+    if (!result || !result.results) return false;
     
-    // If no target specified, use a reasonable default (25 years)
-    if (targetMonths === null) {
-      targetMonths = 300; // 25 years default
+    const timeawareResults = result.results.results;
+    if (!timeawareResults || !Array.isArray(timeawareResults) || timeawareResults.length === 0) return false;
+    
+    const targetMonths = config.targetSurvivalMonths ?? 300;
+    const survivalTime = timeawareResults.length;
+    
+    // Check if scenario meets target survival time
+    if (survivalTime < targetMonths) return false;
+    
+    // Get scenario data to check min_balance requirements
+    if (!scenarioData || !scenarioData.assets) return true; // No min_balance requirements
+    
+    // Check asset-level min_balance requirements using balanceHistory (more reliable)
+    if (result.results.balanceHistory) {
+      for (const assetConfig of scenarioData.assets) {
+        if (assetConfig.min_balance !== undefined && assetConfig.min_balance > 0) {
+          const assetHistory = result.results.balanceHistory[assetConfig.name];
+          if (!assetHistory || !Array.isArray(assetHistory) || assetHistory.length === 0) {
+            console.log(`❌ FAILED - No balance history for ${assetConfig.name}`);
+            return false;
+          }
+          
+          const finalBalance = assetHistory[assetHistory.length - 1];
+          const numBalance = typeof finalBalance === 'string' ? parseFloat(finalBalance) : finalBalance;
+          const actualBalance = isNaN(numBalance) ? 0 : numBalance;
+          
+          console.log(`🔍 Success check - Asset: ${assetConfig.name}, Final: ${actualBalance}, Required: ${assetConfig.min_balance}, Meets: ${actualBalance >= assetConfig.min_balance}`);
+          if (actualBalance < assetConfig.min_balance) {
+            console.log(`❌ FAILED min_balance requirement for ${assetConfig.name}`);
+            return false;
+          }
+        }
+      }
+      console.log(`✅ SUCCESS - All requirements met`);
+      return true;
     }
     
-    // Filter scenarios that meet both time and balance criteria
-    const successfulScenarios = results.filter(result => {
-      if (!result || !result.result || !result.result.results) return false;
-      const timeawareResults = result.result.results.results;
-      if (!timeawareResults || !Array.isArray(timeawareResults) || timeawareResults.length === 0) return false;
-      
-      const survivalTime = timeawareResults.length;
-      const lastMonth = timeawareResults[timeawareResults.length - 1];
-      let finalBalance = 0;
-      if (lastMonth && lastMonth.assets) {
-        finalBalance = Object.values(lastMonth.assets).reduce((sum, balance) => sum + balance, 0);
+    // Fallback to timeaware results (less reliable)
+    const lastMonth = timeawareResults[timeawareResults.length - 1];
+    if (!lastMonth || !lastMonth.assets) return false;
+    
+    for (const assetConfig of scenarioData.assets) {
+      if (assetConfig.min_balance !== undefined && assetConfig.min_balance > 0) {
+        const finalBalance = lastMonth.assets[assetConfig.name] || 0;
+        console.log(`🔍 Success check - Asset: ${assetConfig.name}, Final: ${finalBalance}, Required: ${assetConfig.min_balance}, Meets: ${finalBalance >= assetConfig.min_balance}`);
+        if (finalBalance < assetConfig.min_balance) {
+          console.log(`❌ FAILED min_balance requirement for ${assetConfig.name}`);
+          return false;
+        }
       }
-      
-      // Success requires both: lasting the target time AND having minimum balance
-      return survivalTime >= targetMonths && finalBalance >= minimumBalance;
+    }
+    
+    console.log(`✅ SUCCESS - All requirements met`);
+    return true;
+  }
+
+  /**
+   * Calculate survival time for an individual simulation result
+   */
+  calculateIndividualSurvivalTime(result) {
+    if (!result || !result.results) return 0;
+    
+    const timeawareResults = result.results.results;
+    if (!timeawareResults || !Array.isArray(timeawareResults)) return 0;
+    
+    // Find when shortfall occurs (total balance goes to zero or negative)
+    const depletionMonth = timeawareResults.findIndex(month => {
+      if (month && month.assets) {
+        const totalBalance = Object.values(month.assets).reduce((sum, balance) => sum + balance, 0);
+        return totalBalance <= 0;
+      }
+      return false;
     });
+    
+    return depletionMonth === -1 ? timeawareResults.length : depletionMonth;
+  }
+
+  /**
+   * Calculate final balance for an individual simulation result
+   */
+  calculateIndividualFinalBalance(result) {
+    if (!result || !result.results) return 0;
+    
+    // Try to get final balance from balanceHistory (more reliable)
+    if (result.results.balanceHistory) {
+      let finalBalance = 0;
+      for (const [assetName, history] of Object.entries(result.results.balanceHistory)) {
+        if (Array.isArray(history) && history.length > 0) {
+          const lastBalance = history[history.length - 1];
+          const numBalance = typeof lastBalance === 'string' ? parseFloat(lastBalance) : lastBalance;
+          finalBalance += isNaN(numBalance) ? 0 : numBalance;
+        }
+      }
+      return finalBalance;
+    }
+    
+    // Fallback to timeaware results (less reliable due to missing assets property)
+    const timeawareResults = result.results.results;
+    if (!timeawareResults || !Array.isArray(timeawareResults) || timeawareResults.length === 0) return 0;
+    
+    const lastMonth = timeawareResults[timeawareResults.length - 1];
+    if (!lastMonth || !lastMonth.assets) return 0;
+    
+    return Object.values(lastMonth.assets).reduce((sum, balance) => {
+      const numBalance = typeof balance === 'string' ? parseFloat(balance) : balance;
+      return sum + (isNaN(numBalance) ? 0 : numBalance);
+    }, 0);
+  }
+
+  /**
+   * Calculate success rate for a given target survival time 
+   */
+  calculateSuccessRate(results, targetMonths) {
+    // Simply count the pre-calculated success flags
+    const successfulScenarios = results.filter(result => result.success === true);
     
     return {
       rate: successfulScenarios.length / results.length,
-      targetMonths: targetMonths,
-      targetYears: (targetMonths / 12).toFixed(1),
-      minimumBalance: minimumBalance
+      targetMonths: targetMonths || 300,
+      targetYears: ((targetMonths || 300) / 12).toFixed(1)
     };
   }
 

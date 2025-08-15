@@ -82,6 +82,8 @@
   .scenario-mode-container {
     flex: 1;
     display: none;
+    width: 100%;
+    min-height: 400px;
   }
 
   .story-mode-container.active,
@@ -103,6 +105,9 @@
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-lg);
     margin-bottom: var(--space-6);
+    position: relative;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .story-header {
@@ -282,8 +287,10 @@
     background: var(--color-gray-50);
     border: 2px solid var(--color-gray-200);
     border-radius: var(--radius-md);
-    margin: 0 var(--space-5) var(--space-5) var(--space-5);
+    margin: var(--space-5) 0;
     display: none;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .scenario-details-collapsible summary {

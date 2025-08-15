@@ -165,6 +165,14 @@ export class MonteCarloController {
 
     console.log('🎲 MonteCarloController: Starting Monte Carlo analysis');
     
+    // Set return model before starting analysis
+    if (config.returnModel) {
+      this.eventBus.emit('returnmodel:set-model', {
+        modelType: config.returnModel,
+        config: config.returnModelConfig || {}
+      });
+    }
+
     // Emit request via event bus
     this.eventBus.emit('montecarlo:run', {
       scenarioData: this.currentScenarioData,
@@ -175,7 +183,7 @@ export class MonteCarloController {
         parallelBatches: config.parallelBatches || 4,
         progressUpdateInterval: config.progressUpdateInterval || 50,
         targetSurvivalMonths: config.targetSurvivalMonths,
-        minimumSuccessBalance: config.minimumSuccessBalance
+        returnModel: config.returnModel || 'simple-random'
       },
       variableRanges,
       context: {
@@ -682,7 +690,53 @@ export class MonteCarloController {
     
     const rows = [headers];
     
+    // Add Monte Carlo configuration parameters
+    rows.push(['Monte Carlo Configuration', '', '']);
+    if (analysis.metadata) {
+      const metadata = analysis.metadata;
+      rows.push(['Target Survival Time', `${(metadata.targetSurvivalMonths / 12).toFixed(1)} years (${metadata.targetSurvivalMonths} months)`, 'Required survival time for success']);
+      rows.push(['Random Seed', metadata.randomSeed || 'Not specified', 'Seed used for reproducible results']);
+      rows.push(['Analysis Date', metadata.timestamp ? new Date(metadata.timestamp).toISOString() : 'Unknown', 'When the analysis was performed']);
+    }
+    
+    // Get additional config from current analysis if available
+    if (this.currentAnalysis && this.currentAnalysis.config) {
+      const config = this.currentAnalysis.config;
+      rows.push(['Iterations Requested', config.iterations || 'Default', 'Number of simulations requested']);
+      if (config.confidenceIntervals) {
+        rows.push(['Confidence Intervals', config.confidenceIntervals.join(', ') + '%', 'Percentiles calculated for analysis']);
+      }
+      if (config.returnModel) {
+        rows.push(['Return Model', config.returnModel, 'Return generation model used']);
+      }
+    }
+    
+    // Add variable ranges configuration
+    if (this.currentAnalysis && this.currentAnalysis.variableRanges) {
+      rows.push(['', '', '']); // Empty row separator
+      rows.push(['Variable Ranges', '', '']);
+      const ranges = this.currentAnalysis.variableRanges;
+      for (const [variable, range] of Object.entries(ranges)) {
+        let rangeDescription = '';
+        if (range.type === 'normal') {
+          rangeDescription = `Normal: μ=${range.mean}, σ=${range.stdDev}`;
+        } else if (range.type === 'uniform') {
+          rangeDescription = `Uniform: ${range.min} to ${range.max}`;
+        } else if (range.type === 'triangular') {
+          rangeDescription = `Triangular: ${range.min} to ${range.max}, mode=${range.mode}`;
+        } else if (range.type === 'lognormal') {
+          rangeDescription = `Log-normal: μ=${range.mean}, σ=${range.stdDev}`;
+        } else {
+          rangeDescription = `${range.type}: ${JSON.stringify(range)}`;
+        }
+        rows.push([variable, rangeDescription, 'Variable distribution used in simulation']);
+      }
+    }
+    
+    rows.push(['', '', '']); // Empty row separator
+    
     // Add key statistics
+    rows.push(['Analysis Results', '', '']);
     rows.push(['Total Simulations', results.length, 'Number of Monte Carlo iterations run']);
     rows.push(['Success Rate', `${(analysis.successRate * 100).toFixed(1)}%`, 'Percentage of simulations that succeeded']);
     
@@ -715,113 +769,78 @@ export class MonteCarloController {
       });
     }
     
+    // Add key percentile scenarios with return sequences
+    if (analysis.keyScenarios && Object.keys(analysis.keyScenarios).length > 0) {
+      rows.push(['', '', '']); // Empty row separator
+      rows.push(['Key Percentile Scenarios - Return Sequences', '', '']);
+      rows.push(['Scenario', 'Final Balance', 'Description']);
+      
+      // Add scenario summary first
+      for (const [label, scenario] of Object.entries(analysis.keyScenarios)) {
+        rows.push([
+          label.toUpperCase(),
+          `$${Math.round(scenario.finalBalance).toLocaleString()}`,
+          scenario.description
+        ]);
+      }
+      
+      // Add return sequence data
+      rows.push(['', '', '']); // Empty row separator
+      rows.push(['Return Sequences by Asset Type', '', '']);
+      
+      // Get all asset types from the first scenario
+      const firstScenario = Object.values(analysis.keyScenarios)[0];
+      if (firstScenario && firstScenario.returnSequence) {
+        const assetTypes = Object.keys(firstScenario.returnSequence);
+        
+        for (const assetType of assetTypes) {
+          rows.push(['', '', '']); // Empty row separator
+          rows.push([`${assetType.toUpperCase()} Returns`, '', '']);
+          
+          // Create header row with scenario labels
+          const headerRow = ['Month'];
+          const scenarioLabels = Object.keys(analysis.keyScenarios);
+          headerRow.push(...scenarioLabels.map(label => label.toUpperCase()));
+          rows.push(headerRow);
+          
+          // Get the maximum sequence length
+          const maxLength = Math.max(
+            ...scenarioLabels.map(label => 
+              analysis.keyScenarios[label].returnSequence[assetType]?.length || 0
+            )
+          );
+          
+          // Add return data for each month
+          for (let month = 0; month < maxLength; month++) {
+            const row = [month + 1]; // Month number (1-based)
+            
+            for (const label of scenarioLabels) {
+              const scenario = analysis.keyScenarios[label];
+              const returns = scenario.returnSequence[assetType];
+              const returnValue = returns && returns[month] !== undefined 
+                ? (returns[month] * 100).toFixed(2) + '%' 
+                : 'N/A';
+              row.push(returnValue);
+            }
+            
+            rows.push(row);
+          }
+        }
+      }
+    }
+    
     // Add individual simulation results
     rows.push(['', '', '']); // Empty row separator
     rows.push(['Individual Simulation Results', '', '']);
     rows.push(['Simulation #', 'Success', 'Survival Time (Years)', 'Final Portfolio Value']);
     
     results.forEach((result, index) => {
-      console.log(`🔍 Result ${index + 1}:`, result);
-      console.log(`🔍 Result ${index + 1} keys:`, Object.keys(result || {}));
+      // Use pre-calculated metrics from MonteCarloService
+      const success = result.success ? 'Yes' : 'No';
+      const survivalYears = result.survivalTime ? (result.survivalTime / 12).toFixed(1) : 'N/A';
+      const finalValue = result.finalBalance ? `$${Math.round(result.finalBalance).toLocaleString()}` : 'N/A';
       
-      // Extract data from the nested result structure (matches MonteCarloService logic)
-      const simulationResult = result.result || result;
-      console.log(`🔍 CSV Export - simulationResult for ${index + 1}:`, simulationResult);
-      console.log(`🔍 CSV Export - simulationResult keys:`, Object.keys(simulationResult || {}));
-      console.log(`🔍 CSV Export - simulationResult.results for ${index + 1}:`, simulationResult?.results);
-      console.log(`🔍 CSV Export - simulationResult.results.results for ${index + 1}:`, simulationResult?.results?.results);
-      
-      // Determine success based on target survival months
-      const targetMonths = this.currentAnalysisData?.metadata?.targetSurvivalMonths || 300;
-      let success = 'No';
-      let survivalYears = 'N/A';
-      let finalValue = 'N/A';
-      
-      if (simulationResult && simulationResult.results && simulationResult.results.results) {
-        console.log(`🔍 CSV Export - Found timeaware results for ${index + 1}`);
-        const timeawareResults = simulationResult.results.results; // Monthly array from timeaware engine
-        
-        // Calculate survival time (time to depletion)
-        const depletionMonth = timeawareResults.findIndex(month => {
-          if (month && month.assets) {
-            const totalBalance = Object.values(month.assets).reduce((sum, balance) => sum + balance, 0);
-            return totalBalance <= 0;
-          }
-          return false;
-        });
-        
-        const survivalMonths = depletionMonth === -1 ? timeawareResults.length : depletionMonth;
-        survivalYears = (survivalMonths / 12).toFixed(1);
-        
-        // Determine success based on whether we survived the target duration
-        success = survivalMonths >= targetMonths ? 'Yes' : 'No';
-        
-        // Calculate final portfolio value - check if we can get it from balanceHistory
-        const lastMonth = timeawareResults[timeawareResults.length - 1];
-        console.log(`🔍 CSV Export - Last month for result ${index + 1}:`, lastMonth);
-        console.log(`🔍 CSV Export - Last month keys:`, Object.keys(lastMonth || {}));
-        
-        // Try to get final balance from balanceHistory if available
-        if (simulationResult.results && simulationResult.results.balanceHistory) {
-          console.log(`🔍 CSV Export - Found balanceHistory for result ${index + 1}`);
-          const balanceHistory = simulationResult.results.balanceHistory;
-          console.log(`🔍 CSV Export - balanceHistory keys:`, Object.keys(balanceHistory));
-          
-          // Get the final balances from each asset type
-          let finalBalance = 0;
-          for (const [assetName, history] of Object.entries(balanceHistory)) {
-            if (Array.isArray(history) && history.length > 0) {
-              const lastBalance = history[history.length - 1];
-              console.log(`🔍 CSV Export - ${assetName} final balance: ${lastBalance}`);
-              finalBalance += (typeof lastBalance === 'number' ? lastBalance : 0);
-            }
-          }
-          console.log(`🔍 CSV Export - Total final balance for result ${index + 1}: ${finalBalance}`);
-          finalValue = `$${Math.round(finalBalance).toLocaleString()}`;
-        } else if (lastMonth && lastMonth.assets) {
-          console.log(`🔍 CSV Export - Assets for result ${index + 1}:`, lastMonth.assets);
-          const finalBalance = Object.values(lastMonth.assets).reduce((sum, balance) => {
-            const numBalance = typeof balance === 'string' ? parseFloat(balance) : balance;
-            return sum + (isNaN(numBalance) ? 0 : numBalance);
-          }, 0);
-          console.log(`🔍 CSV Export - Final balance for result ${index + 1}: ${finalBalance}`);
-          finalValue = `$${Math.round(finalBalance).toLocaleString()}`;
-        } else {
-          console.log(`🔍 CSV Export - No assets or balanceHistory found for result ${index + 1}`);
-        }
-        
-        rows.push([index + 1, success, survivalYears, finalValue]);
-      } else {
-        console.log(`🔍 CSV Export - Could not find timeaware results for ${index + 1}, trying alternative paths`);
-        
-        // Try alternative data access patterns
-        if (simulationResult && simulationResult.results) {
-          console.log(`🔍 CSV Export - Alternative: simulationResult.results structure:`, Object.keys(simulationResult.results));
-          
-          // Check if balanceHistory exists (like in chart extraction)
-          if (simulationResult.results.balanceHistory) {
-            console.log(`🔍 CSV Export - Found balanceHistory for ${index + 1}`);
-            const balanceHistory = simulationResult.results.balanceHistory;
-            const assetNames = Object.keys(balanceHistory);
-            if (assetNames.length > 0) {
-              // Get the last balance for each asset
-              let finalBalance = 0;
-              assetNames.forEach(assetName => {
-                const assetHistory = balanceHistory[assetName];
-                if (assetHistory && assetHistory.length > 0) {
-                  const lastBalance = assetHistory[assetHistory.length - 1];
-                  const numBalance = typeof lastBalance === 'string' ? parseFloat(lastBalance) : lastBalance;
-                  finalBalance += isNaN(numBalance) ? 0 : numBalance;
-                }
-              });
-              finalValue = `$${Math.round(finalBalance).toLocaleString()}`;
-              console.log(`🔍 CSV Export - Final balance from balanceHistory for ${index + 1}: ${finalBalance}`);
-            }
-          }
-        }
-        
-        rows.push([index + 1, success, survivalYears, finalValue]);
-      }
+      rows.push([index + 1, success, survivalYears, finalValue]);
     });
     
     const csv = rows.map(row => row.join(',')).join('\n');

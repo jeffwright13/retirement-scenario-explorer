@@ -34,9 +34,6 @@ export class MonteCarloChart {
     console.log('📊 MonteCarloChart: Displaying Monte Carlo charts with data:', data);
     console.log('📊 Data type:', typeof data, 'Keys:', data ? Object.keys(data) : 'none');
     
-    // Store minimum success balance for chart rendering
-    this.currentMinimumSuccessBalance = data.analysis?.metadata?.minimumSuccessBalance || 0;
-    console.log('📊 Stored minimum success balance:', this.currentMinimumSuccessBalance);
     
     // Ensure the Monte Carlo results section is visible
     const monteCarloSection = document.getElementById('monte-carlo-section-results');
@@ -515,24 +512,6 @@ export class MonteCarloChart {
       hovertemplate: 'Median<br>Year: %{x:.1f}<br>Balance: $%{y:.0f}K<extra></extra>'
     });
 
-    // Minimum success balance line (if nonzero)
-    const minimumSuccessBalance = this.currentMinimumSuccessBalance || 0;
-    if (minimumSuccessBalance > 0) {
-      const maxYears = maxMonths / 12;
-      traces.push({
-        x: [0, maxYears],
-        y: [minimumSuccessBalance / 1000, minimumSuccessBalance / 1000],
-        type: 'scatter',
-        mode: 'lines',
-        line: {
-          color: '#d9534f',
-          width: 2,
-          dash: 'dash'
-        },
-        name: `Min Success: $${(minimumSuccessBalance / 1000).toFixed(0)}K`,
-        hovertemplate: `Min Success Balance<br>$${(minimumSuccessBalance / 1000).toFixed(0)}K<extra></extra>`
-      });
-    }
 
     // Layout configuration
     const layout = {
@@ -847,33 +826,6 @@ export class MonteCarloChart {
     ctx.stroke();
   }
 
-  /**
-   * Draw minimum success balance line if nonzero
-   */
-  drawMinimumSuccessBalanceLine(ctx, maxMonths, maxBalance, minBalance, padding, chartWidth, chartHeight) {
-    // Get minimum success balance from the current analysis config
-    const minimumSuccessBalance = this.currentMinimumSuccessBalance || 0;
-    
-    if (minimumSuccessBalance > 0 && minimumSuccessBalance >= minBalance && minimumSuccessBalance <= maxBalance) {
-      ctx.strokeStyle = '#d9534f';  // Match median line color
-      ctx.lineWidth = 2;
-      ctx.setLineDash([5, 5]);  // Dashed line
-      
-      const y = padding + chartHeight - ((minimumSuccessBalance - minBalance) / (maxBalance - minBalance)) * chartHeight;
-      
-      ctx.beginPath();
-      ctx.moveTo(padding, y);
-      ctx.lineTo(padding + chartWidth, y);
-      ctx.stroke();
-      
-      // Add label
-      ctx.setLineDash([]);  // Reset to solid line
-      ctx.fillStyle = '#d9534f';
-      ctx.font = '12px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText(`Min Success: $${(minimumSuccessBalance / 1000).toFixed(0)}K`, padding + 10, y - 5);
-    }
-  }
 
   /**
    * Draw chart axes and labels

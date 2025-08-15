@@ -8,6 +8,7 @@ import { ContentService } from './services/ContentService.js';
 import { SimulationService } from './services/SimulationService.js';
 import { ValidationService } from './services/ValidationService.js';
 import { MonteCarloService } from './services/MonteCarloService.js';
+import { ReturnModelService } from './services/ReturnModelService.js';
 import { StoryEngineService } from './services/StoryEngineService.js';
 import { UIController } from './controllers/UIController.js';
 import { ScenarioController } from './controllers/ScenarioController.js';
@@ -42,6 +43,7 @@ class RetirementScenarioApp {
     this.contentService = new ContentService(this.eventBus);
     this.simulationService = new SimulationService(this.eventBus);
     this.validationService = new ValidationService(this.eventBus);
+    this.returnModelService = new ReturnModelService(this.eventBus);
     this.monteCarloService = new MonteCarloService(this.eventBus);
     this.storyEngineService = new StoryEngineService(this.eventBus);
   }

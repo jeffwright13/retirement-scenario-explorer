@@ -293,6 +293,18 @@ export class ContentService {
   }
 
   /**
+   * Get stories as object (legacy compatibility)
+   * @returns {Object} Stories as key-value object
+   */
+  getStories() {
+    const storiesObject = {};
+    this.stories.forEach((story, key) => {
+      storiesObject[key] = story;
+    });
+    return storiesObject;
+  }
+
+  /**
    * Get content summary
    * @returns {Object} Content summary
    */
