@@ -136,6 +136,17 @@ export class UIController {
       });
     }
 
+    // New JSON Editor buttons
+    const highlightAllJsonBtn = document.getElementById('highlight-all-json-btn');
+    if (highlightAllJsonBtn) {
+      highlightAllJsonBtn.addEventListener('click', () => {
+        this.highlightAllJson();
+      });
+    }
+
+    // Export functionality moved to centralized ExportController
+    // Old export button handlers removed
+
     const toggleCsvBtn = document.getElementById('toggle-csv-btn');
     if (toggleCsvBtn) {
       toggleCsvBtn.addEventListener('click', () => {
@@ -158,11 +169,15 @@ export class UIController {
     this.eventBus.on('scenario:selected', (data) => this.handleScenarioSelectedData(data));
     this.eventBus.on('scenario:data-changed', (data) => this.handleScenarioDataChanged(data));
     this.eventBus.on('content:errors', (errors) => this.handleContentErrors(errors));
-    this.eventBus.on('simulation:regular-completed', () => this.showExportCsvButton());
+    this.eventBus.on('simulation:regular-completed', () => {
+      this.showExportCsvButton();
+      this.showExportSingleResultsButton();
+    });
     this.eventBus.on('simulation:started', (data) => {
       // Only hide for regular simulations, not Monte Carlo
       if (!data?.context?.isMonteCarlo) {
         this.hideExportCsvButton();
+        this.hideExportSingleResultsButton();
       }
     });
   }
@@ -341,6 +356,9 @@ export class UIController {
       hasNestedResults: !!(data.results && data.results.results),
       nestedResultsIsArray: Array.isArray(data.results?.results)
     });
+    
+    // Store results for export
+    this.currentSimulationResults = data;
     
     this.setRunButtonLoading(false);
     this.showSingleScenarioSection();
@@ -1550,6 +1568,9 @@ export class UIController {
     // Could implement toast notifications here
   }
 
+  // Store current simulation results for export
+  currentSimulationResults = null;
+
   /**
    * Show warning message
    */
@@ -1576,5 +1597,63 @@ export class UIController {
     if (csvButton) {
       csvButton.style.display = 'none';
     }
+  }
+
+  /**
+   * Export functionality moved to centralized ExportController
+   * These methods are deprecated and no longer used
+   */
+
+  /**
+   * Highlight all text in JSON editor
+   */
+  highlightAllJson() {
+    const jsonEditor = document.getElementById('json-editor');
+    if (jsonEditor) {
+      jsonEditor.select();
+      jsonEditor.setSelectionRange(0, jsonEditor.value.length);
+      console.log('🔍 JSON editor text highlighted');
+    }
+  }
+
+  /**
+   * Export current scenario configuration as JSON file
+   */
+  exportConfig() {
+    if (!this.currentScenario) {
+      this.showError('No scenario selected to export');
+      return;
+    }
+
+    try {
+      const jsonData = JSON.stringify(this.currentScenario, null, 2);
+      const blob = new Blob([jsonData], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      const scenarioName = this.currentScenario.metadata?.title || 'scenario';
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      a.download = `${scenarioName.toLowerCase().replace(/\s+/g, '-')}-config-${timestamp}.json`;
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      this.showSuccess('Configuration exported successfully');
+      console.log('📄 Configuration exported as JSON file');
+    } catch (error) {
+      this.showError(`Failed to export configuration: ${error.message}`);
+    }
+  }
+
+  /**
+   * Export single scenario results
+   */
+  exportSingleResults() {
+    // Request export from the system via event bus
+    this.eventBus.emit('ui:single-scenario-export-requested', { format: 'csv' });
+    console.log('📊 Single scenario export requested');
   }
 }

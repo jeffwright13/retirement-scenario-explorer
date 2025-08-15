@@ -6,14 +6,34 @@ export class MonteCarloController {
   constructor(eventBus) {
     this.eventBus = eventBus;
     
-    // Controller state (populated from event bus)
+    // Current analysis state
+    this.currentAnalysis = {
+      status: 'idle', // idle, running, completed, cancelled, error
+      analysis: null,
+      results: null,
+      metadata: null
+    };
+    
+    // Current scenario data (stored from event bus)
     this.currentScenarioData = null;
-    this.currentAnalysis = null;
+    
+    // Analysis history
     this.analysisHistory = [];
-    this.isAnalysisRunning = false;
-    this.analysisProgress = { completed: 0, total: 0, percentage: 0 };
+    
+    // UI state
+    this.isConfigVisible = true;
     
     this.setupEventListeners();
+    
+    console.log('🎲 MonteCarloController created');
+  }
+
+  /**
+   * Initialize the Monte Carlo controller
+   */
+  initialize() {
+    console.log('🎲 Initializing Monte Carlo Controller');
+    // Controller is already set up via constructor
   }
 
   /**
@@ -411,15 +431,17 @@ export class MonteCarloController {
   }
 
   /**
-   * Show export button after analysis completes
+   * Show export buttons after analysis completes
    */
   showExportButton() {
-    const exportButton = document.getElementById('export-monte-carlo');
+    const exportButton = document.getElementById('export-monte-carlo-results');
+    const returnsButton = document.getElementById('export-monte-carlo-returns');
     const resultsSection = document.getElementById('monte-carlo-section-results');
     const actionsDiv = document.querySelector('#monte-carlo-section-results .monte-carlo-actions');
     
     console.log('🔍 MonteCarloController: DOM Debug', {
       exportButton: !!exportButton,
+      returnsButton: !!returnsButton,
       resultsSection: !!resultsSection,
       actionsDiv: !!actionsDiv,
       resultsSectionDisplay: resultsSection?.style.display,
@@ -430,13 +452,15 @@ export class MonteCarloController {
       exportButton.style.display = 'inline-block';
       exportButton.style.visibility = 'visible';
       exportButton.style.opacity = '1';
-      console.log('📊 MonteCarloController: Export button shown', {
-        display: exportButton.style.display,
-        visibility: exportButton.style.visibility,
-        opacity: exportButton.style.opacity,
-        offsetWidth: exportButton.offsetWidth,
-        offsetHeight: exportButton.offsetHeight,
-        parentElement: exportButton.parentElement?.id || 'no parent',
+    }
+    
+    if (returnsButton) {
+      returnsButton.style.display = 'inline-block';
+      returnsButton.style.visibility = 'visible';
+      returnsButton.style.opacity = '1';
+      console.log('📊 MonteCarloController: Export buttons shown', {
+        analysisButton: !!exportButton,
+        returnsButton: !!returnsButton,
         isConnected: exportButton.isConnected
       });
     } else {
@@ -445,12 +469,17 @@ export class MonteCarloController {
   }
 
   /**
-   * Hide export button when clearing results
+   * Hide export buttons when clearing results
    */
   hideExportButton() {
-    const exportButton = document.getElementById('export-monte-carlo');
+    const exportButton = document.getElementById('export-monte-carlo-results');
+    const returnsButton = document.getElementById('export-monte-carlo-returns');
+    
     if (exportButton) {
       exportButton.style.display = 'none';
+    }
+    if (returnsButton) {
+      returnsButton.style.display = 'none';
     }
   }
 

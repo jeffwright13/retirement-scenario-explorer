@@ -151,6 +151,27 @@
         <button class="tab-button" data-tab="monte-carlo">🎲 Monte Carlo</button>
       </div>
 
+      <!-- Centralized Export Toolbar -->
+      <div class="export-toolbar" id="export-toolbar">
+        <div class="export-toolbar-content">
+          <span class="export-toolbar-label">📤 Export:</span>
+          <div class="export-buttons">
+            <button id="export-scenario-config" class="btn btn--export btn--small" title="Export current scenario configuration">
+              📄 Scenario Config
+            </button>
+            <button id="export-scenario-results" class="btn btn--export btn--small" style="display: none;" title="Single Scenario Results">
+              📊 Results
+            </button>
+            <button id="export-monte-carlo-results" class="btn btn--export btn--small" style="display: none;" title="Export Monte Carlo analysis">
+              🎲 MC Analysis
+            </button>
+            <button id="export-monte-carlo-returns" class="btn btn--export btn--small" style="display: none;" title="Export Monte Carlo returns">
+              📈 MC Returns
+            </button>
+          </div>
+        </div>
+      </div>
+
       <!-- Tab Content -->
       <div class="tab-content">
         <!-- Configure Scenario Tab -->
@@ -228,6 +249,8 @@
                 <button id="save-json-btn" class="btn btn--success">💾 Save Changes</button>
                 <button id="cancel-json-btn" class="btn btn--secondary">❌ Cancel</button>
                 <button id="validate-json-btn" class="btn btn--secondary">✅ Validate JSON</button>
+                <button id="highlight-all-json-btn" class="btn btn--secondary">🔍 Highlight All</button>
+                <button id="export-config-btn" class="btn btn--secondary">📄 Export Config</button>
               </div>
               <div id="json-validation-feedback" class="validation-feedback"></div>
             </div>
@@ -314,7 +337,6 @@
                 <button id="cancel-monte-carlo" class="btn btn--secondary" style="display: none;">
                   ❌ Cancel Analysis
                 </button>
-                <button id="export-monte-carlo-config" class="btn btn--secondary" style="display: none;">📊 Export Results</button>
               </div>
             </div>
             
@@ -384,7 +406,7 @@
             <div class="monte-carlo-header">
               <h4>🎲 Monte Carlo Analysis Results</h4>
               <div class="monte-carlo-actions">
-                <button id="export-monte-carlo" class="btn btn--secondary btn--small" style="display: none;">📊 Export Results</button>
+                <!-- Export functionality moved to centralized toolbar -->
               </div>
             </div>
             <div id="monte-carlo-chart-area" class="chart-area monte-carlo-chart-container">

@@ -96,6 +96,12 @@ export class SimulationService {
       
       this.eventBus.emit('simulation:started', { scenarioData, context });
       
+      // Generate return sequences for Monte Carlo simulations
+      if (context.isMonteCarlo && simulationId) {
+        console.log('📈 SimulationService: Generating return sequences for Monte Carlo simulation');
+        await this.generateReturnSequences(scenarioData, simulationId);
+      }
+      
       // Execute the core simulation
       console.log('🔄 SimulationService: Executing core simulation...');
       const results = await this.executeSimulation(scenarioData);
@@ -144,6 +150,34 @@ export class SimulationService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Generate return sequences for Monte Carlo simulations
+   * @param {Object} scenarioData - Scenario configuration
+   * @param {string} simulationId - Unique simulation identifier
+   */
+  async generateReturnSequences(scenarioData, simulationId) {
+    // Extract asset types from scenario
+    const assetTypes = scenarioData.assets ? scenarioData.assets.map(asset => asset.type || 'investment') : ['investment'];
+    
+    // Calculate simulation duration in years (timeaware-engine uses months)
+    const durationMonths = scenarioData.plan?.duration_months || 300;
+    const durationYears = Math.ceil(durationMonths / 12);
+    
+    console.log(`📈 SimulationService: Requesting return sequences for ${assetTypes.join(', ')} over ${durationYears} years`);
+    
+    // Request return generation from ReturnModelService
+    this.eventBus.emit('returnmodel:generate-returns', {
+      simulationId,
+      assetTypes,
+      duration: durationYears,
+      seed: Math.floor(Math.random() * 1000000), // Random seed per simulation
+      config: {} // Use default return model configuration
+    });
+    
+    // Wait briefly for return generation to complete
+    await new Promise(resolve => setTimeout(resolve, 50));
   }
 
   /**

@@ -454,29 +454,21 @@ export class MonteCarloService {
     };
     
     results.forEach(({ result }, index) => {
-      console.log(`🔍 MonteCarloService: Processing result ${index}:`, result);
-      console.log(`🔍 MonteCarloService: Result structure for ${index}:`, {
-        hasResult: !!result,
-        hasResultResults: !!(result && result.results),
-        resultKeys: result ? Object.keys(result) : 'no result',
-        resultResultsKeys: (result && result.results) ? Object.keys(result.results) : 'no result.results'
-      });
+      if (index < 3) { // Only log first 3 results to avoid console spam
+        console.log(`🔍 MonteCarloService: Processing result ${index}`);
+      }
       
       if (result && result.results) {
         // The SimulationService wraps timeaware engine results in result.results
         // The actual monthly array is in result.results.results (from timeaware engine)
         const timeawareResults = result.results.results; // This is the monthly array
-        console.log(`🔍 MonteCarloService: Timeaware results for ${index}:`, timeawareResults ? `Array of ${timeawareResults.length} items` : 'null/undefined');
-        console.log(`🔍 MonteCarloService: First timeaware result sample:`, timeawareResults ? timeawareResults[0] : 'none');
         
         // Calculate total balance from all assets at the end
         let finalBalance = 0;
         if (timeawareResults && Array.isArray(timeawareResults)) {
           const lastMonth = timeawareResults[timeawareResults.length - 1];
-          console.log(`🔍 MonteCarloService: Last month for ${index}:`, lastMonth);
           if (lastMonth && lastMonth.assets) {
             finalBalance = Object.values(lastMonth.assets).reduce((sum, balance) => sum + balance, 0);
-            console.log(`🔍 MonteCarloService: Final balance for ${index}:`, finalBalance);
           }
         }
         

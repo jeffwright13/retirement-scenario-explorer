@@ -11,9 +11,20 @@ export class StoryController {
     this.eventBus = eventBus;
     
     this.isStoryMode = false;
+    this.currentStory = null;
+    this.currentChapter = 0;
+    this.storyProgress = null;
     
     this.setupEventListeners();
     console.log('🎭 StoryController created with new architecture');
+  }
+
+  /**
+   * Initialize the story controller
+   */
+  initialize() {
+    console.log('📚 Initializing Story Controller');
+    // Controller is already set up via constructor
   }
 
   setupEventListeners() {

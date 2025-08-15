@@ -5,19 +5,34 @@
 export class StoryUI {
   constructor(eventBus) {
     this.eventBus = eventBus;
+    this.isInitialized = false;
     this.currentStory = null;
     this.currentChapter = null;
     
-    this.initializeElements();
-    this.setupEventListeners();
+    // UI elements will be initialized when DOM is ready
+    this.storyPanel = null;
+    this.storySelector = null;
+    this.storyContent = null;
+    this.storyNavigation = null;
+    this.storyProgress = null;
     
     console.log('📚 StoryUI created');
   }
 
   /**
+   * Initialize the Story UI component
+   */
+  initialize() {
+    console.log('📚 Initializing Story UI');
+    this.initializeUIElements();
+    this.setupEventListeners();
+    this.isInitialized = true;
+  }
+
+  /**
    * Initialize DOM element references
    */
-  initializeElements() {
+  initializeUIElements() {
     // Story panel elements
     this.storyPanel = document.getElementById('story-panel');
     this.storySelector = document.getElementById('story-selector');

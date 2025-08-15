@@ -261,9 +261,9 @@ export class SimpleRandomModel extends BaseReturnModel {
       returns[assetType] = [];
       
       for (let period = 0; period < duration; period++) {
-        // Use normal distribution with configurable parameters
-        const mean = config[`${assetType}_mean`] || 0.07;
-        const stdDev = config[`${assetType}_stddev`] || 0.15;
+        // Use normal distribution with realistic market parameters
+        const mean = config[`${assetType}_mean`] || this.getDefaultMean(assetType);
+        const stdDev = config[`${assetType}_stddev`] || this.getDefaultStdDev(assetType);
         
         const return_value = this.normalRandom(mean, stdDev, rng);
         returns[assetType].push(return_value);
@@ -278,6 +278,46 @@ export class SimpleRandomModel extends BaseReturnModel {
     const u2 = rng();
     const z0 = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
     return mean + stdDev * z0;
+  }
+
+  /**
+   * Get realistic default mean return for asset type
+   */
+  getDefaultMean(assetType) {
+    const defaults = {
+      'stock': 0.10,        // 10% historical stock market average
+      'equity': 0.10,
+      'investment': 0.10,
+      'tax_deferred': 0.10,
+      'tax_free': 0.10,
+      'taxable': 0.10,
+      'bond': 0.04,         // 4% for bonds
+      'fixed_income': 0.04,
+      'cash': 0.02,         // 2% for cash/savings
+      'savings': 0.02
+    };
+    
+    return defaults[assetType.toLowerCase()] || 0.07;
+  }
+
+  /**
+   * Get realistic default standard deviation for asset type
+   */
+  getDefaultStdDev(assetType) {
+    const defaults = {
+      'stock': 0.16,        // 16% volatility for stocks (realistic)
+      'equity': 0.16,
+      'investment': 0.16,
+      'tax_deferred': 0.16,
+      'tax_free': 0.16,
+      'taxable': 0.16,
+      'bond': 0.05,         // 5% volatility for bonds
+      'fixed_income': 0.05,
+      'cash': 0.01,         // 1% volatility for cash
+      'savings': 0.01
+    };
+    
+    return defaults[assetType.toLowerCase()] || 0.12;
   }
 
   getDisplayName() {

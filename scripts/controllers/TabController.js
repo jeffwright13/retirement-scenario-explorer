@@ -6,10 +6,17 @@ class TabController {
   constructor(eventBus) {
     this.eventBus = eventBus;
     this.currentTab = 'configure';
-    this.tabButtons = null;
-    this.tabPanels = null;
+    this.isInitialized = false;
     
-    this.init();
+    this.setupEventListeners();
+  }
+
+  /**
+   * Initialize the tab controller
+   */
+  initialize() {
+    console.log('📋 Initializing Tab Controller');
+    this.initializeAfterDOM();
   }
 
   /**

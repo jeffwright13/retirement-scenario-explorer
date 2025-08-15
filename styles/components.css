@@ -93,28 +93,15 @@
     font-size: var(--font-size-sm);
     letter-spacing: 0.025em;
     border: none;
-    border-radius: var(--radius-md);
-    padding: var(--space-3) var(--space-5);
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: all var(--transition-bounce);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-2);
-    box-shadow: var(--shadow-md);
-    min-height: var(--btn-height-base);
-    border: 2px solid transparent;
-  }
 
-  .btn:hover {
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-lg);
-  }
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
 
-  .btn:active {
+.btn:active {
+  transform: translateY(0);
+}
     transform: translateY(0);
   }
 
@@ -130,6 +117,61 @@
     padding: var(--space-2) var(--space-3);
     font-size: var(--font-size-xs);
     min-height: var(--btn-height-sm);
+  }
+
+/* Export Toolbar Styles */
+.export-toolbar {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.export-toolbar-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.export-toolbar-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn--export {
+  background: var(--theme-primary-600);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.btn--export:hover {
+  background: var(--theme-primary-700);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn--export:disabled {
+  background: var(--muted-color);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
   }
 
   .btn--large {

@@ -15,6 +15,14 @@ export class ScenarioController {
     this.setupEventListeners();
   }
 
+  /**
+   * Initialize the scenario controller
+   */
+  initialize() {
+    console.log('📊 Initializing Scenario Controller');
+    // Controller is already set up via constructor
+  }
+
   setupEventListeners() {
     // Scenario events
     this.eventBus.on('scenario:select', (scenarioKey) => this.selectScenario(scenarioKey));

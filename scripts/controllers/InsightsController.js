@@ -7,12 +7,15 @@ export class InsightsController {
     this.eventBus = eventBus;
     this.currentScenarioData = null;
     
-    console.log('🔥 InsightsController: Initializing with event bus');
-    
-    this.initializeElements();
     this.setupEventListeners();
-    
-    console.log('✅ InsightsController: Fully initialized and ready for events');
+  }
+
+  /**
+   * Initialize the insights controller
+   */
+  initialize() {
+    console.log('💡 Initializing Insights Controller');
+    this.initializeElements();
   }
 
   /**

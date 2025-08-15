@@ -7,7 +7,28 @@ export class MonteCarloUI {
     this.eventBus = eventBus;
     this.isInitialized = false;
     
+    // UI elements will be initialized when DOM is ready
+    this.runButton = null;
+    this.cancelButton = null;
+    this.exportButton = null;
+    this.monteCarloSection = null;
+    this.iterationsInput = null;
+    this.seedInput = null;
+    this.targetYearsInput = null;
+    this.successRateInput = null;
+    this.returnModelSelect = null;
+    this.showConfigCheckbox = null;
+    this.progressBar = null;
+    this.progressText = null;
+  }
+
+  /**
+   * Initialize the Monte Carlo UI component
+   */
+  initialize() {
+    console.log('🎲 Initializing Monte Carlo UI');
     this.setupEventListeners();
+    this.isInitialized = true;
   }
 
   /**

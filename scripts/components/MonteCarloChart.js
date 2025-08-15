@@ -6,9 +6,18 @@ export class MonteCarloChart {
   constructor(eventBus) {
     this.eventBus = eventBus;
     this.currentAnalysis = null;
-    this.charts = new Map(); // Store chart instances
+    this.currentTrajectories = null;
+    this.chartContainer = null;
     
     this.setupEventListeners();
+  }
+
+  /**
+   * Initialize the Monte Carlo chart component
+   */
+  initialize() {
+    console.log('📈 Initializing Monte Carlo Chart');
+    // Component is already set up via constructor
   }
 
   /**
