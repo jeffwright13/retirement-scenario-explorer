@@ -196,7 +196,11 @@ export class MonteCarloUI {
    */
   showMonteCarloSection() {
     if (this.monteCarloSection) {
+      // Remove CSS class AND clear any inline style that might hide it
       this.monteCarloSection.classList.remove('monte-carlo-section--collapsed');
+      this.monteCarloSection.style.display = 'block';
+      
+      console.log('🎲 MonteCarloUI: Monte Carlo section shown');
       
       // Scroll to section
       this.monteCarloSection.scrollIntoView({ 

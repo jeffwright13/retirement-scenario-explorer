@@ -31,17 +31,25 @@ export class MonteCarloChart {
    * Display Monte Carlo specific charts - RENAMED to avoid confusion
    */
   displayMonteCarloCharts(data) {
-    console.log('📊 MonteCarloChart: Displaying Monte Carlo specific charts');
+    console.log('📊 MonteCarloChart: Displaying Monte Carlo charts with data:', data);
+    console.log('📊 Data type:', typeof data, 'Keys:', data ? Object.keys(data) : 'none');
     
-    const { analysis, results, scenarioData } = data;
+    // Ensure the Monte Carlo results section is visible
+    const monteCarloSection = document.getElementById('monte-carlo-section-results');
+    if (monteCarloSection) {
+      monteCarloSection.style.display = 'block';
+      console.log('📊 Monte Carlo results section made visible');
+    }
     
-    // Create Monte Carlo specific container (separate from main chart)
-    this.createMonteCarloChartContainer();
+    // Extract results from the event bus data structure
+    const results = data.results || data;
+    const scenarioData = data.scenarioData || this.currentScenarioData;
     
-    // ONLY display Monte Carlo specific visualizations
-    this.displayTrajectoryOverlay(results, scenarioData, 'monte-carlo-trajectory-chart');
+    console.log('📊 Extracted results length:', Array.isArray(results) ? results.length : 'not array');
+    console.log('📊 Scenario data:', scenarioData ? 'present' : 'missing');
     
-    // Don't touch the main chart area at all
+    // Display trajectory overlay in the dedicated Monte Carlo chart container
+    this.displayTrajectoryOverlay(results, scenarioData, 'monte-carlo-chart-area');
   }
 
   /**
@@ -77,16 +85,19 @@ export class MonteCarloChart {
       container.id = 'monte-carlo-charts';
       container.className = 'monte-carlo-charts';
       
-      // Insert in Monte Carlo section, NOT in main chart area
-      const monteCarloSection = document.getElementById('monte-carlo-section');
-      if (monteCarloSection) {
-        monteCarloSection.appendChild(container);
-      } else {
-        // Fallback: insert after main chart container
-        const mainChart = document.getElementById('chart-container');
-        if (mainChart && mainChart.parentNode) {
-          mainChart.parentNode.insertBefore(container, mainChart.nextSibling);
+      // Insert in Monte Carlo RESULTS section, NOT config section
+      const monteCarloResultsSection = document.getElementById('monte-carlo-section-results');
+      if (monteCarloResultsSection) {
+        // Find the monte-carlo-charts div that already exists in the HTML
+        const existingChartsDiv = monteCarloResultsSection.querySelector('#monte-carlo-charts');
+        if (existingChartsDiv) {
+          container = existingChartsDiv; // Use existing div instead of creating new one
+        } else {
+          monteCarloResultsSection.appendChild(container);
         }
+      } else {
+        console.warn('Monte Carlo results section not found');
+        return null;
       }
     }
     
@@ -96,7 +107,6 @@ export class MonteCarloChart {
       trajectoryContainer.id = 'monte-carlo-trajectory-chart';
       trajectoryContainer.className = 'monte-carlo-trajectory-container';
       trajectoryContainer.innerHTML = `
-        <h4>🎯 Monte Carlo Trajectory Analysis</h4>
         <div class="trajectory-chart-area"></div>
       `;
       container.appendChild(trajectoryContainer);
@@ -244,7 +254,9 @@ export class MonteCarloChart {
       return;
     }
 
-    const chartArea = container.querySelector('.trajectory-chart-area') || container;
+    // Use the container directly since it IS the chart area now
+    const chartArea = container;
+    console.log('📊 Using container as chart area:', containerId, container);
     
     console.log('📊 MonteCarloChart: Creating trajectory overlay with', results.length, 'results');
 
@@ -267,7 +279,10 @@ export class MonteCarloChart {
       canvas.style.width = '100%';
       canvas.style.height = 'auto';
       
+      console.log('📊 Created canvas:', canvas, 'Size:', canvas.width, 'x', canvas.height);
+      
       const ctx = canvas.getContext('2d');
+      console.log('📊 Canvas context:', ctx);
       
       // Find the longest trajectory to set chart bounds
       const maxMonths = Math.max(...trajectories.map(t => t.length));
@@ -327,14 +342,34 @@ export class MonteCarloChart {
       ctx.fillStyle = '#333';
       ctx.font = 'bold 16px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText('Monte Carlo Trajectory Analysis', canvas.width / 2, 25);
+      // Title removed - handled by parent section
 
       // Replace container content with canvas
+      console.log('📊 Clearing container and appending canvas...');
+      console.log('📊 Container before clear:', chartArea.innerHTML.length, 'chars');
       chartArea.innerHTML = '';
+      console.log('📊 Container after clear:', chartArea.innerHTML.length, 'chars');
+      
       chartArea.appendChild(canvas);
+      console.log('📊 Canvas appended. Container now has', chartArea.children.length, 'children');
+      console.log('📊 First child:', chartArea.children[0]);
+      console.log('📊 Container dimensions:', chartArea.offsetWidth, 'x', chartArea.offsetHeight);
+      console.log('📊 Container visible?', chartArea.offsetParent !== null);
 
-      // Add legend
-      this.addTrajectoryLegend(chartArea, trajectories.length);
+      // Calculate basic analysis from trajectories for legend
+      const successfulTrajectories = trajectories.filter(traj => {
+        const finalBalance = traj[traj.length - 1]?.totalBalance || 0;
+        return finalBalance > 0;
+      });
+      const analysisData = {
+        successRate: successfulTrajectories.length / trajectories.length
+      };
+      
+      // Add interactive legend and explanatory text
+      this.addInteractiveLegend(chartArea, trajectories.length, analysisData);
+      
+      // Add explanatory text
+      this.addChartExplanation(chartArea, analysisData);
       
       console.log('✅ Monte Carlo trajectory overlay rendered successfully');
 
@@ -602,30 +637,70 @@ export class MonteCarloChart {
   }
 
   /**
-   * Add legend for trajectory chart
+   * Add interactive legend with clear explanations
    */
-  addTrajectoryLegend(container, trajectoryCount = 0) {
+  addInteractiveLegend(container, trajectoryCount, analysis) {
     const legend = document.createElement('div');
-    legend.className = 'trajectory-legend';
+    legend.className = 'monte-carlo-legend';
+    
+    const successRate = (analysis.successRate * 100).toFixed(1);
+    
     legend.innerHTML = `
       <div class="legend-item">
-        <span class="legend-color" style="background: linear-gradient(90deg, hsl(0, 60%, 45%), hsl(60, 60%, 45%), hsl(120, 60%, 45%)); height: 3px;"></span>
-        <span><strong>${trajectoryCount} Individual Simulations</strong></span>
+        <span class="legend-color" style="background: rgba(0, 150, 0, 0.6);"></span>
+        <span class="legend-text"><strong>Individual Simulations</strong> - ${trajectoryCount} different market scenarios</span>
       </div>
       <div class="legend-item">
-        <span class="legend-color" style="background: rgba(66, 139, 202, 0.2); height: 10px;"></span>
-        <span>25th-75th Percentile Range</span>
+        <span class="legend-color" style="background: rgba(100, 149, 237, 0.3);"></span>
+        <span class="legend-text"><strong>25th-75th Percentile</strong> - Middle 50% of outcomes</span>
       </div>
       <div class="legend-item">
-        <span class="legend-color" style="background: rgba(66, 139, 202, 0.1); height: 10px;"></span>
-        <span>10th-90th Percentile Range</span>
+        <span class="legend-color" style="background: rgba(173, 216, 230, 0.3);"></span>
+        <span class="legend-text"><strong>10th-90th Percentile</strong> - 80% of all outcomes fall here</span>
       </div>
       <div class="legend-item">
-        <span class="legend-color" style="background: #d9534f; height: 3px;"></span>
-        <span><strong>Median Outcome</strong></span>
+        <span class="legend-color" style="background: red;"></span>
+        <span class="legend-text"><strong>Median Outcome</strong> - Most likely scenario (${successRate}% success rate)</span>
       </div>
     `;
+    
     container.appendChild(legend);
+  }
+
+  /**
+   * Add chart explanation
+   */
+  addChartExplanation(container, analysis) {
+    const explanation = document.createElement('div');
+    explanation.className = 'chart-explanation';
+    
+    const successRate = (analysis.successRate * 100).toFixed(1);
+    const failureRate = (100 - analysis.successRate * 100).toFixed(1);
+    
+    explanation.innerHTML = `
+      <div class="explanation-box">
+        <h5>📊 What This Chart Shows</h5>
+        <p>Each line represents your retirement plan under different market conditions. 
+        The chart shows ${successRate}% of scenarios maintain positive balances, while ${failureRate}% run out of money.</p>
+        
+        <p><strong>Key Insights:</strong></p>
+        <ul>
+          <li>Lines going to zero = scenarios where you run out of money</li>
+          <li>Higher lines = scenarios with money left over</li>
+          <li>Red line = most likely outcome based on historical averages</li>
+        </ul>
+      </div>
+    `;
+    
+    container.appendChild(explanation);
+  }
+
+  /**
+   * Legacy method for compatibility
+   */
+  addTrajectoryLegend(container, trajectoryCount = 0) {
+    // Legacy method - redirect to new interactive legend
+    this.addInteractiveLegend(container, trajectoryCount, { successRate: 0.75 }); // Default success rate
   }
 
   /**

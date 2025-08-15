@@ -188,6 +188,26 @@ export class UIController {
         this.handleSimulationFailed(data);
       }
     });
+    
+    // Monte Carlo section visibility events
+    this.eventBus.on('montecarlo:analysis-started', () => {
+      this.showMonteCarloSection();
+      this.showMonteCarloFeedback('running');
+      this.hideMonteCarloConfig();
+    });
+    
+    this.eventBus.on('montecarlo:analysis-completed', () => {
+      // Section already visible, just ensure it stays visible
+      this.showMonteCarloSection();
+      this.showMonteCarloFeedback('completed');
+      this.hideMonteCarloConfig();
+    });
+    
+    this.eventBus.on('montecarlo:analysis-cancelled', () => {
+      this.hideMonteCarloSection();
+      this.hideAllFeedback();
+      this.showMonteCarloConfig();
+    });
   }
 
   /**
@@ -299,6 +319,8 @@ export class UIController {
    */
   handleSimulationStarted(data) {
     this.setRunButtonLoading(true);
+    // Don't automatically hide Monte Carlo section - let user manage both charts independently
+    this.showSimulationFeedback('running');
     this.showSuccess('Simulation started...');
   }
 
@@ -316,8 +338,9 @@ export class UIController {
     });
     
     this.setRunButtonLoading(false);
-    this.showChartArea();
+    this.showSingleScenarioSection();
     this.displaySimulationResults(data);
+    this.showSimulationFeedback('completed');
     this.showSuccess('Simulation completed successfully');
   }
 
@@ -864,13 +887,126 @@ export class UIController {
   // All advanced functionality has been moved elsewhere in the UX
 
   /**
-   * Show chart area for simulation results
+   * Show single scenario results section
    */
-  showChartArea() {
+  showSingleScenarioSection() {
+    const singleScenarioSection = document.getElementById('single-scenario-section');
+    if (singleScenarioSection) {
+      singleScenarioSection.style.display = 'block';
+      console.log('📊 Single scenario section shown');
+    }
+    
     if (this.chartArea) {
       this.chartArea.style.display = 'block';
       this.chartArea.classList.add('has-results');
       console.log('📊 Chart area shown');
+    }
+  }
+
+  /**
+   * Show Monte Carlo results section
+   */
+  showMonteCarloSection() {
+    const monteCarloSection = document.getElementById('monte-carlo-section-results');
+    if (monteCarloSection) {
+      monteCarloSection.style.display = 'block';
+      console.log('🎲 Monte Carlo results section shown');
+    }
+  }
+
+  /**
+   * Hide Monte Carlo results section
+   */
+  hideMonteCarloSection() {
+    const monteCarloSection = document.getElementById('monte-carlo-section-results');
+    if (monteCarloSection) {
+      monteCarloSection.style.display = 'none';
+      console.log('🎲 Monte Carlo results section hidden');
+    }
+  }
+
+  /**
+   * Show simulation feedback on Simulation tab
+   */
+  showSimulationFeedback(status) {
+    this.hideAllFeedback();
+    
+    const feedbackId = status === 'running' ? 'simulation-status-feedback' : 'simulation-success-feedback';
+    const feedbackElement = document.getElementById(feedbackId);
+    
+    if (feedbackElement) {
+      feedbackElement.style.display = 'flex';
+      console.log(`💬 Simulation feedback shown: ${status}`);
+      
+      // Auto-hide success feedback after 5 seconds
+      if (status === 'completed') {
+        setTimeout(() => {
+          feedbackElement.style.display = 'none';
+        }, 5000);
+      }
+    }
+  }
+
+  /**
+   * Show Monte Carlo feedback on Simulation tab
+   */
+  showMonteCarloFeedback(status) {
+    this.hideAllFeedback();
+    
+    const feedbackId = status === 'running' ? 'monte-carlo-status-feedback' : 'monte-carlo-success-feedback';
+    const feedbackElement = document.getElementById(feedbackId);
+    
+    if (feedbackElement) {
+      feedbackElement.style.display = 'flex';
+      console.log(`💬 Monte Carlo feedback shown: ${status}`);
+      
+      // Auto-hide success feedback after 5 seconds
+      if (status === 'completed') {
+        setTimeout(() => {
+          feedbackElement.style.display = 'none';
+        }, 5000);
+      }
+    }
+  }
+
+  /**
+   * Hide all feedback items
+   */
+  hideAllFeedback() {
+    const feedbackItems = [
+      'simulation-status-feedback',
+      'simulation-success-feedback', 
+      'monte-carlo-status-feedback',
+      'monte-carlo-success-feedback'
+    ];
+    
+    feedbackItems.forEach(id => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.style.display = 'none';
+      }
+    });
+  }
+
+  /**
+   * Hide Monte Carlo configuration area
+   */
+  hideMonteCarloConfig() {
+    const monteCarloSection = document.getElementById('monte-carlo-section');
+    if (monteCarloSection) {
+      monteCarloSection.style.display = 'none';
+      console.log('🎲 Monte Carlo config area hidden');
+    }
+  }
+
+  /**
+   * Show Monte Carlo configuration area
+   */
+  showMonteCarloConfig() {
+    const monteCarloSection = document.getElementById('monte-carlo-section');
+    if (monteCarloSection) {
+      monteCarloSection.style.display = 'block';
+      console.log('🎲 Monte Carlo config area shown');
     }
   }
 
@@ -903,8 +1039,15 @@ export class UIController {
       
       console.log('📊 About to display insights:', data.insights?.length || 0, 'insights');
       
-      // Display insights
-      this.displayInsights(data.insights);
+      // Request insights generation through event bus (proper architecture)
+      if (this.currentScenarioData && resultsArray && resultsArray.length > 0) {
+        this.eventBus.emit('insights:generate-request', {
+          scenarioData: this.currentScenarioData,
+          simulationResults: resultsArray,
+          trigger: 'simulation-completed',
+          requestId: `insights-${Date.now()}`
+        });
+      }
       
       console.log('📊 About to populate CSV export');
       
@@ -969,7 +1112,12 @@ export class UIController {
       }
 
       const layout = {
-        title: '💰 Assets & Income Events Over Time',
+        // title: {
+        //   text: '💰 Assets & Income Events Over Time',
+        //   font: { size: 16, color: '#333' },
+        //   x: 0.5,
+        //   xanchor: 'center'
+        // },
         xaxis: { 
           title: 'Timeline (MM-YY)',
           tickvals: filteredTicks,
@@ -984,7 +1132,10 @@ export class UIController {
         legend: {
           groupclick: 'toggleitem',
           tracegroupgap: 10
-        }
+        },
+        margin: { t: 60, b: 80, l: 80, r: 40 },
+        autosize: true,
+        responsive: true
       };
 
       const config = {
@@ -995,11 +1146,19 @@ export class UIController {
       // Clear any existing plot first
       Plotly.purge(this.chartArea);
       
-      // Render the chart
-      Plotly.newPlot(this.chartArea, chartData, layout, config);
-      console.log('📊 Chart rendered successfully');
+      // Create the plot with forced resize for full width
+      Plotly.newPlot(this.chartArea, chartData, layout, config).then(() => {
+        // Force resize to ensure full width after initial render
+        setTimeout(() => {
+          Plotly.Plots.resize(this.chartArea);
+        }, 100);
+      });
+      
+      console.log('✅ Chart rendered successfully');
+      
     } catch (error) {
-      console.error('❌ Chart rendering failed:', error);
+      console.error('❌ Error rendering chart:', error);
+      this.showError('Failed to render chart: ' + error.message);
     }
   }
 

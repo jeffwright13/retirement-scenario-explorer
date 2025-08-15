@@ -19,9 +19,9 @@ export class InsightsController {
    * Initialize DOM elements
    */
   initializeElements() {
-    this.insightsSection = document.getElementById('simulation-insights');
+    this.insightsSection = document.getElementById('insights-section');
     if (!this.insightsSection) {
-      console.warn('⚠️ InsightsController: simulation-insights element not found');
+      console.warn('⚠️ InsightsController: insights-section element not found');
     }
   }
 

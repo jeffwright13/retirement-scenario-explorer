@@ -424,6 +424,83 @@
     border: 1px solid var(--border-color);
   }
 
+  /* Results Tab Structure */
+  .results-section {
+    margin: 24px 0;
+    padding: 24px;
+    background: var(--surface-color);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .results-section h4 {
+    margin: 0 0 16px 0;
+    color: var(--primary-color);
+    font-size: 1.2em;
+    font-weight: 600;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--accent-color);
+  }
+
+  /* Chart Area */
+  .chart-area {
+    margin: 16px 0 0 0;
+    padding: 20px;
+    background: var(--background-color);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    min-height: 400px;
+  }
+
+  /* Simulation Feedback */
+  .simulation-feedback {
+    margin: 16px 0;
+    padding: 0;
+  }
+
+  .feedback-item {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    margin: 8px 0;
+    background: var(--surface-color);
+    border-radius: 8px;
+    border-left: 4px solid var(--accent-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .feedback-icon {
+    font-size: 1.2em;
+    flex-shrink: 0;
+  }
+
+  .feedback-text {
+    color: var(--text-color);
+    font-weight: 500;
+  }
+
+  /* Insights List */
+  #insights-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0 0;
+  }
+
+  #insights-list li {
+    padding: 12px 16px;
+    margin: 8px 0;
+    background: var(--background-color);
+    border-radius: 6px;
+    border-left: 3px solid var(--accent-color);
+    color: var(--text-color);
+  }
+
+  #insights-list li:last-child {
+    margin-bottom: 0;
+  }
+
   /* ===== ANIMATIONS ===== */
   @keyframes pulse {
     0% {
@@ -451,6 +528,92 @@
 
   .btn--primary:active {
     animation: button-pulse 0.6s;
+  }
+
+  /* Monte Carlo Charts */
+  .monte-carlo-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-size: 0.9em;
+    border-left: 4px solid #007bff;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 250px;
+  }
+
+  .legend-color {
+    width: 24px;
+    height: 4px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-text {
+    color: #555;
+    line-height: 1.4;
+  }
+
+  .chart-explanation {
+    margin-top: 20px;
+    padding: 0;
+  }
+
+  .explanation-box {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 15px;
+  }
+
+  .explanation-box h5 {
+    margin: 0 0 12px 0;
+    color: #856404;
+    font-size: 1.1em;
+  }
+
+  .explanation-box p {
+    margin: 0 0 12px 0;
+    color: #856404;
+    line-height: 1.5;
+  }
+
+  .explanation-box ul {
+    margin: 8px 0 0 0;
+    padding-left: 20px;
+    color: #856404;
+  }
+
+  .explanation-box li {
+    margin-bottom: 6px;
+    line-height: 1.4;
+  }
+
+  /* Monte Carlo Chart Container */
+  .monte-carlo-chart-container {
+    min-height: 400px;
+    height: 500px;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: block;
+  }
+
+  .monte-carlo-chart-container canvas {
+    max-width: 100%;
+    height: auto;
   }
 
   /* ===== LOADING STATES ===== */

@@ -42,6 +42,9 @@ export class MonteCarloController {
         scenarioData: data.scenarioData
       };
       this.updateUI();
+      
+      // Emit event to show Monte Carlo results section
+      this.eventBus.emit('montecarlo:analysis-started');
     });
 
     this.eventBus.on('montecarlo:progress', (data) => {
@@ -72,6 +75,13 @@ export class MonteCarloController {
       
       this.updateUI();
       this.displayResults();
+      
+      // Emit completion event
+      this.eventBus.emit('montecarlo:analysis-completed', {
+        analysis: data.analysis,
+        results: data.results,
+        scenarioData: data.scenarioData
+      });
     });
 
     this.eventBus.on('montecarlo:error', (data) => {
@@ -85,13 +95,17 @@ export class MonteCarloController {
       this.displayError(data.error);
     });
 
-    this.eventBus.on('montecarlo:cancelled', () => {
+    this.eventBus.on('montecarlo:cancelled', (data) => {
       this.isAnalysisRunning = false;
       this.currentAnalysis = {
         status: 'cancelled',
-        endTime: Date.now()
+        endTime: Date.now(),
+        error: 'Analysis was cancelled by user'
       };
       this.updateUI();
+      
+      // Emit cancellation event to hide Monte Carlo results section
+      this.eventBus.emit('montecarlo:analysis-cancelled');
     });
 
     // Listen for UI events
@@ -329,7 +343,6 @@ export class MonteCarloController {
     
     container.innerHTML = `
       <div class="monte-carlo-summary">
-        <h3>Monte Carlo Analysis Results</h3>
         
         <div class="success-rate">
           <h4>Success Rate</h4>

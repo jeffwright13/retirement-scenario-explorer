@@ -363,7 +363,7 @@ export class SimulationService {
     } else {
       insights.push({
         type: 'warning',
-        message: `⚠️ Income only covers ${(incomeRatio * 100).toFixed(0)}% of expenses - heavy asset reliance`,
+        message: `⚠️ Income covers ${(incomeRatio * 100).toFixed(0)}% of expenses - heavy asset reliance`,
         priority: 'medium'
       });
     }

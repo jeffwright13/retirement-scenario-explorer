@@ -251,35 +251,61 @@
             </button>
           </div>
           
+          <div class="simulation-feedback" id="simulation-feedback">
+            <div class="feedback-item" id="simulation-status-feedback" style="display: none;">
+              <span class="feedback-icon">⏳</span>
+              <span class="feedback-text">Running simulation...</span>
+            </div>
+            <div class="feedback-item" id="simulation-success-feedback" style="display: none;">
+              <span class="feedback-icon">✅</span>
+              <span class="feedback-text">Simulation complete! Check the Results tab.</span>
+            </div>
+            <div class="feedback-item" id="monte-carlo-status-feedback" style="display: none;">
+              <span class="feedback-icon">🎲</span>
+              <span class="feedback-text">Monte Carlo analysis running...</span>
+            </div>
+            <div class="feedback-item" id="monte-carlo-success-feedback" style="display: none;">
+              <span class="feedback-icon">📊</span>
+              <span class="feedback-text">Monte Carlo analysis complete! Check the Results tab.</span>
+            </div>
+          </div>
+          
           <div class="simulation-options">
             <button id="toggle-csv-btn" class="btn btn--secondary" style="display: none;">📊 Export CSV Data</button>
           </div>
           
           <div class="simulation-status" id="simulation-status">
-            <!-- Progress indicators and status messages will appear here -->
+            <!-- Legacy status container - keeping for compatibility -->
           </div>
         </div>
 
         <!-- Results Tab -->
         <div class="tab-panel" id="results-tab">
           <div class="tab-panel-header">
-            <h3>📈 Results & Analysis</h3>
+            <h3>📈 Analysis Results</h3>
+            <p>View your simulation and analysis outcomes</p>
           </div>
           
-          <!-- Chart Area -->
-          <div id="chart-area" class="chart-area"></div>
+          <!-- Single Scenario Results -->
+          <div class="results-section" id="single-scenario-section">
+            <h4>📊 Single Scenario Simulation</h4>
+            <div id="chart-area" class="chart-area"></div>
+          </div>
 
-          <!-- Monte Carlo Charts Container (unified results display) -->
-          <div id="monte-carlo-charts" class="monte-carlo-charts"></div>
-          
-          <!-- Monte Carlo Results Summary -->
-          <div id="monte-carlo-summary" class="monte-carlo-results"></div>
-          <div id="monte-carlo-insights" class="monte-carlo-insights"></div>
-
-          <!-- Simulation Insights -->
-          <div class="simulation-insights" id="simulation-insights">
-            <h3>💡 Key Insights</h3>
+          <!-- Key Insights -->
+          <div class="results-section" id="insights-section">
+            <h4>💡 Key Insights</h4>
             <ul id="insights-list"></ul>
+          </div>
+
+          <!-- Monte Carlo Results -->
+          <div class="results-section" id="monte-carlo-section-results" style="display: none;">
+            <h4>🎲 Monte Carlo Simulation</h4>
+            <div id="monte-carlo-chart-area" class="chart-area monte-carlo-chart-container">
+              <!-- Monte Carlo trajectory chart will be rendered here -->
+            </div>
+            <div id="monte-carlo-summary" class="monte-carlo-results"></div>
+            <div id="monte-carlo-insights" class="monte-carlo-insights"></div>
           </div>
 
           <!-- Coming Up Next -->
