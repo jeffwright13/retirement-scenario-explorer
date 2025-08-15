@@ -184,6 +184,111 @@
 .monte-carlo-results {
   padding: 1.5rem;
   background: var(--background-white);
+  margin-top: 20px;
+}
+
+/* Compact Monte Carlo Analysis Summary */
+.monte-carlo-results-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin: 15px 0;
+}
+
+.monte-carlo-insights-compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+  margin: 15px 0;
+}
+
+.monte-carlo-insights-compact .insight-card {
+  background: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 12px;
+  font-size: 14px;
+}
+
+.monte-carlo-insights-compact .insight-card h6 {
+  margin: 0 0 6px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.monte-carlo-insights-compact .insight-card p {
+  margin: 0;
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+}
+
+/* Configuration Toggle */
+.config-toggle-container {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.config-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  transition: color 0.2s ease;
+}
+
+.config-toggle-label:hover {
+  color: var(--color-primary);
+}
+
+.config-toggle-checkbox {
+  margin: 0;
+}
+
+.config-toggle-text {
+  user-select: none;
+}
+
+/* Collapsible Configuration */
+.monte-carlo-config-collapsed {
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+  padding: 0;
+}
+
+.monte-carlo-config-expanded {
+  max-height: 500px;
+  opacity: 1;
+  padding: 20px;
+  transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+}
+
+/* Analysis Summary Cards */
+.analysis-summary-card {
+  background: var(--color-background-light);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+}
+
+.analysis-summary-card .metric-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.analysis-summary-card .metric-label {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .monte-carlo-summary h3 {

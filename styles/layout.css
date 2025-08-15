@@ -361,7 +361,7 @@
 
   .scenario-preview h4 {
     margin-top: 0;
-    color: var(--color-white);
+    color: var(--text-dark);
   }
 
   .scenario-preview details {

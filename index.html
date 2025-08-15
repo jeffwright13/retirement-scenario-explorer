@@ -146,19 +146,18 @@
     <div class="scenario-mode-container" id="scenario-mode-container">
       <!-- Tab Navigation -->
       <div class="scenario-tabs">
-        <button class="tab-button" data-tab="input">📝 Input</button>
-        <button class="tab-button" data-tab="simulation">🚀 Simulation</button>
-        <button class="tab-button" data-tab="results">📈 Results</button>
-        <!-- Compare tab removed - no implementation yet -->
+        <button class="tab-button active" data-tab="configure">📝 Configure Scenario</button>
+        <button class="tab-button" data-tab="single-analysis">📊 Single Analysis</button>
+        <button class="tab-button" data-tab="monte-carlo">🎲 Monte Carlo</button>
       </div>
 
       <!-- Tab Content -->
       <div class="tab-content">
-        <!-- Input Tab -->
-        <div class="tab-panel active" id="input-tab">
+        <!-- Configure Scenario Tab -->
+        <div class="tab-panel active" id="configure-tab">
           <div class="tab-panel-header">
-            <h3>📊 Scenario Input</h3>
-            <p>Select and configure your retirement scenario</p>
+            <h3>📝 Configure Scenario</h3>
+            <p>Select and configure your retirement scenario for analysis</p>
           </div>
           
           <div class="scenario-selector">
@@ -235,19 +234,21 @@
           </div>
         </div>
 
-        <!-- Simulation Tab -->
-        <div class="tab-panel" id="simulation-tab">
+        <!-- Single Analysis Tab -->
+        <div class="tab-panel" id="single-analysis-tab">
           <div class="tab-panel-header">
-            <h3>🚀 Run Simulation</h3>
-            <p>Execute your retirement scenario analysis</p>
+            <h3>📊 Single Scenario Analysis</h3>
+            <p>Run and analyze a single retirement scenario</p>
           </div>
           
+          <div class="analysis-status" id="single-analysis-status">
+            <p>Select a scenario in the Configure tab to enable analysis.</p>
+          </div>
+          
+          <!-- Single Scenario Simulation Controls -->
           <div class="simulation-controls">
-            <button id="run-btn-primary" class="btn btn--success btn--large">
+            <button id="run-btn-primary" class="btn btn--success btn--large" disabled>
               🚀 Run Single Scenario
-            </button>
-            <button id="start-monte-carlo" class="btn btn--monte-carlo btn--large">
-              🎲 Monte Carlo Analysis
             </button>
           </div>
           
@@ -258,37 +259,13 @@
             </div>
             <div class="feedback-item" id="simulation-success-feedback" style="display: none;">
               <span class="feedback-icon">✅</span>
-              <span class="feedback-text">Simulation complete! Check the Results tab.</span>
+              <span class="feedback-text">Simulation complete!</span>
             </div>
-            <div class="feedback-item" id="monte-carlo-status-feedback" style="display: none;">
-              <span class="feedback-icon">🎲</span>
-              <span class="feedback-text">Monte Carlo analysis running...</span>
-            </div>
-            <div class="feedback-item" id="monte-carlo-success-feedback" style="display: none;">
-              <span class="feedback-icon">📊</span>
-              <span class="feedback-text">Monte Carlo analysis complete! Check the Results tab.</span>
-            </div>
-          </div>
-          
-          <div class="simulation-options">
-            <button id="toggle-csv-btn" class="btn btn--secondary" style="display: none;">📊 Export CSV Data</button>
-          </div>
-          
-          <div class="simulation-status" id="simulation-status">
-            <!-- Legacy status container - keeping for compatibility -->
-          </div>
-        </div>
-
-        <!-- Results Tab -->
-        <div class="tab-panel" id="results-tab">
-          <div class="tab-panel-header">
-            <h3>📈 Analysis Results</h3>
-            <p>View your simulation and analysis outcomes</p>
           </div>
           
           <!-- Single Scenario Results -->
           <div class="results-section" id="single-scenario-section">
-            <h4>📊 Single Scenario Simulation</h4>
+            <h4>📊 Single Scenario Results</h4>
             <div id="chart-area" class="chart-area"></div>
           </div>
 
@@ -297,15 +274,134 @@
             <h4>💡 Key Insights</h4>
             <ul id="insights-list"></ul>
           </div>
+          
+          <div class="simulation-options">
+            <button id="toggle-csv-btn" class="btn btn--secondary" style="display: none;">📊 Export CSV Data</button>
+          </div>
+        </div>
+
+        <!-- Monte Carlo Tab -->
+        <div class="tab-panel" id="monte-carlo-tab">
+          <div class="tab-panel-header">
+            <h3>🎲 Monte Carlo Analysis</h3>
+            <p>Run probabilistic analysis with thousands of scenarios</p>
+          </div>
+          
+          <div class="analysis-status" id="monte-carlo-analysis-status">
+            <p>Select a scenario in the Configure tab to enable Monte Carlo analysis.</p>
+          </div>
+          
+          <!-- Monte Carlo Simulation Controls -->
+          <div class="simulation-controls">
+            <button id="run-monte-carlo-btn" class="btn btn--success btn--large" disabled>
+              🎲 Select Scenario First
+            </button>
+            
+            <!-- Configuration Toggle -->
+            <div class="config-toggle-container">
+              <label class="config-toggle-label">
+                <input type="checkbox" id="show-monte-carlo-config" class="config-toggle-checkbox" checked>
+                <span class="config-toggle-text">⚙️ Show Configuration Options</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Monte Carlo Configuration (Collapsible) -->
+          <div class="monte-carlo-section monte-carlo-config-expanded" id="monte-carlo-section">
+            <div class="monte-carlo-header">
+              <h4>🎲 Monte Carlo Configuration</h4>
+              <div class="monte-carlo-actions">
+                <button id="cancel-monte-carlo" class="btn btn--secondary" style="display: none;">
+                  ❌ Cancel Analysis
+                </button>
+                <button id="export-monte-carlo-config" class="btn btn--secondary" style="display: none;">📊 Export Results</button>
+              </div>
+            </div>
+            
+            <div class="monte-carlo-config">
+              <div class="config-grid">
+                <div class="config-item">
+                  <label for="monte-carlo-iterations" class="config-label">Iterations</label>
+                  <input type="number" id="monte-carlo-iterations" class="config-input" value="1000" min="100" max="10000" step="100">
+                  <span class="config-hint">Accuracy vs speed</span>
+                </div>
+                
+                <div class="config-item">
+                  <label for="monte-carlo-target-years" class="config-label">Target Years</label>
+                  <input type="number" id="monte-carlo-target-years" class="config-input" value="25" min="1" max="50" step="0.5">
+                  <span class="config-hint">Money duration goal</span>
+                </div>
+                
+                <div class="config-item">
+                  <label for="monte-carlo-success-rate" class="config-label">Success Rate</label>
+                  <div class="input-with-unit">
+                    <input type="number" id="monte-carlo-success-rate" class="config-input" value="80" min="50" max="99" step="5">
+                    <span class="input-unit">%</span>
+                  </div>
+                  <span class="config-hint">Confidence level</span>
+                </div>
+                
+                <div class="config-item">
+                  <label for="monte-carlo-min-balance" class="config-label">Min Balance</label>
+                  <div class="input-with-unit">
+                    <span class="input-unit-prefix">$</span>
+                    <input type="number" id="monte-carlo-min-balance" class="config-input" value="0" min="0" step="1000">
+                  </div>
+                  <span class="config-hint">Inheritance goal</span>
+                </div>
+                
+                <div class="config-item config-advanced">
+                  <label for="monte-carlo-seed" class="config-label">Seed</label>
+                  <input type="number" id="monte-carlo-seed" class="config-input" placeholder="Random">
+                  <span class="config-hint">Reproducible results</span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="monte-carlo-progress" id="monte-carlo-progress" style="display: none;">
+              <div class="progress-bar">
+                <div class="progress-fill" id="monte-carlo-progress-fill"></div>
+              </div>
+              <div class="progress-text" id="monte-carlo-progress-text">Preparing analysis...</div>
+            </div>
+          </div>
+          
+          <div class="simulation-feedback" id="monte-carlo-feedback">
+            <div class="feedback-item" id="monte-carlo-status-feedback" style="display: none;">
+              <span class="feedback-icon">🎲</span>
+              <span class="feedback-text">Monte Carlo analysis running...</span>
+            </div>
+            <div class="feedback-item" id="monte-carlo-success-feedback" style="display: none;">
+              <span class="feedback-icon">📊</span>
+              <span class="feedback-text">Monte Carlo analysis complete!</span>
+            </div>
+          </div>
 
           <!-- Monte Carlo Results -->
           <div class="results-section" id="monte-carlo-section-results" style="display: none;">
-            <h4>🎲 Monte Carlo Simulation</h4>
+            <div class="monte-carlo-header">
+              <h4>🎲 Monte Carlo Analysis Results</h4>
+              <div class="monte-carlo-actions">
+                <button id="export-monte-carlo" class="btn btn--secondary btn--small" style="display: none;">📊 Export Results</button>
+              </div>
+            </div>
             <div id="monte-carlo-chart-area" class="chart-area monte-carlo-chart-container">
               <!-- Monte Carlo trajectory chart will be rendered here -->
             </div>
-            <div id="monte-carlo-summary" class="monte-carlo-results"></div>
-            <div id="monte-carlo-insights" class="monte-carlo-insights"></div>
+            
+            <!-- Compact Monte Carlo Analysis Summary -->
+            <div class="results-section" id="monte-carlo-analysis-summary">
+              <h5>📈 Analysis Summary</h5>
+              <div id="monte-carlo-summary" class="monte-carlo-results-compact"></div>
+              <div id="monte-carlo-insights" class="monte-carlo-insights-compact"></div>
+            </div>
+
+            <!-- Key Scenario Insights (separate from Monte Carlo analysis) -->
+            <div class="results-section" id="monte-carlo-scenario-insights">
+              <h5>💡 Key Scenario Insights</h5>
+              <ul id="monte-carlo-insights-list"></ul>
+            </div>
+            
           </div>
 
           <!-- Coming Up Next -->
@@ -353,7 +449,6 @@
           <h3>🎲 Monte Carlo Analysis</h3>
           <div class="monte-carlo-actions">
             <button id="cancel-monte-carlo" class="btn btn--secondary btn--small" style="display: none;">Cancel</button>
-            <button id="export-monte-carlo" class="btn btn--secondary btn--small">Export Results</button>
           </div>
         </div>
         

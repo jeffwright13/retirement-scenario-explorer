@@ -5,7 +5,7 @@
 class TabController {
   constructor(eventBus) {
     this.eventBus = eventBus;
-    this.currentTab = 'input';
+    this.currentTab = 'configure';
     this.tabButtons = null;
     this.tabPanels = null;
     
@@ -46,16 +46,21 @@ class TabController {
    * Setup event listeners
    */
   setupEventListeners() {
-    // Listen for simulation completion to auto-switch to Results tab
-    // Both regular and Monte Carlo results now display in Results tab for unified UX
-    this.eventBus.on('simulation:regular-completed', () => this.switchToTab('results'));
-    this.eventBus.on('simulation:monte-carlo-completed', () => this.switchToTab('results'));
+    // Listen for simulation completion - stay in same tab since results are inline
+    this.eventBus.on('simulation:regular-completed', () => {
+      // Results display in same Single Scenario tab - no tab switch needed
+      console.log('📑 Single scenario completed - results shown in same tab');
+    });
     
-    // Listen for scenario selection to enable simulation tab
+    this.eventBus.on('simulation:monte-carlo-completed', () => {
+      // Results display in same Monte Carlo tab - no tab switch needed
+      console.log('📑 Monte Carlo completed - results shown in same tab');
+    });
+    
+    // Listen for scenario selection - enable analysis tabs when scenario is selected
     this.eventBus.on('scenario:selected', () => {
-      this.enableTab('simulation');
-      // Stay on Input tab so user can see configuration synopsis and JSON Edit button
-      console.log('📑 Scenario selected - staying on Input tab for user review');
+      this.enableAnalysisTabs();
+      console.log('📑 Scenario selected - analysis tabs enabled');
     });
     
     // Listen for mode changes
@@ -143,20 +148,17 @@ class TabController {
    */
   handleTabSwitch(tabId) {
     switch (tabId) {
-      case 'input':
+      case 'configure':
         // Focus on scenario selection if no scenario is selected
         this.focusScenarioSelection();
         break;
-      case 'simulation':
-        // Ensure scenario is selected before allowing simulation
-        this.validateSimulationReadiness();
+      case 'single-analysis':
+        // Check if scenario is selected for single analysis
+        this.validateSingleAnalysisReadiness();
         break;
-      case 'results':
-        // Ensure results area is properly displayed
-        this.ensureResultsVisible();
-        break;
-      case 'compare':
-        // Future enhancement - comparison functionality
+      case 'monte-carlo':
+        // Check if scenario is selected for Monte Carlo
+        this.validateMonteCarloReadiness();
         break;
     }
   }
@@ -196,28 +198,59 @@ class TabController {
   }
 
   /**
-   * Validate simulation readiness
+   * Validate single analysis readiness
    */
-  validateSimulationReadiness() {
+  validateSingleAnalysisReadiness() {
     const scenarioDropdown = document.getElementById('scenario-dropdown');
+    const statusDiv = document.getElementById('single-analysis-status');
+    const runButton = document.getElementById('run-btn-primary');
+    
     if (!scenarioDropdown || !scenarioDropdown.value) {
-      // Switch back to input tab if no scenario selected
-      setTimeout(() => {
-        this.switchToTab('input');
-        this.showMessage('Please select a scenario first', 'warning');
-      }, 100);
+      if (statusDiv) statusDiv.innerHTML = '<p>Select a scenario in the Configure tab to enable analysis.</p>';
+      if (runButton) {
+        runButton.disabled = true;
+        runButton.textContent = '🚀 Select Scenario First';
+      }
+    } else {
+      if (statusDiv) statusDiv.innerHTML = '<p>✅ Ready to run single scenario analysis.</p>';
+      if (runButton) {
+        runButton.disabled = false;
+        runButton.textContent = '🚀 Run Single Scenario';
+      }
     }
   }
 
   /**
-   * Ensure results are visible
+   * Validate Monte Carlo readiness
    */
-  ensureResultsVisible() {
-    const chartArea = document.getElementById('chart-area');
-    if (chartArea && !chartArea.classList.contains('has-results')) {
-      // No results yet, suggest running simulation
-      this.showMessage('Run a simulation to see results', 'info');
+  validateMonteCarloReadiness() {
+    const scenarioDropdown = document.getElementById('scenario-dropdown');
+    const statusDiv = document.getElementById('monte-carlo-analysis-status');
+    const runButton = document.getElementById('run-monte-carlo-btn');
+    
+    if (!scenarioDropdown || !scenarioDropdown.value) {
+      if (statusDiv) statusDiv.innerHTML = '<p>Select a scenario in the Configure tab to enable Monte Carlo analysis.</p>';
+      if (runButton) {
+        runButton.disabled = true;
+        runButton.textContent = '🎲 Select Scenario First';
+      }
+      return false;
     }
+
+    if (statusDiv) statusDiv.innerHTML = '<p>✅ Ready to run Monte Carlo analysis.</p>';
+    if (runButton) {
+      runButton.disabled = false;
+      runButton.textContent = '🎲 Run Monte Carlo Analysis';
+    }
+    return true;
+  }
+
+  /**
+   * Enable analysis tabs when scenario is selected
+   */
+  enableAnalysisTabs() {
+    this.validateSingleAnalysisReadiness();
+    this.validateMonteCarloReadiness();
   }
 
   /**
@@ -234,8 +267,8 @@ class TabController {
    * Handle mode entered (Scenario Mode activated)
    */
   handleModeEntered() {
-    // Reset to Input tab when entering Scenario Mode
-    this.switchToTab('input');
+    // Reset to Configure tab when entering Scenario Mode
+    this.switchToTab('configure');
   }
 
   /**

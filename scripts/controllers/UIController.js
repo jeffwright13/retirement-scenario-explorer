@@ -159,7 +159,12 @@ export class UIController {
     this.eventBus.on('scenario:data-changed', (data) => this.handleScenarioDataChanged(data));
     this.eventBus.on('content:errors', (errors) => this.handleContentErrors(errors));
     this.eventBus.on('simulation:regular-completed', () => this.showExportCsvButton());
-    this.eventBus.on('simulation:started', () => this.hideExportCsvButton());
+    this.eventBus.on('simulation:started', (data) => {
+      // Only hide for regular simulations, not Monte Carlo
+      if (!data?.context?.isMonteCarlo) {
+        this.hideExportCsvButton();
+      }
+    });
   }
 
   /**
@@ -193,14 +198,14 @@ export class UIController {
     this.eventBus.on('montecarlo:analysis-started', () => {
       this.showMonteCarloSection();
       this.showMonteCarloFeedback('running');
-      this.hideMonteCarloConfig();
+      // Don't hide config during analysis - preserve user's toggle state
     });
     
     this.eventBus.on('montecarlo:analysis-completed', () => {
       // Section already visible, just ensure it stays visible
       this.showMonteCarloSection();
       this.showMonteCarloFeedback('completed');
-      this.hideMonteCarloConfig();
+      // Don't hide config - let user toggle it manually for reconfiguration
     });
     
     this.eventBus.on('montecarlo:analysis-cancelled', () => {
@@ -909,7 +914,9 @@ export class UIController {
   showMonteCarloSection() {
     const monteCarloSection = document.getElementById('monte-carlo-section-results');
     if (monteCarloSection) {
-      monteCarloSection.style.display = 'block';
+      monteCarloSection.style.setProperty('display', 'block', 'important');
+      monteCarloSection.style.visibility = 'visible';
+      monteCarloSection.style.opacity = '1';
       console.log('🎲 Monte Carlo results section shown');
     }
   }

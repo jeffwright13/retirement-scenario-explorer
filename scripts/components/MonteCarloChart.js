@@ -34,6 +34,10 @@ export class MonteCarloChart {
     console.log('📊 MonteCarloChart: Displaying Monte Carlo charts with data:', data);
     console.log('📊 Data type:', typeof data, 'Keys:', data ? Object.keys(data) : 'none');
     
+    // Store minimum success balance for chart rendering
+    this.currentMinimumSuccessBalance = data.analysis?.metadata?.minimumSuccessBalance || 0;
+    console.log('📊 Stored minimum success balance:', this.currentMinimumSuccessBalance);
+    
     // Ensure the Monte Carlo results section is visible
     const monteCarloSection = document.getElementById('monte-carlo-section-results');
     if (monteCarloSection) {
@@ -50,6 +54,76 @@ export class MonteCarloChart {
     
     // Display trajectory overlay in the dedicated Monte Carlo chart container
     this.displayTrajectoryOverlay(results, scenarioData, 'monte-carlo-chart-area');
+  }
+
+  /**
+   * Export chart data as CSV
+   */
+  exportData() {
+    if (!this.currentTrajectories || this.currentTrajectories.length === 0) {
+      console.log('📊 MonteCarloChart: No data to export');
+      return;
+    }
+
+    // Export percentile data for debugging
+    const percentileData = this.calculatePercentileData(this.currentTrajectories);
+    
+    let csvContent = 'Year,P10,P25,P50_Median,P75,P90,ActiveScenarios\n';
+    
+    percentileData.forEach(data => {
+      csvContent += `${data.month.toFixed(2)},${data.p10.toFixed(2)},${data.p25.toFixed(2)},${data.p50.toFixed(2)},${data.p75.toFixed(2)},${data.p90.toFixed(2)},${data.activeCount}\n`;
+    });
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'monte_carlo_percentiles.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    console.log('📊 MonteCarloChart: Percentile data exported to CSV');
+  }
+
+  /**
+   * Calculate percentile data with active scenario count for debugging
+   */
+  calculatePercentileData(trajectories) {
+    const maxMonths = Math.max(...trajectories.map(t => t.length));
+    const percentileData = [];
+    
+    for (let month = 0; month < maxMonths; month++) {
+      const monthBalances = trajectories
+        .map(t => {
+          if (month >= t.length) {
+            return null;
+          } else {
+            return t[month].totalBalance;
+          }
+        })
+        .filter(balance => balance !== null)
+        .sort((a, b) => a - b);
+
+      const activeCount = monthBalances.length;
+      const minSampleSize = Math.max(10, trajectories.length * 0.1);
+      
+      if (activeCount >= minSampleSize) {
+        percentileData.push({
+          month: month / 12,
+          p10: this.percentile(monthBalances, 10) / 1000,
+          p25: this.percentile(monthBalances, 25) / 1000,
+          p50: this.percentile(monthBalances, 50) / 1000,
+          p75: this.percentile(monthBalances, 75) / 1000,
+          p90: this.percentile(monthBalances, 90) / 1000,
+          activeCount: activeCount
+        });
+      }
+    }
+    
+    return percentileData;
   }
 
   /**
@@ -258,6 +332,15 @@ export class MonteCarloChart {
     const chartArea = container;
     console.log('📊 Using container as chart area:', containerId, container);
     
+    console.log('📊 MonteCarloChart: Creating trajectory overlay with results:', results);
+    
+    // Check if results is actually an array
+    if (!Array.isArray(results)) {
+      console.error('❌ Results is not an array:', typeof results, results);
+      chartArea.innerHTML = '<p class="error">Invalid results data - expected array</p>';
+      return;
+    }
+    
     console.log('📊 MonteCarloChart: Creating trajectory overlay with', results.length, 'results');
 
     try {
@@ -293,90 +376,215 @@ export class MonteCarloChart {
       console.log(`📊 Chart bounds: ${maxMonths} months, $${minBalance.toFixed(0)} to $${maxBalance.toFixed(0)}`);
       console.log(`📊 Drawing ${trajectories.length} individual trajectories`);
 
-      // Set up chart dimensions
-      const padding = 60;
-      const chartWidth = canvas.width - 2 * padding;
-      const chartHeight = canvas.height - 2 * padding;
-
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // STEP 1: Draw INDIVIDUAL Monte Carlo trajectories FIRST (most visible)
-      console.log('📊 Drawing individual trajectory paths...');
-      ctx.lineWidth = 1.5;  // Slightly thicker lines
-      ctx.globalAlpha = 0.4;  // More visible than before
-
-      trajectories.forEach((trajectory, trajIndex) => {
-        if (trajectory.length < 2) return;
-
-        // Use different colors for better visibility
-        const hue = (trajIndex * 137.5) % 360;  // Golden ratio distribution
-        ctx.strokeStyle = `hsl(${hue}, 60%, 45%)`;  // More saturated colors
-        
-        ctx.beginPath();
-        trajectory.forEach((point, index) => {
-          const x = padding + (index / maxMonths) * chartWidth;
-          const y = padding + chartHeight - ((point.totalBalance - minBalance) / (maxBalance - minBalance)) * chartHeight;
-          
-          if (index === 0) {
-            ctx.moveTo(x, y);
-          } else {
-            ctx.lineTo(x, y);
-          }
-        });
-        ctx.stroke();
-      });
-
-      ctx.globalAlpha = 1;  // Reset alpha
-
-      // STEP 2: Draw percentile bands (more transparent so individual lines show through)
-      this.drawPercentileBands(ctx, trajectories, maxMonths, maxBalance, minBalance, padding, chartWidth, chartHeight);
-
-      // STEP 3: Draw median trajectory (prominent)
-      this.drawMedianTrajectory(ctx, trajectories, maxMonths, maxBalance, minBalance, padding, chartWidth, chartHeight);
-
-      // Draw axes and labels
-      this.drawAxes(ctx, canvas.width, canvas.height, padding, maxMonths, maxBalance, minBalance);
-
-      // Add title
-      ctx.fillStyle = '#333';
-      ctx.font = 'bold 16px Arial';
-      ctx.textAlign = 'center';
-      // Title removed - handled by parent section
-
-      // Replace container content with canvas
-      console.log('📊 Clearing container and appending canvas...');
-      console.log('📊 Container before clear:', chartArea.innerHTML.length, 'chars');
-      chartArea.innerHTML = '';
-      console.log('📊 Container after clear:', chartArea.innerHTML.length, 'chars');
-      
-      chartArea.appendChild(canvas);
-      console.log('📊 Canvas appended. Container now has', chartArea.children.length, 'children');
-      console.log('📊 First child:', chartArea.children[0]);
-      console.log('📊 Container dimensions:', chartArea.offsetWidth, 'x', chartArea.offsetHeight);
-      console.log('📊 Container visible?', chartArea.offsetParent !== null);
-
-      // Calculate basic analysis from trajectories for legend
-      const successfulTrajectories = trajectories.filter(traj => {
-        const finalBalance = traj[traj.length - 1]?.totalBalance || 0;
-        return finalBalance > 0;
-      });
-      const analysisData = {
-        successRate: successfulTrajectories.length / trajectories.length
-      };
-      
-      // Add interactive legend and explanatory text
-      this.addInteractiveLegend(chartArea, trajectories.length, analysisData);
-      
-      // Add explanatory text
-      this.addChartExplanation(chartArea, analysisData);
-      
-      console.log('✅ Monte Carlo trajectory overlay rendered successfully');
+      // Convert to Plotly instead of Canvas
+      this.createPlotlyChart(trajectories, chartArea);
 
     } catch (error) {
       console.error('⚡ Error rendering trajectory overlay:', error);
       chartArea.innerHTML = `<p class="error">Error rendering trajectory visualization: ${error.message}</p>`;
     }
+  }
+
+  /**
+   * Create interactive Plotly chart for Monte Carlo trajectories
+   */
+  createPlotlyChart(trajectories, container) {
+    console.log('📊 Creating Plotly chart with', trajectories.length, 'trajectories');
+    
+    const traces = [];
+    
+    // Individual trajectory traces (rainbow colors, higher opacity)
+    const rainbowColors = [
+      'rgba(255, 99, 132, 0.3)',   // Red
+      'rgba(54, 162, 235, 0.3)',   // Blue
+      'rgba(255, 205, 86, 0.3)',   // Yellow
+      'rgba(75, 192, 192, 0.3)',   // Teal
+      'rgba(153, 102, 255, 0.3)',  // Purple
+      'rgba(255, 159, 64, 0.3)',   // Orange
+      'rgba(199, 199, 199, 0.3)',  // Grey
+      'rgba(83, 102, 255, 0.3)',   // Indigo
+      'rgba(255, 99, 255, 0.3)',   // Pink
+      'rgba(99, 255, 132, 0.3)'    // Green
+    ];
+    
+    trajectories.forEach((trajectory, index) => {
+      const x = trajectory.map((_, monthIndex) => monthIndex / 12); // Convert to years
+      const y = trajectory.map(point => point.totalBalance / 1000); // Convert to thousands
+      const colorIndex = index % rainbowColors.length;
+      
+      traces.push({
+        x: x,
+        y: y,
+        type: 'scatter',
+        mode: 'lines',
+        line: {
+          color: rainbowColors[colorIndex],
+          width: 1.0,
+          smoothing: 1.3
+        },
+        showlegend: false,
+        hovertemplate: `Scenario ${index + 1}<br>Year: %{x:.1f}<br>Balance: $%{y:.0f}K<extra></extra>`
+      });
+    });
+
+    // Calculate percentiles for bands
+    const maxMonths = Math.max(...trajectories.map(t => t.length));
+    const percentileData = [];
+    
+    for (let month = 0; month < maxMonths; month++) {
+      const monthBalances = trajectories
+        .map(t => {
+          if (month >= t.length) {
+            return 0; // Scenario has ended, use 0 for percentile calculation (not null)
+          } else {
+            return t[month].totalBalance;
+          }
+        })
+        .sort((a, b) => a - b);
+
+      // Only calculate percentiles if we have enough active scenarios for stable statistics
+      if (monthBalances.length >= Math.max(10, trajectories.length * 0.1)) {
+        percentileData.push({
+          month: month / 12, // Convert to years
+          p10: this.percentile(monthBalances, 10) / 1000,
+          p25: this.percentile(monthBalances, 25) / 1000,
+          p50: this.percentile(monthBalances, 50) / 1000,
+          p75: this.percentile(monthBalances, 75) / 1000,
+          p90: this.percentile(monthBalances, 90) / 1000
+        });
+      }
+    }
+
+    // 10th-90th percentile band
+    traces.push({
+      x: percentileData.map(d => d.month),
+      y: percentileData.map(d => d.p90),
+      type: 'scatter',
+      mode: 'lines',
+      line: { color: 'transparent' },
+      showlegend: false,
+      hoverinfo: 'skip'
+    });
+
+    traces.push({
+      x: percentileData.map(d => d.month),
+      y: percentileData.map(d => d.p10),
+      type: 'scatter',
+      mode: 'lines',
+      fill: 'tonexty',
+      fillcolor: 'rgba(66, 139, 202, 0.35)',
+      line: { color: 'transparent' },
+      name: '10th-90th Percentile',
+      hovertemplate: '10th-90th Percentile<br>Year: %{x:.1f}<br>Range: $%{y:.0f}K<extra></extra>'
+    });
+
+    // 25th-75th percentile band
+    traces.push({
+      x: percentileData.map(d => d.month),
+      y: percentileData.map(d => d.p75),
+      type: 'scatter',
+      mode: 'lines',
+      line: { color: 'transparent' },
+      showlegend: false,
+      hoverinfo: 'skip'
+    });
+
+    traces.push({
+      x: percentileData.map(d => d.month),
+      y: percentileData.map(d => d.p25),
+      type: 'scatter',
+      mode: 'lines',
+      fill: 'tonexty',
+      fillcolor: 'rgba(66, 139, 202, 0.55)',
+      line: { color: 'transparent' },
+      name: '25th-75th Percentile',
+      hovertemplate: '25th-75th Percentile<br>Year: %{x:.1f}<br>Range: $%{y:.0f}K<extra></extra>'
+    });
+
+    // Median line
+    traces.push({
+      x: percentileData.map(d => d.month),
+      y: percentileData.map(d => d.p50),
+      type: 'scatter',
+      mode: 'lines',
+      line: {
+        color: '#d9534f',
+        width: 3
+      },
+      name: 'Median',
+      hovertemplate: 'Median<br>Year: %{x:.1f}<br>Balance: $%{y:.0f}K<extra></extra>'
+    });
+
+    // Minimum success balance line (if nonzero)
+    const minimumSuccessBalance = this.currentMinimumSuccessBalance || 0;
+    if (minimumSuccessBalance > 0) {
+      const maxYears = maxMonths / 12;
+      traces.push({
+        x: [0, maxYears],
+        y: [minimumSuccessBalance / 1000, minimumSuccessBalance / 1000],
+        type: 'scatter',
+        mode: 'lines',
+        line: {
+          color: '#d9534f',
+          width: 2,
+          dash: 'dash'
+        },
+        name: `Min Success: $${(minimumSuccessBalance / 1000).toFixed(0)}K`,
+        hovertemplate: `Min Success Balance<br>$${(minimumSuccessBalance / 1000).toFixed(0)}K<extra></extra>`
+      });
+    }
+
+    // Layout configuration
+    const layout = {
+      title: {
+        text: '',
+        font: { size: 16 }
+      },
+      xaxis: {
+        title: 'Years',
+        showgrid: true,
+        gridcolor: 'rgba(128, 128, 128, 0.2)'
+      },
+      yaxis: {
+        title: 'Balance ($K)',
+        showgrid: true,
+        gridcolor: 'rgba(128, 128, 128, 0.2)'
+      },
+      hovermode: 'closest',
+      showlegend: true,
+      legend: {
+        x: 1,
+        y: 1,
+        xanchor: 'right',
+        yanchor: 'top'
+      },
+      margin: { l: 60, r: 60, t: 40, b: 60 },
+      plot_bgcolor: 'white',
+      paper_bgcolor: 'white'
+    };
+
+    // Configuration options
+    const config = {
+      responsive: true,
+      displayModeBar: true,
+      modeBarButtonsToRemove: ['pan2d', 'select2d', 'lasso2d', 'autoScale2d'],
+      displaylogo: false,
+      toImageButtonOptions: {
+        format: 'png',
+        filename: 'monte-carlo-analysis',
+        height: 500,
+        width: 1000,
+        scale: 1
+      }
+    };
+
+    // Clear container and create plot
+    container.innerHTML = '';
+    
+    // Create plot
+    Plotly.newPlot(container, traces, layout, config);
+
+    console.log('✅ Monte Carlo Plotly chart created successfully');
   }
 
   /**
@@ -431,24 +639,52 @@ export class MonteCarloChart {
         }
       }
       
-      // Debug logging for hockey stick investigation
-      if (monthIndex < 5 || monthIndex % 60 === 0) {
-        console.log(`🔍 Month ${monthIndex}: totalBalance = $${totalBalance.toFixed(0)}, expenses = $${month.expenses?.toFixed(0) || 'N/A'}, income = $${month.income?.toFixed(0) || 'N/A'}`);
-      }
-      
       return {
         month: monthIndex,
         totalBalance: totalBalance
       };
     });
     
-    // Analyze trajectory pattern to understand hockey stick issue
+    // Analyze trajectory pattern to understand upward jump timing and magnitude
     const firstBalance = trajectory[0]?.totalBalance || 0;
     const lastBalance = trajectory[trajectory.length - 1]?.totalBalance || 0;
     const midBalance = trajectory[Math.floor(trajectory.length / 2)]?.totalBalance || 0;
     
     console.log('✅ Extracted trajectory with', trajectory.length, 'months');
     console.log(`📊 Trajectory pattern: Start=$${firstBalance.toFixed(0)}, Mid=$${midBalance.toFixed(0)}, End=$${lastBalance.toFixed(0)}`);
+    
+    // Detect upward jumps and their timing
+    let upwardJumps = [];
+    for (let i = 1; i < trajectory.length; i++) {
+      const prevBalance = trajectory[i-1].totalBalance;
+      const currBalance = trajectory[i].totalBalance;
+      const percentIncrease = ((currBalance - prevBalance) / prevBalance) * 100;
+      
+      if (percentIncrease > 5) { // 5% month-over-month increase
+        const timelinePosition = (i / trajectory.length) * 100;
+        upwardJumps.push({
+          month: i,
+          timelinePosition: timelinePosition.toFixed(1),
+          increase: percentIncrease.toFixed(1),
+          fromBalance: prevBalance.toFixed(0),
+          toBalance: currBalance.toFixed(0)
+        });
+      }
+    }
+    
+    if (upwardJumps.length > 0) {
+      console.warn(`🚨 UPWARD JUMPS DETECTED (${upwardJumps.length} jumps):`);
+      upwardJumps.forEach(jump => {
+        console.warn(`  Month ${jump.month} (${jump.timelinePosition}% through): +${jump.increase}% ($${jump.fromBalance} → $${jump.toBalance})`);
+      });
+      
+      // Check if jumps are concentrated in last 20%
+      const lateJumps = upwardJumps.filter(jump => parseFloat(jump.timelinePosition) > 80);
+      if (lateJumps.length > 0) {
+        console.warn(`🔥 ${lateJumps.length}/${upwardJumps.length} jumps occur in LAST 20% of timeline - this suggests auto-stop + continued growth issue!`);
+        console.warn(`💡 THEORY: Auto-stop prevents withdrawals but assets continue earning returns, creating artificial upward jumps`);
+      }
+    }
     
     if (lastBalance > firstBalance * 1.5) {
       console.warn('🚨 HOCKEY STICK DETECTED: End balance is 50%+ higher than start - this suggests unrealistic growth vs withdrawal patterns');
@@ -498,8 +734,14 @@ export class MonteCarloChart {
     const percentileData = [];
     for (let month = 0; month < maxMonths; month++) {
       const monthBalances = trajectories
-        .filter(t => t.length > month)
-        .map(t => t[month].totalBalance)
+        .map(t => {
+          // If trajectory ended (ran out of money), use 0 for percentile calculation
+          if (month >= t.length) {
+            return 0;
+          } else {
+            return t[month].totalBalance;
+          }
+        })
         .sort((a, b) => a - b);
 
       if (monthBalances.length > 0) {
@@ -564,26 +806,73 @@ export class MonteCarloChart {
     ctx.lineWidth = 3;
     ctx.beginPath();
 
+    let lastValidPoint = null;
+    
     for (let month = 0; month < maxMonths; month++) {
-      const monthBalances = trajectories
-        .filter(t => t.length > month)
-        .map(t => t[month].totalBalance)
-        .sort((a, b) => a - b);
+      // Get ALL trajectories and their balance at this month (0 if trajectory ended)
+      const monthBalances = trajectories.map(t => {
+        if (t.length > month) {
+          return t[month].totalBalance;
+        } else {
+          // Trajectory ended (ran out of money) - use 0 for median calculation
+          return 0;
+        }
+      }).sort((a, b) => a - b);
 
       if (monthBalances.length > 0) {
         const median = this.percentile(monthBalances, 50);
         const x = padding + (month / maxMonths) * chartWidth;
         const y = padding + chartHeight - ((median - minBalance) / (maxBalance - minBalance)) * chartHeight;
         
+        // If median hits zero, stop drawing the line to avoid misleading visualization
+        if (median <= 0) {
+          if (lastValidPoint) {
+            // Draw line to zero and stop cleanly
+            ctx.lineTo(x, padding + chartHeight - ((0 - minBalance) / (maxBalance - minBalance)) * chartHeight);
+            ctx.stroke();
+          }
+          break; // Stop drawing median line
+        }
+        
         if (month === 0) {
           ctx.moveTo(x, y);
         } else {
           ctx.lineTo(x, y);
         }
+        
+        lastValidPoint = { x, y, month };
       }
     }
 
     ctx.stroke();
+  }
+
+  /**
+   * Draw minimum success balance line if nonzero
+   */
+  drawMinimumSuccessBalanceLine(ctx, maxMonths, maxBalance, minBalance, padding, chartWidth, chartHeight) {
+    // Get minimum success balance from the current analysis config
+    const minimumSuccessBalance = this.currentMinimumSuccessBalance || 0;
+    
+    if (minimumSuccessBalance > 0 && minimumSuccessBalance >= minBalance && minimumSuccessBalance <= maxBalance) {
+      ctx.strokeStyle = '#d9534f';  // Match median line color
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);  // Dashed line
+      
+      const y = padding + chartHeight - ((minimumSuccessBalance - minBalance) / (maxBalance - minBalance)) * chartHeight;
+      
+      ctx.beginPath();
+      ctx.moveTo(padding, y);
+      ctx.lineTo(padding + chartWidth, y);
+      ctx.stroke();
+      
+      // Add label
+      ctx.setLineDash([]);  // Reset to solid line
+      ctx.fillStyle = '#d9534f';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(`Min Success: $${(minimumSuccessBalance / 1000).toFixed(0)}K`, padding + 10, y - 5);
+    }
   }
 
   /**
@@ -642,25 +931,48 @@ export class MonteCarloChart {
   addInteractiveLegend(container, trajectoryCount, analysis) {
     const legend = document.createElement('div');
     legend.className = 'monte-carlo-legend';
+    legend.style.cssText = `
+      background: #f8f9fa;
+      border: 2px solid #dee2e6;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    `;
     
     const successRate = (analysis.successRate * 100).toFixed(1);
     
     legend.innerHTML = `
-      <div class="legend-item">
-        <span class="legend-color" style="background: rgba(0, 150, 0, 0.6);"></span>
-        <span class="legend-text"><strong>Individual Simulations</strong> - ${trajectoryCount} different market scenarios</span>
+      <div class="legend-header" style="margin-bottom: 15px;">
+        <h4 style="color: #d9534f; margin: 0 0 10px 0; font-size: 18px;">🔍 CHART LEGEND - What Each Line Means</h4>
+        <p style="margin: 0; font-size: 14px; color: #666;"><strong>Total Asset Balance:</strong> Combined balance across all assets (Savings, Investment, Traditional IRA, Roth IRA)</p>
       </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background: rgba(100, 149, 237, 0.3);"></span>
-        <span class="legend-text"><strong>25th-75th Percentile</strong> - Middle 50% of outcomes</span>
+      
+      <div class="legend-items" style="display: grid; gap: 12px;">
+        <div class="legend-item" style="display: flex; align-items: center; gap: 12px; padding: 8px; background: white; border-radius: 4px;">
+          <span class="legend-color" style="background: #d9534f; height: 4px; width: 30px; display: block; border-radius: 2px;"></span>
+          <span class="legend-text" style="font-weight: bold; color: #d9534f; font-size: 16px;">🔴 THICK BROWN/RED LINE = MEDIAN TRAJECTORY</span>
+          <span style="color: #666; font-size: 14px;">- Most likely outcome (${successRate}% success rate)</span>
+        </div>
+        
+        <div class="legend-item" style="display: flex; align-items: center; gap: 12px; padding: 8px; background: white; border-radius: 4px;">
+          <span class="legend-color" style="background: rgba(0, 150, 0, 0.6); height: 2px; width: 30px; display: block;"></span>
+          <span class="legend-text"><strong>Thin Colored Lines</strong> - ${trajectoryCount} individual market scenarios</span>
+        </div>
+        
+        <div class="legend-item" style="display: flex; align-items: center; gap: 12px; padding: 8px; background: white; border-radius: 4px;">
+          <span class="legend-color" style="background: rgba(100, 149, 237, 0.3); height: 20px; width: 30px; display: block;"></span>
+          <span class="legend-text"><strong>Dark Blue Band</strong> - 25th-75th percentile (middle 50% of outcomes)</span>
+        </div>
+        
+        <div class="legend-item" style="display: flex; align-items: center; gap: 12px; padding: 8px; background: white; border-radius: 4px;">
+          <span class="legend-color" style="background: rgba(173, 216, 230, 0.3); height: 20px; width: 30px; display: block;"></span>
+          <span class="legend-text"><strong>Light Blue Band</strong> - 10th-90th percentile (80% of all outcomes)</span>
+        </div>
       </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background: rgba(173, 216, 230, 0.3);"></span>
-        <span class="legend-text"><strong>10th-90th Percentile</strong> - 80% of all outcomes fall here</span>
-      </div>
-      <div class="legend-item">
-        <span class="legend-color" style="background: red;"></span>
-        <span class="legend-text"><strong>Median Outcome</strong> - Most likely scenario (${successRate}% success rate)</span>
+      
+      <div class="legend-note" style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 4px; border-left: 4px solid #ffc107;">
+        <p style="margin: 0; font-size: 14px;"><strong>⚠️ About the Brown Line's Jaggedness:</strong> The median line can appear jagged because it's calculated month-by-month from different scenarios. Market volatility and the auto-stop feature (when assets run low) can create sharp changes in the median calculation.</p>
       </div>
     `;
     
@@ -668,9 +980,42 @@ export class MonteCarloChart {
   }
 
   /**
-   * Add chart explanation
+   * Add X-axis toggle control
    */
-  addChartExplanation(container, analysis) {
+  addAxisToggle(container) {
+    const toggleContainer = document.createElement('div');
+    toggleContainer.className = 'axis-toggle-container';
+    toggleContainer.innerHTML = `
+      <div class="axis-toggle">
+        <label>X-Axis: </label>
+        <button id="axis-years-btn" class="axis-btn axis-btn--active">Years from now</button>
+        <button id="axis-dates-btn" class="axis-btn">MM-YYYY</button>
+      </div>
+    `;
+    
+    container.appendChild(toggleContainer);
+    
+    // Add event listeners for toggle
+    const yearsBtn = toggleContainer.querySelector('#axis-years-btn');
+    const datesBtn = toggleContainer.querySelector('#axis-dates-btn');
+    
+    yearsBtn.addEventListener('click', () => {
+      yearsBtn.classList.add('axis-btn--active');
+      datesBtn.classList.remove('axis-btn--active');
+      // TODO: Redraw chart with years axis
+    });
+    
+    datesBtn.addEventListener('click', () => {
+      datesBtn.classList.add('axis-btn--active');
+      yearsBtn.classList.remove('axis-btn--active');
+      // TODO: Redraw chart with dates axis
+    });
+  }
+
+  /**
+   * Add enhanced educational explanation
+   */
+  addEducationalExplanation(container, analysis) {
     const explanation = document.createElement('div');
     explanation.className = 'chart-explanation';
     
@@ -679,16 +1024,37 @@ export class MonteCarloChart {
     
     explanation.innerHTML = `
       <div class="explanation-box">
-        <h5>📊 What This Chart Shows</h5>
-        <p>Each line represents your retirement plan under different market conditions. 
-        The chart shows ${successRate}% of scenarios maintain positive balances, while ${failureRate}% run out of money.</p>
+        <h5>📊 Understanding Your Monte Carlo Analysis</h5>
+        <p><strong>What you're seeing:</strong> Each line shows how your retirement savings might perform under different market conditions over time.</p>
         
-        <p><strong>Key Insights:</strong></p>
-        <ul>
-          <li>Lines going to zero = scenarios where you run out of money</li>
-          <li>Higher lines = scenarios with money left over</li>
-          <li>Red line = most likely outcome based on historical averages</li>
-        </ul>
+        <div class="explanation-grid">
+          <div class="explanation-item">
+            <strong>🎯 Success Rate: ${successRate}%</strong>
+            <p>Percentage of scenarios where you don't run out of money</p>
+          </div>
+          <div class="explanation-item">
+            <strong>📈 Individual Lines</strong>
+            <p>Each represents a different possible market scenario</p>
+          </div>
+          <div class="explanation-item">
+            <strong>🔵 Blue Bands</strong>
+            <p>Show the range where most outcomes (50% and 80%) fall</p>
+          </div>
+          <div class="explanation-item">
+            <strong>🔴 Red Line</strong>
+            <p>The median (most likely) outcome</p>
+          </div>
+        </div>
+        
+        <div class="key-takeaway">
+          <strong>💡 Key Takeaway:</strong> 
+          ${successRate >= 80 ? 
+            'Your plan looks robust across most market scenarios!' : 
+            successRate >= 60 ? 
+            'Your plan works in most scenarios, but consider adjustments for more security.' :
+            'Consider adjusting your plan - many scenarios show running out of money.'
+          }
+        </div>
       </div>
     `;
     

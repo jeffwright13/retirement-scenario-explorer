@@ -33,21 +33,18 @@ export class MonteCarloUI {
     console.log('🎲 MonteCarloUI: Initializing UI elements');
     
     // Get UI elements
-    this.startButton = document.getElementById('start-monte-carlo');
-    this.runButton = document.getElementById('run-monte-carlo-analysis');
+    this.runButton = document.getElementById('run-monte-carlo-btn');
     this.cancelButton = document.getElementById('cancel-monte-carlo');
     this.exportButton = document.getElementById('export-monte-carlo');
     this.monteCarloSection = document.getElementById('monte-carlo-section');
     this.iterationsInput = document.getElementById('monte-carlo-iterations');
     this.seedInput = document.getElementById('monte-carlo-seed');
+    this.targetYearsInput = document.getElementById('monte-carlo-target-years');
+    this.minBalanceInput = document.getElementById('monte-carlo-min-balance');
+    this.successRateInput = document.getElementById('monte-carlo-success-rate');
+    this.configToggle = document.getElementById('show-monte-carlo-config');
     
-    // Set up click handlers
-    if (this.startButton) {
-      this.startButton.addEventListener('click', () => {
-        this.handleStartAnalysis();
-      });
-    }
-    
+    // Set up the prominent run button
     if (this.runButton) {
       this.runButton.addEventListener('click', () => {
         this.handleRunAnalysis();
@@ -66,15 +63,19 @@ export class MonteCarloUI {
       });
     }
     
+    // Set up configuration toggle
+    if (this.configToggle) {
+      this.configToggle.addEventListener('change', () => {
+        this.handleConfigToggle();
+      });
+    }
+    
     // Listen for Monte Carlo events to update UI visibility
     this.eventBus.on('montecarlo:started', () => {
       this.showMonteCarloSection();
     });
     
-    this.eventBus.on('montecarlo:completed', () => {
-      this.showMonteCarloSection();
-    });
-    
+    // Don't show config section on completion - let UIController handle results display
     this.eventBus.on('montecarlo:error', () => {
       this.showMonteCarloSection();
     });
@@ -124,7 +125,7 @@ export class MonteCarloUI {
    */
   handleExportResults() {
     console.log('🎲 MonteCarloUI: Export results clicked');
-    this.eventBus.emit('ui:monte-carlo-export-requested', { format: 'json' });
+    this.eventBus.emit('ui:monte-carlo-export-requested', { format: 'csv' });
   }
 
   /**
@@ -143,10 +144,66 @@ export class MonteCarloUI {
       config.randomSeed = parseInt(this.seedInput.value);
     }
     
+    // Get target survival time in years (convert to months)
+    if (this.targetYearsInput && this.targetYearsInput.value) {
+      const targetYears = parseFloat(this.targetYearsInput.value);
+      if (targetYears && targetYears > 0) {
+        config.targetSurvivalMonths = Math.round(targetYears * 12);
+        console.log(`🎲 MonteCarloUI: Target years from input: ${targetYears}, converted to months: ${config.targetSurvivalMonths}`);
+      } else {
+        config.targetSurvivalMonths = 300; // Default 25 years
+        console.log('🎲 MonteCarloUI: Invalid target years input, using default: 300 months (25 years)');
+      }
+    } else {
+      config.targetSurvivalMonths = 300; // Default 25 years
+      console.log('🎲 MonteCarloUI: No target years input, using default: 300 months (25 years)');
+    }
+    console.log(`🎲 MonteCarloUI: FINAL CONFIG - Using target months: ${config.targetSurvivalMonths} (${(config.targetSurvivalMonths/12).toFixed(1)} years)`);
+    console.log(`🎲 MonteCarloUI: FULL CONFIG OBJECT:`, JSON.stringify(config, null, 2));
+    
+    // Get minimum success balance
+    if (this.minBalanceInput && this.minBalanceInput.value) {
+      config.minimumSuccessBalance = parseFloat(this.minBalanceInput.value) || 0;
+      console.log(`🎲 MonteCarloUI: Minimum success balance: $${config.minimumSuccessBalance.toLocaleString()}`);
+    } else {
+      config.minimumSuccessBalance = 0; // Default: any positive balance is success
+    }
+    
+    // Get target success rate
+    if (this.successRateInput && this.successRateInput.value) {
+      config.targetSuccessRate = parseFloat(this.successRateInput.value) / 100; // Convert percentage to decimal
+      console.log(`🎲 MonteCarloUI: Target success rate: ${config.targetSuccessRate * 100}%`);
+    } else {
+      config.targetSuccessRate = 0.80; // Default: 80% success rate
+    }
+    
     // Add default variable ranges (can be extended with advanced UI)
     config.variableRanges = this.getDefaultVariableRanges();
     
     return config;
+  }
+
+  /**
+   * Handle configuration toggle
+   */
+  handleConfigToggle() {
+    if (!this.configToggle || !this.monteCarloSection) return;
+    
+    const isExpanded = this.configToggle.checked;
+    
+    console.log(`🎲 MonteCarloUI: Config toggle - isExpanded: ${isExpanded}`);
+    
+    // Force remove both classes first to reset state
+    this.monteCarloSection.classList.remove('monte-carlo-config-collapsed', 'monte-carlo-config-expanded');
+    
+    // Add the appropriate class based on toggle state
+    if (isExpanded) {
+      this.monteCarloSection.classList.add('monte-carlo-config-expanded');
+      console.log('🎲 MonteCarloUI: Configuration expanded');
+    } else {
+      this.monteCarloSection.classList.add('monte-carlo-config-collapsed');
+      console.log('🎲 MonteCarloUI: Configuration collapsed');
+    }
   }
 
   /**
@@ -196,9 +253,12 @@ export class MonteCarloUI {
    */
   showMonteCarloSection() {
     if (this.monteCarloSection) {
-      // Remove CSS class AND clear any inline style that might hide it
+      // Remove old CSS class AND clear any inline style that might hide it
       this.monteCarloSection.classList.remove('monte-carlo-section--collapsed');
       this.monteCarloSection.style.display = 'block';
+      
+      // IMPORTANT: Don't interfere with collapsible config toggle state
+      // Only ensure the section itself is visible, but preserve config collapse state
       
       console.log('🎲 MonteCarloUI: Monte Carlo section shown');
       

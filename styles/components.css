@@ -3,6 +3,89 @@
  * Buttons, forms, cards, and other UI components
  */
 
+/* ===== MONTE CARLO CONFIG GRID ===== */
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.config-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-1);
+}
+
+.config-input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  transition: border-color var(--transition-smooth);
+  width: 100%;
+}
+
+.config-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-alpha);
+}
+
+.config-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.input-with-unit {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-unit {
+  position: absolute;
+  right: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+}
+
+.input-unit-prefix {
+  position: absolute;
+  left: var(--space-3);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-with-unit .config-input {
+  padding-right: var(--space-8);
+}
+
+.input-with-unit .input-unit-prefix + .config-input {
+  padding-left: var(--space-6);
+}
+
+.config-advanced {
+  opacity: 0.7;
+}
+
+.config-advanced:hover {
+  opacity: 1;
+}
+
 /* ===== BUTTONS ===== */
 .btn {
     font-family: var(--font-family-primary);
@@ -614,6 +697,82 @@
   .monte-carlo-chart-container canvas {
     max-width: 100%;
     height: auto;
+  }
+
+  /* Monte Carlo Axis Toggle */
+  .axis-toggle-container {
+    margin: 10px 0;
+    text-align: center;
+  }
+
+  .axis-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .axis-btn {
+    padding: 4px 12px;
+    border: 1px solid #d1d5db;
+    background: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s;
+  }
+
+  .axis-btn:hover {
+    background: #f3f4f6;
+  }
+
+  .axis-btn--active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  /* Enhanced Educational Content */
+  .explanation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin: 15px 0;
+  }
+
+  .explanation-item {
+    background: #f8f9fa;
+    padding: 10px;
+    border-radius: 6px;
+    border-left: 3px solid #3b82f6;
+  }
+
+  .explanation-item strong {
+    display: block;
+    margin-bottom: 4px;
+    color: #1f2937;
+  }
+
+  .explanation-item p {
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+    line-height: 1.4;
+  }
+
+  .key-takeaway {
+    background: #ecfdf5;
+    border: 1px solid #10b981;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 15px;
+  }
+
+  .key-takeaway strong {
+    color: #065f46;
   }
 
   /* ===== LOADING STATES ===== */

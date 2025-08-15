@@ -300,20 +300,28 @@ export class MonteCarloService {
       statistics[metricName] = this.calculateStatistics(values, config.confidenceIntervals);
     }
     
-    // Generate insights
-    const insights = this.generateInsights(statistics, results, scenarioData);
+    // Generate insights with target survival time
+    const targetMonths = config.targetSurvivalMonths ?? 300; // Use user-specified target (default 25 years)
+    const minimumBalance = config.minimumSuccessBalance ?? 0;
+    const successRateData = this.calculateSuccessRate(results, targetMonths, minimumBalance);
+    const insights = this.generateInsights(statistics, results, scenarioData, config);
+    
+    const survivalStats = this.calculateSurvivalStatistics(results);
     
     return {
       statistics,
       insights,
       rawMetrics: metrics,
-      successRate: this.calculateSuccessRate(results),
+      successRate: successRateData.rate,
+      successRateData: successRateData, // Include full success rate info
+      survivalStatistics: survivalStats,
       riskMetrics: this.calculateRiskMetrics(results),
       metadata: {
         iterations: results.length,
-        scenarioName: scenarioData.name || 'Unnamed Scenario',
-        analysisDate: new Date().toISOString(),
-        config
+        timestamp: Date.now(),
+        scenarioId: scenarioData.metadata?.title || 'Unknown',
+        targetSurvivalMonths: targetMonths,
+        minimumSuccessBalance: minimumBalance
       }
     };
   }
@@ -419,58 +427,173 @@ export class MonteCarloService {
   /**
    * Generate insights from statistical analysis
    */
-  generateInsights(statistics, results, scenarioData) {
+  generateInsights(statistics, results, scenarioData, config) {
     const insights = [];
     
-    // Success rate insight
-    const successRate = this.calculateSuccessRate(results);
+    // Survival time insights - more meaningful for retirement planning
+    const survivalStats = this.calculateSurvivalStatistics(results);
+    const medianYears = (survivalStats.median / 12).toFixed(1);
+    const p25Years = (survivalStats.p25 / 12).toFixed(1);
+    const p75Years = (survivalStats.p75 / 12).toFixed(1);
+    
     insights.push({
-      type: 'success_rate',
-      title: 'Probability of Success',
-      value: successRate,
-      description: `${(successRate * 100).toFixed(1)}% of scenarios maintained positive balances throughout retirement`,
-      severity: successRate > 0.8 ? 'good' : successRate > 0.6 ? 'warning' : 'critical'
+      type: 'survival_time',
+      title: 'How Long Will Your Money Last?',
+      value: survivalStats.median,
+      description: `Median survival: ${medianYears} years. 25% of scenarios last ${p25Years} years or less, 75% last ${p75Years} years or more`,
+      severity: survivalStats.median >= 300 ? 'good' : survivalStats.median >= 180 ? 'warning' : 'critical'
     });
     
-    // Final balance insights
+    // Success rate for user-specified target
+    const targetMonths = config.targetSurvivalMonths ?? 300;
+    const minimumBalance = config.minimumSuccessBalance ?? 0;
+    console.log(`🎲 MonteCarloService: RECEIVED CONFIG:`, JSON.stringify(config, null, 2));
+    console.log(`🎲 MonteCarloService: Using target months: ${targetMonths} (${(targetMonths/12).toFixed(1)} years), minimum balance: $${minimumBalance.toLocaleString()}`);
+    const successRateData = this.calculateSuccessRate(results, targetMonths, minimumBalance);
+    insights.push({
+      type: 'target_success_rate',
+      title: `${successRateData.targetYears}-Year Success Rate`,
+      value: successRateData.rate,
+      description: minimumBalance > 0 
+        ? `${(successRateData.rate * 100).toFixed(1)}% of scenarios lasted at least ${successRateData.targetYears} years with $${minimumBalance.toLocaleString()}+ remaining`
+        : `${(successRateData.rate * 100).toFixed(1)}% of scenarios lasted at least ${successRateData.targetYears} years`,
+      severity: successRateData.rate > 0.8 ? 'good' : successRateData.rate > 0.6 ? 'warning' : 'critical'
+    });
+
+    // Target success rate insight - show how long money lasts at user's desired confidence level
+    const targetSuccessRate = config.targetSuccessRate ?? 0.80;
+    const targetPercentile = (1 - targetSuccessRate) * 100; // 80% success = 20th percentile
+    const targetSurvivalTime = this.percentile(survivalStats.survivalTimes.sort((a, b) => a - b), targetPercentile);
+    const targetSurvivalYears = (targetSurvivalTime / 12).toFixed(1);
+    
+    insights.push({
+      type: 'target_percentile_survival',
+      title: `${(targetSuccessRate * 100).toFixed(0)}% Confidence Level`,
+      value: targetSurvivalTime,
+      description: `At your ${(targetSuccessRate * 100).toFixed(0)}% confidence level, money will last at least ${targetSurvivalYears} years`,
+      severity: targetSurvivalTime >= targetMonths ? 'good' : targetSurvivalTime >= (targetMonths * 0.8) ? 'warning' : 'critical'
+    });
+    
+    // Final balance insights - only include scenarios that meet minimum success balance
     const finalBalanceStats = statistics.finalBalance;
     if (finalBalanceStats) {
-      insights.push({
-        type: 'final_balance',
-        title: 'Final Balance Range',
-        value: {
-          median: finalBalanceStats.median,
-          range: [finalBalanceStats.percentiles[10], finalBalanceStats.percentiles[90]]
-        },
-        description: `50% of scenarios end with $${(finalBalanceStats.median / 1000).toFixed(0)}K, with 80% falling between $${(finalBalanceStats.percentiles[10] / 1000).toFixed(0)}K and $${(finalBalanceStats.percentiles[90] / 1000).toFixed(0)}K`,
-        severity: finalBalanceStats.percentiles[10] > 0 ? 'good' : 'warning'
-      });
+      const minimumBalance = config.minimumSuccessBalance ?? 0;
+      
+      // Filter final balances to only include those meeting minimum success criteria
+      const validFinalBalances = results
+        .map(result => {
+          if (!result || !result.result || !result.result.results) return null;
+          const timeawareResults = result.result.results.results;
+          if (!timeawareResults || !Array.isArray(timeawareResults) || timeawareResults.length === 0) return null;
+          
+          const lastMonth = timeawareResults[timeawareResults.length - 1];
+          let finalBalance = 0;
+          if (lastMonth && lastMonth.assets) {
+            finalBalance = Object.values(lastMonth.assets).reduce((sum, balance) => sum + balance, 0);
+          }
+          
+          console.log(`🔍 Final Balance Check: finalBalance=${finalBalance}, minimumBalance=${minimumBalance}, meets criteria=${finalBalance >= minimumBalance}`);
+          return finalBalance >= minimumBalance ? finalBalance : null;
+        })
+        .filter(balance => balance !== null);
+      
+      console.log(`🔍 Final Balance Filter: minimumBalance=${minimumBalance}, validFinalBalances.length=${validFinalBalances.length}, total results=${results.length}`);
+      console.log(`🔍 Sample valid final balances:`, validFinalBalances.slice(0, 5));
+      
+      if (validFinalBalances.length > 0) {
+        const validStats = this.calculateStatistics(validFinalBalances, config.confidenceIntervals);
+        
+        insights.push({
+          type: 'final_balance',
+          title: 'Final Balance Range',
+          value: {
+            median: validStats.median,
+            range: [validStats.percentiles[10], validStats.percentiles[90]]
+          },
+          description: `50% of scenarios meeting minimum balance criteria end with $${(validStats.median / 1000).toFixed(0)}K, with 80% falling between $${(validStats.percentiles[10] / 1000).toFixed(0)}K and $${(validStats.percentiles[90] / 1000).toFixed(0)}K`,
+          severity: validStats.percentiles[10] > 0 ? 'good' : 'warning'
+        });
+      }
     }
     
     return insights;
   }
 
   /**
-   * Calculate success rate (scenarios that never went negative)
+   * Calculate survival time statistics for retirement planning
    */
-  calculateSuccessRate(results) {
-    const successful = results.filter(({ result }) => {
-      if (!result || !result.results) return false;
+  calculateSurvivalStatistics(results) {
+    const survivalTimes = results.map(({ result }) => {
+      if (!result || !result.results) return 0;
       
       const simulationResults = result.results.results || result.results;
-      if (!simulationResults || !Array.isArray(simulationResults)) return false;
+      if (!simulationResults || !Array.isArray(simulationResults)) return 0;
       
-      // Check if total balance never went negative
-      return simulationResults.every(month => {
+      // Find when shortfall occurs (total balance goes to zero or negative)
+      for (let monthIndex = 0; monthIndex < simulationResults.length; monthIndex++) {
+        const month = simulationResults[monthIndex];
         if (month && month.assets) {
           const totalBalance = Object.values(month.assets).reduce((sum, balance) => sum + balance, 0);
-          return totalBalance >= 0;
+          if (totalBalance <= 0) {
+            return monthIndex; // Shortfall occurred at this month
+          }
         }
-        return false;
-      });
+      }
+      
+      // If we made it through all months without shortfall
+      return simulationResults.length;
     });
     
-    return successful.length / results.length;
+    // Sort survival times for percentile calculations
+    const sortedTimes = [...survivalTimes].sort((a, b) => a - b);
+    
+    return {
+      survivalTimes,
+      median: this.percentile(sortedTimes, 50),
+      p25: this.percentile(sortedTimes, 25),
+      p75: this.percentile(sortedTimes, 75),
+      p10: this.percentile(sortedTimes, 10),
+      p90: this.percentile(sortedTimes, 90),
+      min: Math.min(...survivalTimes),
+      max: Math.max(...survivalTimes),
+      mean: survivalTimes.reduce((sum, time) => sum + time, 0) / survivalTimes.length
+    };
+  }
+
+  /**
+   * Calculate success rate for a given target survival time and minimum balance
+   */
+  calculateSuccessRate(results, targetMonths, minimumBalance = 0) {
+    const survivalStats = this.calculateSurvivalStatistics(results);
+    
+    // If no target specified, use a reasonable default (25 years)
+    if (targetMonths === null) {
+      targetMonths = 300; // 25 years default
+    }
+    
+    // Filter scenarios that meet both time and balance criteria
+    const successfulScenarios = results.filter(result => {
+      if (!result || !result.result || !result.result.results) return false;
+      const timeawareResults = result.result.results.results;
+      if (!timeawareResults || !Array.isArray(timeawareResults) || timeawareResults.length === 0) return false;
+      
+      const survivalTime = timeawareResults.length;
+      const lastMonth = timeawareResults[timeawareResults.length - 1];
+      let finalBalance = 0;
+      if (lastMonth && lastMonth.assets) {
+        finalBalance = Object.values(lastMonth.assets).reduce((sum, balance) => sum + balance, 0);
+      }
+      
+      // Success requires both: lasting the target time AND having minimum balance
+      return survivalTime >= targetMonths && finalBalance >= minimumBalance;
+    });
+    
+    return {
+      rate: successfulScenarios.length / results.length,
+      targetMonths: targetMonths,
+      targetYears: (targetMonths / 12).toFixed(1),
+      minimumBalance: minimumBalance
+    };
   }
 
   /**

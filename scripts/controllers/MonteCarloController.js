@@ -32,6 +32,15 @@ export class MonteCarloController {
       console.log('🎲 MonteCarloController: Scenario data updated via scenario:loaded:', data.scenario?.name);
     });
 
+    // Listen for scenario data changes (JSON edits, etc.)
+    this.eventBus.on('scenario:data-changed', (data) => {
+      this.currentScenarioData = data.scenarioData;
+      console.log('🎲 MonteCarloController: Scenario data updated via scenario:data-changed:', data.scenarioData?.metadata?.title);
+      
+      // Clear any existing Monte Carlo results since scenario changed
+      this.clearResults();
+    });
+
     // Listen for Monte Carlo analysis events
     this.eventBus.on('montecarlo:started', (data) => {
       this.isAnalysisRunning = true;
@@ -117,8 +126,9 @@ export class MonteCarloController {
       this.cancelAnalysis();
     });
 
-    this.eventBus.on('ui:monte-carlo-export-requested', (options) => {
-      this.exportResults(options.format);
+    this.eventBus.on('ui:monte-carlo-export-requested', (data) => {
+      console.log('🎲 MonteCarloController: Export requested', data);
+      this.exportResults(data.format || 'csv');
     });
   }
 
@@ -163,7 +173,9 @@ export class MonteCarloController {
         confidenceIntervals: config.confidenceIntervals || [10, 25, 50, 75, 90],
         randomSeed: config.randomSeed || null,
         parallelBatches: config.parallelBatches || 4,
-        progressUpdateInterval: config.progressUpdateInterval || 50
+        progressUpdateInterval: config.progressUpdateInterval || 50,
+        targetSurvivalMonths: config.targetSurvivalMonths,
+        minimumSuccessBalance: config.minimumSuccessBalance
       },
       variableRanges,
       context: {
@@ -255,12 +267,12 @@ export class MonteCarloController {
    * Update control buttons
    */
   updateControlButtons() {
-    const startButton = document.getElementById('start-monte-carlo');
+    const runButton = document.getElementById('run-monte-carlo-btn');
     const cancelButton = document.getElementById('cancel-monte-carlo');
     
-    if (startButton) {
-      startButton.disabled = this.isAnalysisRunning || !this.currentScenarioData;
-      startButton.textContent = this.isAnalysisRunning ? 'Running...' : 'Start Monte Carlo Analysis';
+    if (runButton) {
+      runButton.disabled = this.isAnalysisRunning || !this.currentScenarioData;
+      runButton.textContent = this.isAnalysisRunning ? '🎲 Running Analysis...' : '🎲 Run Monte Carlo Analysis';
     }
     
     if (cancelButton) {
@@ -306,6 +318,31 @@ export class MonteCarloController {
   }
 
   /**
+   * Clear Monte Carlo results when scenario changes
+   */
+  clearResults() {
+    console.log('🧹 MonteCarloController: Clearing Monte Carlo results due to scenario change');
+    
+    // Clear the chart area
+    const chartContainer = document.getElementById('monte-carlo-chart-area');
+    if (chartContainer) {
+      chartContainer.innerHTML = '';
+    }
+    
+    // Hide results section
+    const resultsSection = document.getElementById('monte-carlo-section-results');
+    if (resultsSection) {
+      resultsSection.style.display = 'none';
+    }
+    
+    // Reset analysis state
+    this.currentAnalysis = null;
+    this.isAnalysisRunning = false;
+    
+    this.updateUI();
+  }
+
+  /**
    * Display Monte Carlo results in isolation - PREVENT MAIN CHART INTERFERENCE
    */
   displayResults() {
@@ -315,6 +352,10 @@ export class MonteCarloController {
 
     console.log('📊 MonteCarloController: Displaying Monte Carlo results in isolation');
     
+    // Display summary and insights BEFORE clearing analysis
+    this.displaySummaryStatistics();
+    this.displayInsights();
+    
     // Emit SPECIFIC Monte Carlo display event (not generic display-results)
     this.eventBus.emit('montecarlo:display-monte-carlo-charts', {
       analysis: this.currentAnalysis.analysis,
@@ -322,15 +363,14 @@ export class MonteCarloController {
       scenarioData: this.currentAnalysis.scenarioData
     });
     
-    // Update summary statistics
-    this.displaySummaryStatistics();
-    
-    // Update insights
-    this.displayInsights();
+    // Show export button after displaying results
+    setTimeout(() => {
+      this.showExportButton();
+    }, 100);
   }
 
   /**
-   * Display summary statistics
+   * Display summary statistics in compact format
    */
   displaySummaryStatistics() {
     const analysis = this.currentAnalysis.analysis;
@@ -338,57 +378,76 @@ export class MonteCarloController {
     
     if (!container || !analysis) return;
     
-    const stats = analysis.statistics;
-    const successRate = (analysis.successRate * 100).toFixed(1);
+    const survivalStats = analysis.survivalStatistics;
+    const successRateData = analysis.successRateData || { rate: analysis.successRate, targetYears: '20.0' };
+    const successRate = (successRateData.rate * 100).toFixed(1);
+    const medianYears = (survivalStats.median / 12).toFixed(1);
     
     container.innerHTML = `
-      <div class="monte-carlo-summary">
-        
-        <div class="success-rate">
-          <h4>Success Rate</h4>
-          <div class="metric-value ${analysis.successRate > 0.8 ? 'good' : analysis.successRate > 0.6 ? 'warning' : 'critical'}">
-            ${successRate}%
-          </div>
-          <p>Probability of maintaining positive balance throughout retirement</p>
-        </div>
-        
-        <div class="final-balance-stats">
-          <h4>Final Balance Distribution</h4>
-          <div class="percentile-grid">
-            <div class="percentile">
-              <span class="label">10th percentile:</span>
-              <span class="value">$${(stats.finalBalance.percentiles[10] / 1000).toFixed(0)}K</span>
-            </div>
-            <div class="percentile">
-              <span class="label">Median:</span>
-              <span class="value">$${(stats.finalBalance.median / 1000).toFixed(0)}K</span>
-            </div>
-            <div class="percentile">
-              <span class="label">90th percentile:</span>
-              <span class="value">$${(stats.finalBalance.percentiles[90] / 1000).toFixed(0)}K</span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="risk-metrics">
-          <h4>Risk Metrics</h4>
-          <div class="metric-grid">
-            <div class="metric">
-              <span class="label">Max Drawdown (95th percentile):</span>
-              <span class="value">${(analysis.riskMetrics.maxDrawdown.percentiles[95] * 100).toFixed(1)}%</span>
-            </div>
-            <div class="metric">
-              <span class="label">Value at Risk (5%):</span>
-              <span class="value">$${(analysis.riskMetrics.valueAtRisk / 1000).toFixed(0)}K</span>
-            </div>
-          </div>
-        </div>
+      <div class="analysis-summary-card">
+        <span class="metric-value">${successRate}%</span>
+        <span class="metric-label">${successRateData.targetYears}-Year Success Rate</span>
       </div>
-    `;
+      <div class="analysis-summary-card">
+        <span class="metric-value">${medianYears} years</span>
+        <span class="metric-label">Median Survival Time</span>
+      </div>
+      <div class="analysis-summary-card">
+        <span class="metric-value">${(survivalStats.p25 / 12).toFixed(1)} - ${(survivalStats.p75 / 12).toFixed(1)}</span>
+        <span class="metric-label">25th-75th Percentile Range</span>
+      </div>
+      <div class="analysis-summary-card">
+        <span class="metric-value">${analysis.metadata.iterations.toLocaleString()}</span>
+        <span class="metric-label">Simulations Run</span>
+      </div>`;
   }
 
   /**
-   * Display insights
+   * Show export button after analysis completes
+   */
+  showExportButton() {
+    const exportButton = document.getElementById('export-monte-carlo');
+    const resultsSection = document.getElementById('monte-carlo-section-results');
+    const actionsDiv = document.querySelector('#monte-carlo-section-results .monte-carlo-actions');
+    
+    console.log('🔍 MonteCarloController: DOM Debug', {
+      exportButton: !!exportButton,
+      resultsSection: !!resultsSection,
+      actionsDiv: !!actionsDiv,
+      resultsSectionDisplay: resultsSection?.style.display,
+      resultsSectionVisible: resultsSection?.offsetWidth > 0
+    });
+    
+    if (exportButton) {
+      exportButton.style.display = 'inline-block';
+      exportButton.style.visibility = 'visible';
+      exportButton.style.opacity = '1';
+      console.log('📊 MonteCarloController: Export button shown', {
+        display: exportButton.style.display,
+        visibility: exportButton.style.visibility,
+        opacity: exportButton.style.opacity,
+        offsetWidth: exportButton.offsetWidth,
+        offsetHeight: exportButton.offsetHeight,
+        parentElement: exportButton.parentElement?.id || 'no parent',
+        isConnected: exportButton.isConnected
+      });
+    } else {
+      console.error('❌ MonteCarloController: Export button not found in DOM');
+    }
+  }
+
+  /**
+   * Hide export button when clearing results
+   */
+  hideExportButton() {
+    const exportButton = document.getElementById('export-monte-carlo');
+    if (exportButton) {
+      exportButton.style.display = 'none';
+    }
+  }
+
+  /**
+   * Display Monte Carlo analysis insights in compact format
    */
   displayInsights() {
     const analysis = this.currentAnalysis.analysis;
@@ -397,18 +456,94 @@ export class MonteCarloController {
     if (!container || !analysis || !analysis.insights) return;
     
     const insightsHtml = analysis.insights.map(insight => `
-      <div class="insight ${insight.severity}">
-        <h4>${insight.title}</h4>
+      <div class="insight-card">
+        <h6>${insight.title}</h6>
         <p>${insight.description}</p>
       </div>
     `).join('');
     
-    container.innerHTML = `
-      <div class="monte-carlo-insights">
-        <h3>Key Insights</h3>
-        ${insightsHtml}
-      </div>
-    `;
+    container.innerHTML = insightsHtml;
+    
+    // Also populate the Key Scenario Insights section
+    this.displayScenarioInsights();
+  }
+
+  /**
+   * Display Key Scenario Insights (similar to Single Scenario tab)
+   */
+  displayScenarioInsights() {
+    const scenarioInsightsList = document.getElementById('monte-carlo-insights-list');
+    
+    if (!scenarioInsightsList || !this.currentScenarioData) return;
+    
+    // Generate scenario-based insights (similar to single scenario)
+    const insights = this.generateScenarioInsights();
+    
+    const insightsHtml = insights.map(insight => `
+      <li class="insight-item">
+        <span class="insight-icon">${insight.icon}</span>
+        <span class="insight-text">${insight.text}</span>
+      </li>
+    `).join('');
+    
+    scenarioInsightsList.innerHTML = insightsHtml;
+  }
+
+  /**
+   * Generate scenario-based insights for the Monte Carlo context
+   */
+  generateScenarioInsights() {
+    const scenario = this.currentScenarioData;
+    const insights = [];
+    
+    if (!scenario) return insights;
+    
+    // Monthly expenses insight
+    if (scenario.plan?.monthly_expenses) {
+      const monthlyExpenses = scenario.plan.monthly_expenses;
+      const annualExpenses = monthlyExpenses * 12;
+      insights.push({
+        icon: '💰',
+        text: `Monthly expenses: $${monthlyExpenses.toLocaleString()} ($${(annualExpenses/1000).toFixed(0)}K annually)`
+      });
+    }
+    
+    // Asset allocation insight
+    if (scenario.assets) {
+      const totalAssets = scenario.assets.reduce((sum, asset) => sum + (asset.balance || 0), 0);
+      insights.push({
+        icon: '📊',
+        text: `Total starting assets: $${(totalAssets/1000).toFixed(0)}K across ${scenario.assets.length} accounts`
+      });
+    }
+    
+    // Income insight
+    if (scenario.income && scenario.income.length > 0) {
+      const totalMonthlyIncome = scenario.income.reduce((sum, inc) => sum + (inc.amount || 0), 0);
+      insights.push({
+        icon: '💵',
+        text: `Expected income: $${totalMonthlyIncome.toLocaleString()}/month from ${scenario.income.length} source(s)`
+      });
+    }
+    
+    // Duration insight
+    if (scenario.plan?.duration_months) {
+      const years = (scenario.plan.duration_months / 12).toFixed(1);
+      insights.push({
+        icon: '⏰',
+        text: `Simulation duration: ${years} years (${scenario.plan.duration_months} months)`
+      });
+    }
+    
+    // Auto-stop feature insight
+    if (scenario.plan?.stop_on_shortfall) {
+      insights.push({
+        icon: '🛑',
+        text: 'Auto-stop enabled: Simulation stops when funds are depleted'
+      });
+    }
+    
+    return insights;
   }
 
   /**
@@ -474,12 +609,23 @@ export class MonteCarloController {
       return;
     }
 
+    console.log('🔥 CSV EXPORT STARTED - MonteCarloController: Exporting results in format:', format);
+    console.log('🔥 CSV EXPORT - MonteCarloController: Current analysis data:', {
+      hasAnalysis: !!this.currentAnalysis.analysis,
+      hasResults: !!this.currentAnalysis.results,
+      resultsLength: this.currentAnalysis.results?.length,
+      hasScenarioData: !!this.currentAnalysis.scenarioData,
+      firstResult: this.currentAnalysis.results?.[0],
+      fullAnalysis: this.currentAnalysis
+    });
+
     const data = {
       analysis: this.currentAnalysis.analysis,
+      results: this.currentAnalysis.results,
       metadata: {
-        scenarioName: this.currentAnalysis.scenarioData.name,
+        scenarioName: this.currentAnalysis.scenarioData?.name || 'Unknown Scenario',
         exportDate: new Date().toISOString(),
-        iterations: this.currentAnalysis.results.length,
+        iterations: this.currentAnalysis.results?.length || 0,
         duration: this.currentAnalysis.duration
       }
     };
@@ -512,75 +658,182 @@ export class MonteCarloController {
   }
 
   /**
-   * Download data as CSV file
+   * Download Monte Carlo statistical data as CSV file
    */
   downloadCSV(data, filename) {
-    // Export the FIRST simulation result in the same format as traditional scenarios
-    // This gives users the expected monthly data format, not statistical summaries
+    console.log('🔥 DOWNLOADCSV FUNCTION CALLED with data:', data);
+    console.log('🔥 DOWNLOADCSV filename:', filename);
+    const analysis = data.analysis;
     const results = data.results;
-    if (!results || results.length === 0) {
-      console.error('❌ No Monte Carlo results to export');
+    console.log('🔥 DOWNLOADCSV analysis:', analysis);
+    console.log('🔥 DOWNLOADCSV results length:', results?.length);
+    
+    if (!analysis || !results || results.length === 0) {
+      console.error('❌ No Monte Carlo analysis data to export');
       return;
     }
     
-    // Use the first simulation result as representative data
-    const firstResult = results[0];
-    if (!firstResult || !firstResult.result || !firstResult.result.results) {
-      console.error('❌ Invalid Monte Carlo result structure');
-      return;
+    // Create statistical summary CSV
+    const headers = [
+      'Metric',
+      'Value',
+      'Description'
+    ];
+    
+    const rows = [headers];
+    
+    // Add key statistics
+    rows.push(['Total Simulations', results.length, 'Number of Monte Carlo iterations run']);
+    rows.push(['Success Rate', `${(analysis.successRate * 100).toFixed(1)}%`, 'Percentage of simulations that succeeded']);
+    
+    // Add survival statistics
+    if (analysis.survivalStatistics) {
+      const survival = analysis.survivalStatistics;
+      rows.push(['Median Survival (Years)', (survival.median / 12).toFixed(1), 'Median portfolio survival time']);
+      rows.push(['25th Percentile (Years)', (survival.p25 / 12).toFixed(1), '25% of portfolios lasted this long or less']);
+      rows.push(['75th Percentile (Years)', (survival.p75 / 12).toFixed(1), '75% of portfolios lasted this long or less']);
+      rows.push(['10th Percentile (Years)', (survival.p10 / 12).toFixed(1), '10% of portfolios lasted this long or less']);
+      rows.push(['90th Percentile (Years)', (survival.p90 / 12).toFixed(1), '90% of portfolios lasted this long or less']);
     }
     
-    // Check if we have csvText from the simulation engine
-    if (firstResult.result.results.csvText) {
-      // Use the pre-generated CSV from the simulation engine (same format as traditional)
-      const csv = firstResult.result.results.csvText;
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } else {
-      // Fallback: Generate CSV from simulation results array
-      const simulationResults = firstResult.result.results.results || firstResult.result.results;
-      if (!Array.isArray(simulationResults)) {
-        console.error('❌ Cannot generate CSV: simulation results not in expected format');
-        return;
-      }
-      
-      // Generate CSV in same format as traditional scenarios
-      const rows = [['Month', 'Date', 'Income', 'Expenses', 'Total Balance']];
-      
-      simulationResults.forEach((month, index) => {
-        if (month && month.assets) {
-          const totalBalance = Object.values(month.assets).reduce((sum, balance) => sum + balance, 0);
-          const date = new Date();
-          date.setMonth(date.getMonth() + index);
-          
-          rows.push([
-            index + 1,
-            date.toISOString().slice(0, 7), // YYYY-MM format
-            month.income || 0,
-            month.expenses || 0,
-            totalBalance.toFixed(2)
-          ]);
-        }
+    // Add portfolio value percentiles if available
+    if (analysis.portfolioValuePercentiles) {
+      const portfolios = analysis.portfolioValuePercentiles;
+      rows.push(['Portfolio Value P10', `$${portfolios.p10?.toLocaleString() || 'N/A'}`, '10th percentile final portfolio value']);
+      rows.push(['Portfolio Value P25', `$${portfolios.p25?.toLocaleString() || 'N/A'}`, '25th percentile final portfolio value']);
+      rows.push(['Portfolio Value P50', `$${portfolios.p50?.toLocaleString() || 'N/A'}`, 'Median final portfolio value']);
+      rows.push(['Portfolio Value P75', `$${portfolios.p75?.toLocaleString() || 'N/A'}`, '75th percentile final portfolio value']);
+      rows.push(['Portfolio Value P90', `$${portfolios.p90?.toLocaleString() || 'N/A'}`, '90th percentile final portfolio value']);
+    }
+    
+    // Add insights if available
+    if (analysis.insights && analysis.insights.length > 0) {
+      rows.push(['', '', '']); // Empty row separator
+      rows.push(['Key Insights', '', '']);
+      analysis.insights.forEach((insight, index) => {
+        rows.push([`Insight ${index + 1}`, insight.title, insight.description]);
       });
-      
-      const csv = rows.map(row => row.join(',')).join('\n');
-      const blob = new Blob([csv], { type: 'text/csv' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
     }
+    
+    // Add individual simulation results
+    rows.push(['', '', '']); // Empty row separator
+    rows.push(['Individual Simulation Results', '', '']);
+    rows.push(['Simulation #', 'Success', 'Survival Time (Years)', 'Final Portfolio Value']);
+    
+    results.forEach((result, index) => {
+      console.log(`🔍 Result ${index + 1}:`, result);
+      console.log(`🔍 Result ${index + 1} keys:`, Object.keys(result || {}));
+      
+      // Extract data from the nested result structure (matches MonteCarloService logic)
+      const simulationResult = result.result || result;
+      console.log(`🔍 CSV Export - simulationResult for ${index + 1}:`, simulationResult);
+      console.log(`🔍 CSV Export - simulationResult keys:`, Object.keys(simulationResult || {}));
+      console.log(`🔍 CSV Export - simulationResult.results for ${index + 1}:`, simulationResult?.results);
+      console.log(`🔍 CSV Export - simulationResult.results.results for ${index + 1}:`, simulationResult?.results?.results);
+      
+      // Determine success based on target survival months
+      const targetMonths = this.currentAnalysisData?.metadata?.targetSurvivalMonths || 300;
+      let success = 'No';
+      let survivalYears = 'N/A';
+      let finalValue = 'N/A';
+      
+      if (simulationResult && simulationResult.results && simulationResult.results.results) {
+        console.log(`🔍 CSV Export - Found timeaware results for ${index + 1}`);
+        const timeawareResults = simulationResult.results.results; // Monthly array from timeaware engine
+        
+        // Calculate survival time (time to depletion)
+        const depletionMonth = timeawareResults.findIndex(month => {
+          if (month && month.assets) {
+            const totalBalance = Object.values(month.assets).reduce((sum, balance) => sum + balance, 0);
+            return totalBalance <= 0;
+          }
+          return false;
+        });
+        
+        const survivalMonths = depletionMonth === -1 ? timeawareResults.length : depletionMonth;
+        survivalYears = (survivalMonths / 12).toFixed(1);
+        
+        // Determine success based on whether we survived the target duration
+        success = survivalMonths >= targetMonths ? 'Yes' : 'No';
+        
+        // Calculate final portfolio value - check if we can get it from balanceHistory
+        const lastMonth = timeawareResults[timeawareResults.length - 1];
+        console.log(`🔍 CSV Export - Last month for result ${index + 1}:`, lastMonth);
+        console.log(`🔍 CSV Export - Last month keys:`, Object.keys(lastMonth || {}));
+        
+        // Try to get final balance from balanceHistory if available
+        if (simulationResult.results && simulationResult.results.balanceHistory) {
+          console.log(`🔍 CSV Export - Found balanceHistory for result ${index + 1}`);
+          const balanceHistory = simulationResult.results.balanceHistory;
+          console.log(`🔍 CSV Export - balanceHistory keys:`, Object.keys(balanceHistory));
+          
+          // Get the final balances from each asset type
+          let finalBalance = 0;
+          for (const [assetName, history] of Object.entries(balanceHistory)) {
+            if (Array.isArray(history) && history.length > 0) {
+              const lastBalance = history[history.length - 1];
+              console.log(`🔍 CSV Export - ${assetName} final balance: ${lastBalance}`);
+              finalBalance += (typeof lastBalance === 'number' ? lastBalance : 0);
+            }
+          }
+          console.log(`🔍 CSV Export - Total final balance for result ${index + 1}: ${finalBalance}`);
+          finalValue = `$${Math.round(finalBalance).toLocaleString()}`;
+        } else if (lastMonth && lastMonth.assets) {
+          console.log(`🔍 CSV Export - Assets for result ${index + 1}:`, lastMonth.assets);
+          const finalBalance = Object.values(lastMonth.assets).reduce((sum, balance) => {
+            const numBalance = typeof balance === 'string' ? parseFloat(balance) : balance;
+            return sum + (isNaN(numBalance) ? 0 : numBalance);
+          }, 0);
+          console.log(`🔍 CSV Export - Final balance for result ${index + 1}: ${finalBalance}`);
+          finalValue = `$${Math.round(finalBalance).toLocaleString()}`;
+        } else {
+          console.log(`🔍 CSV Export - No assets or balanceHistory found for result ${index + 1}`);
+        }
+        
+        rows.push([index + 1, success, survivalYears, finalValue]);
+      } else {
+        console.log(`🔍 CSV Export - Could not find timeaware results for ${index + 1}, trying alternative paths`);
+        
+        // Try alternative data access patterns
+        if (simulationResult && simulationResult.results) {
+          console.log(`🔍 CSV Export - Alternative: simulationResult.results structure:`, Object.keys(simulationResult.results));
+          
+          // Check if balanceHistory exists (like in chart extraction)
+          if (simulationResult.results.balanceHistory) {
+            console.log(`🔍 CSV Export - Found balanceHistory for ${index + 1}`);
+            const balanceHistory = simulationResult.results.balanceHistory;
+            const assetNames = Object.keys(balanceHistory);
+            if (assetNames.length > 0) {
+              // Get the last balance for each asset
+              let finalBalance = 0;
+              assetNames.forEach(assetName => {
+                const assetHistory = balanceHistory[assetName];
+                if (assetHistory && assetHistory.length > 0) {
+                  const lastBalance = assetHistory[assetHistory.length - 1];
+                  const numBalance = typeof lastBalance === 'string' ? parseFloat(lastBalance) : lastBalance;
+                  finalBalance += isNaN(numBalance) ? 0 : numBalance;
+                }
+              });
+              finalValue = `$${Math.round(finalBalance).toLocaleString()}`;
+              console.log(`🔍 CSV Export - Final balance from balanceHistory for ${index + 1}: ${finalBalance}`);
+            }
+          }
+        }
+        
+        rows.push([index + 1, success, survivalYears, finalValue]);
+      }
+    });
+    
+    const csv = rows.map(row => row.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   /**
