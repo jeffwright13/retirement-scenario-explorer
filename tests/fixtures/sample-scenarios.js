@@ -10,10 +10,15 @@ const sampleScenarios = {
       monthly_expenses: 4000,
       duration_months: 24
     },
+    rate_schedules: {
+      conservative: { type: 'fixed', rate: 0.02 },
+      moderate: { type: 'fixed', rate: 0.06 },
+      aggressive: { type: 'fixed', rate: 0.08 }
+    },
     assets: [
-      { name: 'Savings', balance: 50000, min_balance: 10000 },
-      { name: 'Investment', balance: 100000, min_balance: 0 },
-      { name: 'Traditional IRA', balance: 75000, min_balance: 0 }
+      { name: 'Savings', balance: 50000, min_balance: 10000, return_schedule: 'conservative' },
+      { name: 'Investment', balance: 100000, min_balance: 0, return_schedule: 'moderate' },
+      { name: 'Traditional IRA', balance: 75000, min_balance: 0, return_schedule: 'aggressive' }
     ],
     income: [
       { 
@@ -30,11 +35,16 @@ const sampleScenarios = {
       monthly_expenses: 5800, // 5000 + 800
       duration_months: 36
     },
+    rate_schedules: {
+      conservative: { type: 'fixed', rate: 0.02 },
+      moderate: { type: 'fixed', rate: 0.06 },
+      aggressive: { type: 'fixed', rate: 0.08 }
+    },
     assets: [
-      { name: 'Savings', balance: 75000, min_balance: 15000 },
-      { name: 'Investment', balance: 200000, min_balance: 0 },
-      { name: 'Traditional IRA', balance: 150000, min_balance: 0 },
-      { name: 'Roth IRA', balance: 50000, min_balance: 0 }
+      { name: 'Savings', balance: 75000, min_balance: 15000, return_schedule: 'conservative' },
+      { name: 'Investment', balance: 200000, min_balance: 0, return_schedule: 'moderate' },
+      { name: 'Traditional IRA', balance: 150000, min_balance: 0, return_schedule: 'aggressive' },
+      { name: 'Roth IRA', balance: 50000, min_balance: 0, return_schedule: 'aggressive' }
     ],
     income: [
       { 

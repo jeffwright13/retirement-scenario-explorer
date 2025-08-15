@@ -16,13 +16,19 @@ const comprehensiveScenarios = {
       duration_months: 60,
       stop_on_shortfall: true
     },
+    rate_schedules: {
+      conservative: { type: 'fixed', rate: 0.02 },
+      moderate: { type: 'fixed', rate: 0.06 },
+      aggressive: { type: 'fixed', rate: 0.08 }
+    },
     assets: [
       {
         name: "Taxable Savings",
         type: "taxable",
         balance: 100000,
         min_balance: 5000,
-        compounding: "monthly"
+        compounding: "monthly",
+        return_schedule: "conservative"
       },
       {
         name: "Traditional IRA",
@@ -30,7 +36,8 @@ const comprehensiveScenarios = {
         balance: 150000,
         min_balance: 0,
         compounding: "annual",
-        start_month: 6
+        start_month: 6,
+        return_schedule: "moderate"
       },
       {
         name: "Roth IRA",
@@ -38,7 +45,8 @@ const comprehensiveScenarios = {
         balance: 75000,
         min_balance: 0,
         compounding: "monthly",
-        start_month: 0
+        start_month: 0,
+        return_schedule: "aggressive"
       }
     ],
     order: [

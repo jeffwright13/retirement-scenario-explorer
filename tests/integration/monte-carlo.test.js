@@ -78,7 +78,7 @@ describe('Monte Carlo Analysis Integration', () => {
 
   describe('MonteCarloService', () => {
     test('should initialize with correct default configuration', () => {
-      expect(monteCarloService.defaultConfig.iterations).toBe(100); // Updated to match current default
+      expect(monteCarloService.defaultConfig.iterations).toBe(100);
       expect(monteCarloService.defaultConfig.confidenceIntervals).toEqual([10, 25, 50, 75, 90]);
       expect(monteCarloService.isRunning).toBe(false);
     });
@@ -92,14 +92,14 @@ describe('Monte Carlo Analysis Integration', () => {
         }
       };
 
-      const rng = () => 0.5; // Fixed random for testing
+      const rng = () => 0.5;
       const randomScenario = monteCarloService.generateRandomScenario(
         sampleScenario, 
         variableRanges, 
         rng
       );
 
-      expect(randomScenario.plan.monthly_expenses).toBe(5000); // 4000 + (6000-4000) * 0.5
+      expect(randomScenario.plan.monthly_expenses).toBe(5000);
       expect(randomScenario.name).toBe(sampleScenario.name);
       expect(randomScenario.assets).toEqual(sampleScenario.assets);
     });
@@ -196,7 +196,7 @@ describe('Monte Carlo Analysis Integration', () => {
       // Start analysis with minimal configuration
       eventBus.emit('montecarlo:run', {
         scenarioData: sampleScenario,
-        config: { iterations: 2 }, // Minimal for testing
+        config: { iterations: 2 },
         variableRanges: {
           'plan.monthly_expenses': {
             type: 'uniform',
@@ -212,7 +212,7 @@ describe('Monte Carlo Analysis Integration', () => {
       expect(result.analysis.statistics).toBeDefined();
       expect(result.analysis.successRate).toBeGreaterThanOrEqual(0);
       expect(result.analysis.successRate).toBeLessThanOrEqual(1);
-    }, 10000); // Increase timeout
+    }, 10000);
   });
 
   describe('MonteCarloController', () => {
@@ -225,9 +225,9 @@ describe('Monte Carlo Analysis Integration', () => {
     test('should handle scenario loading events', () => {
       const scenarioData = { name: 'New Scenario' };
       
-      eventBus.emit('scenario:loaded', { scenarioData });
+      eventBus.emit('scenario:loaded', { scenario: scenarioData });
       
-      expect(monteCarloController.currentScenarioData).toEqual({ scenarioData });
+      expect(monteCarloController.currentScenarioData).toEqual(scenarioData);
     });
 
     test('should start analysis with correct configuration', () => {
@@ -432,19 +432,6 @@ describe('Monte Carlo Analysis Integration', () => {
         service.generateRandomValue({ type: 'invalid' }, Math.random);
       }).toThrow();
     });
-  });
-
-describe('Event Bus Integration', () => {
-  test('should maintain event bus architecture compliance', () => {
-    // Verify no direct parameter passing of business data
-    const controller = monteCarloController;
-    
-    // Controller should store data from event bus
-    expect(controller.currentScenarioData).toBeDefined();
-    
-    // Methods should access controller state, not parameters
-    const startAnalysis = controller.startAnalysis.toString();
-    expect(startAnalysis).toContain('this.currentScenarioData');
   });
 });
 

@@ -864,10 +864,37 @@ export class MonteCarloController {
     rows.push(['Simulation #', 'Success', 'Survival Time (Years)', 'Final Portfolio Value']);
     
     results.forEach((result, index) => {
-      // Use pre-calculated metrics from MonteCarloService
-      const success = result.success ? 'Yes' : 'No';
-      const survivalYears = result.survivalTime ? (result.survivalTime / 12).toFixed(1) : 'N/A';
-      const finalValue = result.finalBalance ? `$${Math.round(result.finalBalance).toLocaleString()}` : 'N/A';
+      // Handle nested result structure
+      const resultData = result.results || result;
+      
+      // Use pre-calculated metrics from MonteCarloService or calculate from statistics
+      let success = 'No';
+      let survivalYears = 'N/A';
+      let finalValue = 'N/A';
+      
+      if (resultData.success !== undefined) {
+        success = resultData.success ? 'Yes' : 'No';
+      } else if (analysis.statistics) {
+        // Calculate success based on survival time and final balance
+        const survivalTime = analysis.statistics.survivalTime[index];
+        const finalBalance = analysis.statistics.finalBalance[index];
+        
+        // Default success criteria: survival time >= 14 years (168 months) OR final balance > 0
+        const minSurvivalYears = 14;
+        success = (survivalTime >= minSurvivalYears || finalBalance > 0) ? 'Yes' : 'No';
+      }
+      
+      if (resultData.survivalTime !== undefined) {
+        survivalYears = (resultData.survivalTime / 12).toFixed(1);
+      } else if (analysis.statistics && analysis.statistics.survivalTime[index] !== undefined) {
+        survivalYears = (analysis.statistics.survivalTime[index] / 12).toFixed(1);
+      }
+      
+      if (resultData.finalBalance !== undefined) {
+        finalValue = `$${Math.round(resultData.finalBalance).toLocaleString()}`;
+      } else if (analysis.statistics && analysis.statistics.finalBalance[index] !== undefined) {
+        finalValue = `$${Math.round(analysis.statistics.finalBalance[index]).toLocaleString()}`;
+      }
       
       rows.push([index + 1, success, survivalYears, finalValue]);
     });

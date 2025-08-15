@@ -64,9 +64,12 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
           duration_months: 12,
           stop_on_shortfall: false 
         },
+        rate_schedules: {
+          conservative: { type: 'fixed', rate: 0.02 }
+        },
         assets: [
-          { name: 'Emergency Fund', balance: 20000, min_balance: 15000 }, // Only 5k available
-          { name: 'Savings', balance: 30000, min_balance: 0 } // Full 30k available
+          { name: 'Emergency Fund', balance: 20000, min_balance: 15000, return_schedule: 'conservative' }, // Only 5k available
+          { name: 'Savings', balance: 30000, min_balance: 0, return_schedule: 'conservative' } // Full 30k available
         ],
         order: [
           { account: 'Emergency Fund', order: 1 },
@@ -89,14 +92,20 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
 
     it('should handle proportional withdrawals by weight correctly', () => {
       const scenario = {
-        plan: { monthly_expenses: 6000, duration_months: 6 },
+        plan: { 
+          monthly_expenses: 3000, 
+          duration_months: 6,
+          stop_on_shortfall: false 
+        },
+        rate_schedules: {
+          conservative: { type: 'fixed', rate: 0.02 }
+        },
         assets: [
-          { name: 'Stock Fund', balance: 100000, min_balance: 0 },
-          { name: 'Bond Fund', balance: 50000, min_balance: 0 }
-        ],
+          { name: 'Account A', balance: 40000, min_balance: 0, weight: 0.6, return_schedule: 'conservative' },
+          { name: 'Account B', balance: 20000, min_balance: 0, weight: 0.4, return_schedule: 'conservative' }      ],
         order: [
-          { account: 'Stock Fund', order: 1, weight: 0.7 },
-          { account: 'Bond Fund', order: 1, weight: 0.3 }
+          { account: 'Account A', order: 1, weight: 0.6 },
+          { account: 'Account B', order: 1, weight: 0.4 }
         ]
       };
       
@@ -104,57 +113,64 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
       
       expect(result.balanceHistory).toBeDefined();
       
-      const stockHistory = result.balanceHistory['Stock Fund'];
-      const bondHistory = result.balanceHistory['Bond Fund'];
+      const accountAHistory = result.balanceHistory['Account A'];
+      const accountBHistory = result.balanceHistory['Account B'];
       
-      if (stockHistory && bondHistory && stockHistory.length > 1) {
+      if (accountAHistory && accountBHistory && accountAHistory.length > 1) {
         // Calculate withdrawal amounts
-        const stockWithdrawal = stockHistory[0] - stockHistory[1];
-        const bondWithdrawal = bondHistory[0] - bondHistory[1];
+        const accountAWithdrawal = accountAHistory[0] - accountAHistory[1];
+        const accountBWithdrawal = accountBHistory[0] - accountBHistory[1];
         
-        if (stockWithdrawal > 0 && bondWithdrawal > 0) {
-          // Should be roughly 70/30 split (allowing for rounding)
-          const ratio = stockWithdrawal / (stockWithdrawal + bondWithdrawal);
-          expect(ratio).toBeCloseTo(0.7, 1); // Within 0.1 of expected ratio
+        if (accountAWithdrawal > 0 && accountBWithdrawal > 0) {
+          // Should be roughly 60/40 split (allowing for rounding)
+          const ratio = accountAWithdrawal / (accountAWithdrawal + accountBWithdrawal);
+          expect(ratio).toBeCloseTo(0.6, 1); // Within 0.1 of expected ratio
         }
       }
     });
 
     it('should handle sequential withdrawal order correctly', () => {
       const scenario = {
-        plan: { monthly_expenses: 8000, duration_months: 6 },
+        plan: { 
+          monthly_expenses: 2000, 
+          duration_months: 8,
+          stop_on_shortfall: false 
+        },
+        rate_schedules: {
+          conservative: { type: 'fixed', rate: 0.02 }
+        },
         assets: [
-          { name: 'Cash', balance: 20000, min_balance: 0 },
-          { name: 'Bonds', balance: 30000, min_balance: 0 },
-          { name: 'Stocks', balance: 50000, min_balance: 0 }
+          { name: 'First Account', balance: 10000, min_balance: 0, return_schedule: 'conservative' },
+          { name: 'Second Account', balance: 15000, min_balance: 0, return_schedule: 'conservative' },
+          { name: 'Third Account', balance: 20000, min_balance: 0, return_schedule: 'conservative' }
         ],
         order: [
-          { account: 'Cash', order: 1 },
-          { account: 'Bonds', order: 2 },
-          { account: 'Stocks', order: 3 }
+          { account: 'First Account', order: 1 },
+          { account: 'Second Account', order: 2 },
+          { account: 'Third Account', order: 3 }
         ]
       };
       
       const result = simulateScenarioAdvanced(scenario);
       
-      const cashHistory = result.balanceHistory['Cash'];
-      const bondsHistory = result.balanceHistory['Bonds'];
-      const stocksHistory = result.balanceHistory['Stocks'];
+      const firstAccountHistory = result.balanceHistory['First Account'];
+      const secondAccountHistory = result.balanceHistory['Second Account'];
+      const thirdAccountHistory = result.balanceHistory['Third Account'];
       
-      if (cashHistory && bondsHistory && stocksHistory) {
-        // Cash should be depleted first
-        const cashDepleted = cashHistory[cashHistory.length - 1] === 0;
+      if (firstAccountHistory && secondAccountHistory && thirdAccountHistory) {
+        // First Account should be depleted first
+        const firstAccountDepleted = firstAccountHistory[firstAccountHistory.length - 1] === 0;
         
-        if (cashDepleted) {
-          // Find when cash was depleted
-          const cashDepletionMonth = cashHistory.findIndex(balance => balance === 0);
+        if (firstAccountDepleted) {
+          // Find when First Account was depleted
+          const firstAccountDepletionMonth = firstAccountHistory.findIndex(balance => balance === 0);
           
-          if (cashDepletionMonth > 0) {
-            // Bonds should not start withdrawing until cash is depleted
-            for (let i = 0; i < cashDepletionMonth; i++) {
-              if (bondsHistory[i] < bondsHistory[0]) {
-                // Bonds withdrew before cash was depleted - this would be a bug
-                fail(`Bonds withdrew at month ${i + 1} before cash was fully depleted`);
+          if (firstAccountDepletionMonth > 0) {
+            // Second Account should not start withdrawing until First Account is depleted
+            for (let i = 0; i < firstAccountDepletionMonth; i++) {
+              if (secondAccountHistory[i] < secondAccountHistory[0]) {
+                // Second Account withdrew before First Account was fully depleted - this would be a bug
+                fail(`Second Account withdrew at month ${i + 1} before First Account was fully depleted`);
               }
             }
           }
@@ -166,19 +182,28 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
   describe('Income and Expense Timing - Real Behavior', () => {
     it('should handle complex income timing correctly', () => {
       const scenario = {
-        plan: { monthly_expenses: 3000, duration_months: 36 },
-        assets: [{ name: 'Savings', balance: 200000, min_balance: 0 }],
+        plan: { 
+          monthly_expenses: 3000, 
+          duration_months: 24,
+          stop_on_shortfall: false 
+        },
+        rate_schedules: {
+          conservative: { type: 'fixed', rate: 0.02 }
+        },
+        assets: [
+          { name: 'Savings', balance: 50000, min_balance: 0, return_schedule: 'conservative' }
+        ],
         income: [
-          { name: 'Immediate Income', amount: 1000, start_month: 1 },
-          { name: 'Future Income', amount: 2000, start_month: 12 },
+          { name: 'Immediate Income', amount: 1000, start_month: 1, stop_month: 24 },
+          { name: 'Delayed Income', amount: 2000, start_month: 12, stop_month: 24 },
           { name: 'Temporary Income', amount: 500, start_month: 6, stop_month: 18 },
-          { name: 'Recurring Expense', amount: -300, start_month: 1 }
+          { name: 'Recurring Expense', amount: -300, start_month: 1, stop_month: 24 }
         ]
       };
       
       const result = simulateScenarioAdvanced(scenario);
       
-      expect(result.results.length).toBeGreaterThan(0);
+      expect(result.results.length).toBe(24);
       
       // Check income at different months
       const month1 = result.results[0];
@@ -201,8 +226,15 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
 
     it('should handle one-time income/expense events', () => {
       const scenario = {
-        plan: { monthly_expenses: 2000, duration_months: 12 },
-        assets: [{ name: 'Savings', balance: 50000, min_balance: 0 }],
+        plan: { 
+          monthly_expenses: 2000, 
+          duration_months: 12,
+          stop_on_shortfall: false 
+        },
+        rate_schedules: {
+          conservative: { type: 'fixed', rate: 0.02 }
+        },
+        assets: [{ name: 'Savings', balance: 50000, min_balance: 0, return_schedule: 'conservative' }],
         income: [
           { name: 'Tax Refund', amount: 8000, start_month: 4, stop_month: 4 },
           { name: 'Major Expense', amount: -15000, start_month: 8, stop_month: 8 }
@@ -295,10 +327,17 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
   describe('Deposits - Real Behavior', () => {
     it('should handle deposits to correct target assets', () => {
       const scenario = {
-        plan: { monthly_expenses: 2000, duration_months: 12 },
+        plan: { 
+          monthly_expenses: 2000, 
+          duration_months: 12,
+          stop_on_shortfall: false 
+        },
+        rate_schedules: {
+          conservative: { type: 'fixed', rate: 0.02 }
+        },
         assets: [
-          { name: 'Checking', balance: 10000, min_balance: 0 },
-          { name: 'Investment', balance: 50000, min_balance: 0 }
+          { name: 'Checking', balance: 15000, min_balance: 0, return_schedule: 'conservative' },
+          { name: 'Investment', balance: 25000, min_balance: 0, return_schedule: 'conservative' }
         ],
         deposits: [
           { name: 'Monthly Deposit', target: 'Investment', amount: 1000, start_month: 1, stop_month: 6 },
@@ -340,7 +379,10 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
           duration_months: 24,
           stop_on_shortfall: true 
         },
-        assets: [{ name: 'Limited Funds', balance: 50000, min_balance: 0 }]
+        rate_schedules: {
+          conservative: { type: 'fixed', rate: 0.02 }
+        },
+        assets: [{ name: 'Limited Funds', balance: 50000, min_balance: 0, return_schedule: 'conservative' }]
       };
       
       const result = simulateScenarioAdvanced(scenario);
@@ -405,17 +447,25 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
   describe('Performance - Real Engine', () => {
     it('should handle long simulations efficiently', () => {
       const scenario = {
-        plan: { monthly_expenses: 4000, duration_months: 600 }, // 50 years
-        assets: [{ name: 'Retirement Fund', balance: 2000000, min_balance: 0 }]
+        plan: { 
+          monthly_expenses: 4000, 
+          duration_months: 360, // 30 years
+          stop_on_shortfall: false 
+        },
+        rate_schedules: {
+          conservative: { type: 'fixed', rate: 0.02 }
+        },
+        assets: [
+          { name: 'Retirement Fund', balance: 1000000, min_balance: 0, return_schedule: 'conservative' }]
       };
       
       const startTime = Date.now();
       const result = simulateScenarioAdvanced(scenario);
       const endTime = Date.now();
       
-      // Engine auto-stops on shortfall, so won't reach full 600 months
-      expect(result.results.length).toBeLessThanOrEqual(600);
-      expect(result.results.length).toBeGreaterThan(400); // Should run for a reasonable time
+      // Should complete the full 360 months (30 years) with sufficient funds
+      expect(result.results.length).toBe(360);
+      expect(result.results.length).toBeGreaterThan(300); // Should run for a reasonable time
       expect(endTime - startTime).toBeLessThan(10000); // Should complete in <10 seconds
     });
   });
