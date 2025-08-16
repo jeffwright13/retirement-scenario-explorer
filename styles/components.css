@@ -903,6 +903,48 @@
     }
   }
 
+  /* ===== STORY MODE DISABLED ===== */
+  /* Hide Story Mode UI elements */
+  #story-mode-btn,
+  #story-mode-container,
+  #story-panel,
+  .story-panel,
+  .story-navigation,
+  .story-chapter,
+  .story-content,
+  .story-progress,
+  .story-mode-active {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+    clip: rect(0, 0, 0, 0) !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    border: 0 !important;
+  }
+
+  /* Ensure main content isn't affected by story mode */
+  body:not(.story-mode) {
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: auto !important;
+  }
+
+  /* Reset any story-mode specific styles */
+  .main-content,
+  .content-wrapper,
+  .tab-content,
+  .tab-panel {
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+
   /* ===== ACCESSIBILITY ===== */
   .btn:focus-visible {
     outline: 2px solid var(--theme-primary-500);

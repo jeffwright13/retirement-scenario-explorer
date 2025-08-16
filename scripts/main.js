@@ -62,16 +62,26 @@ class RetirementScenarioApp {
     // Initialize tab controller for Scenario Mode tabbed interface
     this.tabController = new TabController(this.eventBus);
     
-    // Initialize UI components
+    // Story Mode is temporarily disabled
+    console.warn('⚠️ Story Mode is currently disabled for maintenance');
+    
+    // Initialize Story UI in a disabled state
     this.storyUI = new StoryUI(this.eventBus);
     
-    this.storyController = new StoryController(
-      this.contentService, 
-      this.simulationService,
-      this.storyEngineService,
-      this.storyUI,
-      this.eventBus
-    );
+    // Create but don't initialize StoryController
+    this.storyController = new Proxy({}, {
+      get: (target, prop) => {
+        if (prop === 'isInStoryMode') return () => false;
+        if (prop === 'toggleStoryMode') return () => console.warn('Story Mode is currently disabled');
+        return () => console.warn(`Story Mode is currently disabled (attempted to call ${prop})`);
+      }
+    });
+    
+    // Prevent Story Mode from being activated
+    this.eventBus.on('mode:switch-to-story', () => {
+      console.warn('Story Mode is currently disabled');
+      this.eventBus.emit('mode:switch-to-scenario');
+    });
     
     this.scenarioController = new ScenarioController(
       this.contentService, 
