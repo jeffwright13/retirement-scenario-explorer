@@ -157,7 +157,7 @@ export class MonteCarloUI {
     
     // Get iterations
     if (this.iterationsInput && this.iterationsInput.value) {
-      config.iterations = parseInt(this.iterationsInput.value) || 1000;
+      config.iterations = parseInt(this.iterationsInput.value) || 100;
     }
     
     // Get random seed
