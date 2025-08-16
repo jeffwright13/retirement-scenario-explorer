@@ -627,7 +627,7 @@ export class UIController {
       
       const value = document.createElement('span');
       value.className = 'breakdown-value';
-      const monthlyAmount = income.monthly_amount || 0;
+      const monthlyAmount = income.amount || 0;
       const startMonth = income.start_month || 1;
       value.textContent = `${this.formatCurrency(monthlyAmount)}/mo (starts month ${startMonth})`;
       
@@ -738,7 +738,7 @@ export class UIController {
     if (scenario.income && scenario.income.length > 0) {
       scenario.income.forEach(income => {
         const details = [];
-        details.push(`$${(income.monthly_amount || 0).toLocaleString()}/month`);
+        details.push(`$${(income.amount || 0).toLocaleString()}/month`);
         if (income.start_month) details.push(`starts month ${income.start_month}`);
         if (income.end_month) details.push(`ends month ${income.end_month}`);
         if (income.inflation_schedule) details.push(`${income.inflation_schedule} inflation`);

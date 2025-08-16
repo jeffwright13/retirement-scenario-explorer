@@ -377,7 +377,7 @@ export class SimulationService {
     
     const monthlyExpenses = scenarioData.plan?.monthly_expenses || 0;
     const totalMonthlyIncome = scenarioData.income.reduce((sum, income) => {
-      return sum + (income.monthly_amount || 0);
+      return sum + (income.amount || 0);
     }, 0);
     
     const incomeRatio = totalMonthlyIncome / monthlyExpenses;
