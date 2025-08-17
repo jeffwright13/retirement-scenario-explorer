@@ -21,6 +21,7 @@ export class UIController {
     this.initializeUIElements();
     this.setupEventListeners();
     this.setupCustomScenarioManagement();
+    this.setupInfoModal();
     
     console.log('✅ UI Controller initialized');
   }
@@ -1919,6 +1920,48 @@ export class UIController {
       this.populateCustomScenarioModal(); // Refresh the modal
       
       console.log('🗑️ All custom scenarios cleared');
+    }
+  }
+
+  /**
+   * Set up info modal functionality
+   */
+  setupInfoModal() {
+    const infoIcon = document.getElementById('info-icon');
+    const infoModal = document.getElementById('info-modal');
+    const closeBtn = document.getElementById('info-modal-close');
+    const gotItBtn = document.getElementById('info-modal-got-it');
+
+    if (infoIcon && infoModal) {
+      // Open modal when info icon is clicked
+      infoIcon.addEventListener('click', () => {
+        infoModal.style.display = 'block';
+      });
+
+      // Close modal when X is clicked
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          infoModal.style.display = 'none';
+        });
+      }
+
+      // Close modal when "Got it" button is clicked
+      if (gotItBtn) {
+        gotItBtn.addEventListener('click', () => {
+          infoModal.style.display = 'none';
+        });
+      }
+
+      // Close modal when clicking outside of it
+      infoModal.addEventListener('click', (e) => {
+        if (e.target === infoModal) {
+          infoModal.style.display = 'none';
+        }
+      });
+
+      console.log('ℹ️ Info modal setup complete');
+    } else {
+      console.warn('⚠️ Info modal elements not found');
     }
   }
 }

@@ -447,24 +447,26 @@
   /* ===== TABBED LAYOUT ===== */
   .scenario-tabs {
     display: flex;
-    border-bottom: 2px solid var(--color-gray-200);
-    background: var(--color-gray-50);
+    border-bottom: 3px solid var(--color-gray-300);
+    background: var(--color-gray-100);
     border-radius: var(--radius-md) var(--radius-md) 0 0;
     overflow-x: auto;
+    border: 1px solid var(--color-gray-300);
+    border-bottom: 3px solid var(--color-gray-300);
   }
 
   .tab-button {
-    background: none;
-    border: none;
+    background: var(--color-gray-50);
+    border: 1px solid var(--color-gray-300);
+    border-bottom: none;
     padding: var(--space-4) var(--space-6);
     cursor: pointer;
     font-size: var(--font-size-base);
     font-weight: var(--font-weight-medium);
-    color: var(--color-gray-600);
-    border-bottom: 3px solid transparent;
+    color: var(--color-gray-700);
     transition: all var(--transition-base);
-    white-space: nowrap;
     min-width: 120px;
+    margin-right: 2px;
   }
 
   .tab-button:hover {
@@ -475,8 +477,11 @@
   .tab-button.active {
     background: var(--color-white);
     color: var(--theme-primary-600);
-    border-bottom-color: var(--theme-primary-500);
+    border: 1px solid var(--color-gray-400);
+    border-bottom: 3px solid var(--theme-primary-500);
     font-weight: var(--font-weight-semibold);
+    position: relative;
+    z-index: 1;
   }
 
   .tab-content {

@@ -18,13 +18,16 @@
   <link rel="stylesheet" href="styles/monte-carlo-charts.css">
   <link rel="stylesheet" href="styles/monte-carlo.css">
   <link rel="stylesheet" href="styles/custom-scenario-modal.css">
+  <link rel="stylesheet" href="styles/info-modal.css">
   <link rel="stylesheet" href="styles/utilities.css">
 </head>
 <body>
   <div class="app-container">
     <!-- Mode Selector Header -->
     <div class="mode-selector-header">
-      <h1>💰 Retirement Scenario Explorer</h1>
+      <h1>💰 Retirement Scenario Explorer 
+        <button id="info-icon" class="info-icon" title="About this tool">ℹ️</button>
+      </h1>
       <p>Will your assets and strategy stand the test of time?</p>
       
       <!-- Mode toggle removed - Story Mode is disabled -->
@@ -517,6 +520,62 @@
         <!-- Monte Carlo Error Display -->
         <div id="monte-carlo-error" class="error-display" style="display: none;"></div>
       </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Modal -->
+  <div id="info-modal" class="modal" style="display: none;">
+    <div class="modal-content info-modal-content">
+      <div class="modal-header">
+        <h2>🎯 Welcome to the Retirement Scenario Explorer</h2>
+        <span class="modal-close" id="info-modal-close">&times;</span>
+      </div>
+      
+      <div class="modal-body">
+        <div class="info-section">
+          <h3>💡 What is this tool?</h3>
+          <p>The Retirement Scenario Explorer is a financial planning tool that helps you test whether your retirement strategy can withstand various market conditions and life circumstances, giving you the data you need to asure yourself that your money won't run out before you expect it to.</p>
+        </div>
+
+        <div class="info-section">
+          <h3>🎯 Why was it created?</h3>
+          <p>When I wanted to see if my assets were going to last me as long as I needed them to, I did what I bet most of you have done, too: I went looking online for a tool that would tell me if my money would last. I found a lot of tools, but none of them really suited my need for customization and modeling all the various 'what-ifs' that could affect my retirement. This tool lets you:</p>
+          <ul>
+            <li><strong>Test realistic scenarios</strong> - Market crashes, inflation spikes, unexpected expenses, inheritances, Social Security income (including SSDI), Medicare premiums, home maintenance costs, etc. Pretty much anything you can think of!</li>
+            <li><strong>See the full picture</strong> - How your assets, income, and expenses interact over time</li>
+            <li><strong>Understand risk</strong> - What could go wrong and how likely it is</li>
+            <li><strong>Make informed decisions</strong> - Adjust your strategy based on data, not guesswork</li>
+          </ul>
+        </div>
+
+        <div class="info-section">
+          <h3>🚀 Quick 2-Minute Walkthrough</h3>
+          
+          <div class="walkthrough-step">
+            <h4>Step 1: Choose a Scenario (Upper-Left)</h4>
+            <p>Select from pre-built scenarios like "Conservative Retirement" or "Market Crash Test" - or create your own custom scenario with your specific numbers. You can save your custom scenarios for later use.</p>
+          </div>
+
+          <div class="walkthrough-step">
+            <h4>Step 2: Run Single Analysis (Upper-Middle)</h4>
+            <p>Click "Run Analysis" to see exactly how your money flows month by month. You'll see when assets run out, how income covers expenses, and get a detailed breakdown.</p>
+          </div>
+
+          <div class="walkthrough-step">
+            <h4>Step 3: Run Monte Carlo Analysis (Upper-Right)</h4>
+            <p>Click "Monte Carlo Analysis" to test your scenario against thousands of possible market conditions. See your probability of success and identify potential risks.</p>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <h3>💪 Ready to get started?</h3>
+          <p>Pick a scenario from the dropdown above and click "Run Analysis" to see your first retirement projection!</p>
+        </div>
+      </div>
+      
+      <div class="modal-footer">
+        <button id="info-modal-got-it" class="btn btn--primary">Got it, let's explore! 🚀</button>
       </div>
     </div>
   </div>
