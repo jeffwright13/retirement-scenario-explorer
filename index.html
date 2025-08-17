@@ -16,7 +16,8 @@
   <link rel="stylesheet" href="styles/components.css">
   <link rel="stylesheet" href="styles/monte-carlo.css">
   <link rel="stylesheet" href="styles/monte-carlo-charts.css">
-  <link rel="stylesheet" href="styles/themes.css">
+  <link rel="stylesheet" href="styles/monte-carlo.css">
+  <link rel="stylesheet" href="styles/custom-scenario-modal.css">
   <link rel="stylesheet" href="styles/utilities.css">
 </head>
 <body>
@@ -157,9 +158,33 @@
             <button id="export-monte-carlo-results" class="btn btn--export btn--small" style="display: none;" title="Export Monte Carlo analysis">
               🎲 MC Analysis
             </button>
-            <button id="export-monte-carlo-returns" class="btn btn--export btn--small" style="display: none;" title="Export Monte Carlo returns">
+            <button id="export-monte-carlo-returns" class="btn btn--export btn--small" style="display: none;" title="Export Monte Carlo return sequences">
               📈 MC Returns
             </button>
+            <button id="manage-custom-scenarios" class="btn btn--export btn--small" title="Manage custom scenarios">
+              🗂️ Manage Custom
+            </button>
+          </div>
+        </div>
+
+      <!-- Custom Scenario Management Modal -->
+      <div id="custom-scenario-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>🗂️ Manage Custom Scenarios</h3>
+            <button class="modal-close" id="close-custom-modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <div class="storage-info" id="storage-info">
+              <p>Loading storage information...</p>
+            </div>
+            <div class="scenario-list" id="custom-scenario-list">
+              <p>Loading custom scenarios...</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button id="clear-all-custom" class="btn btn--danger">🗑️ Clear All Custom Scenarios</button>
+            <button id="close-modal-btn" class="btn btn--secondary">Close</button>
           </div>
         </div>
       </div>

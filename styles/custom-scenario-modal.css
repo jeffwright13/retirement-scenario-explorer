@@ -1,0 +1,236 @@
+/* Custom Scenario Management Modal Styles */
+
+.modal {
+  position: fixed;
+  z-index: 2000;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(3px);
+}
+
+.modal-content {
+  background-color: #ffffff !important;
+  margin: 5% auto;
+  padding: 0;
+  border: 2px solid #cbd5e0 !important;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: modalSlideIn 0.3s ease-out;
+  color: #1a202c !important;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-bottom: 2px solid #cbd5e0 !important;
+  background-color: #edf2f7 !important;
+  border-radius: 12px 12px 0 0;
+  color: #1a202c !important;
+}
+
+.modal-header h3 {
+  margin: 0;
+  color: #1a202c !important;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #718096;
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background-color: #e2e8f0;
+  color: #2d3748;
+}
+
+.modal-body {
+  padding: 24px;
+  max-height: 400px;
+  overflow-y: auto;
+  background-color: #ffffff !important;
+  color: #1a202c !important;
+}
+
+.storage-summary {
+  background-color: #e6fffa !important;
+  border: 2px solid #81e6d9 !important;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.storage-summary p {
+  margin: 0;
+  color: #1a202c !important;
+  font-size: 1em;
+  font-weight: 600;
+}
+
+.scenario-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.scenario-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  border: 2px solid #cbd5e0 !important;
+  border-radius: 8px;
+  background-color: #f7fafc !important;
+  transition: all 0.2s ease;
+  color: #1a202c !important;
+}
+
+.scenario-item:hover {
+  border-color: #3182ce !important;
+  background-color: #edf2f7 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.scenario-info {
+  flex: 1;
+}
+
+.scenario-info strong {
+  display: block;
+  color: #1a202c !important;
+  margin-bottom: 6px;
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.scenario-info small {
+  color: #4a5568 !important;
+  font-size: 0.9em;
+  font-weight: 500;
+}
+
+.scenario-actions {
+  margin-left: 12px;
+}
+
+.no-scenarios {
+  text-align: center;
+  color: #4a5568 !important;
+  font-style: italic;
+  padding: 48px 24px;
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px;
+  border-top: 2px solid #cbd5e0 !important;
+  background-color: #edf2f7 !important;
+  border-radius: 0 0 12px 12px;
+}
+
+.btn--danger {
+  background-color: #dc3545;
+  color: white;
+  border: 1px solid #dc3545;
+}
+
+.btn--danger:hover {
+  background-color: #c82333;
+  border-color: #bd2130;
+}
+
+.btn--small {
+  padding: 6px 12px;
+  font-size: 0.85em;
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .modal-content {
+    background-color: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .modal-header {
+    background-color: #1a202c;
+    border-bottom-color: #4a5568;
+  }
+  
+  .storage-summary {
+    background-color: #2d3748;
+    border-color: #4a5568;
+  }
+  
+  .scenario-item {
+    background-color: #1a202c;
+    border-color: #4a5568;
+  }
+  
+  .scenario-item:hover {
+    background-color: #2d3748;
+    border-color: #63b3ed;
+  }
+  
+  .modal-footer {
+    background-color: #1a202c;
+    border-top-color: #4a5568;
+  }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .modal-content {
+    width: 95%;
+    margin: 2% auto;
+  }
+  
+  .scenario-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .scenario-actions {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+  
+  .modal-footer {
+    flex-direction: column;
+    gap: 10px;
+  }
+}

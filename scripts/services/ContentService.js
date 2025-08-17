@@ -299,6 +299,14 @@ export class ContentService {
         flattened.tags = scenario.metadata.tags || flattened.tags;
       }
       
+      // Preserve registry metadata (isBuiltIn, isUserScenario)
+      const registryInfo = this.registry.scenarios[key];
+      if (registryInfo) {
+        flattened.isBuiltIn = registryInfo.isBuiltIn;
+        flattened.isUserScenario = registryInfo.isUserScenario;
+        flattened.source = registryInfo.source;
+      }
+      
       return flattened;
     });
   }

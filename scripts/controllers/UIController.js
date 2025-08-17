@@ -20,6 +20,7 @@ export class UIController {
     // Initialize UI elements and event listeners
     this.initializeUIElements();
     this.setupEventListeners();
+    this.setupCustomScenarioManagement();
     
     console.log('✅ UI Controller initialized');
   }
@@ -154,6 +155,14 @@ export class UIController {
       });
     }
 
+    // Manage Custom Scenarios button
+    const manageCustomBtn = document.getElementById('manage-custom-scenarios');
+    if (manageCustomBtn) {
+      manageCustomBtn.addEventListener('click', () => {
+        this.openCustomScenarioModal();
+      });
+    }
+
     // Advanced Run Button removed - was causing duplicate simulation runs
     // All advanced functionality has been moved elsewhere in the UX
 
@@ -166,8 +175,9 @@ export class UIController {
   setupContentEventListeners() {
     this.eventBus.on('scenarios:loaded', (scenarios) => this.handleScenariosLoaded(scenarios));
     this.eventBus.on('stories:loaded', (stories) => this.handleStoriesLoaded(stories));
+    this.eventBus.on('content:scenario-data', (data) => this.handleScenarioSelectedData(data));
     this.eventBus.on('scenario:selected', (data) => this.handleScenarioSelectedData(data));
-    this.eventBus.on('scenario:data-changed', (data) => this.handleScenarioDataChanged(data));
+    this.eventBus.on('content:scenario-error', (data) => this.handleScenarioError(data));
     this.eventBus.on('content:errors', (errors) => this.handleContentErrors(errors));
     this.eventBus.on('simulation:regular-completed', () => {
       this.showExportCsvButton();
@@ -261,18 +271,36 @@ export class UIController {
    */
   handleScenarioSelectedData(data) {
     try {
+      console.log('🎯 UIController: handleScenarioSelectedData called with:', data);
       this.currentScenario = data.scenario;
       this.updateJsonPreview(data.scenario);
       this.showSuccess(`Scenario loaded: ${data.scenario.metadata?.title || data.key}`);
       
+      // Show the scenario preview section
+      const scenarioPreview = document.getElementById('scenario-preview');
+      console.log('🔍 Scenario preview element:', scenarioPreview);
+      if (scenarioPreview) {
+        console.log('📋 Removing hidden class and adding block class');
+        scenarioPreview.classList.remove('hidden');
+        scenarioPreview.classList.add('block');
+        console.log('✅ Scenario preview classes updated:', scenarioPreview.className);
+      } else {
+        console.error('❌ Could not find scenario-preview element');
+      }
+      
+      // Immediately update scenario details with basic info
+      this.updateScenarioDetails(data.scenario);
+      
       // Listen for scenario synopsis from ScenarioController (proper event bus flow)
       this.eventBus.once('scenario:loaded', (synopsisData) => {
+        console.log('📊 Received scenario:loaded event:', synopsisData);
         if (synopsisData.scenarioSynopsis) {
           this.updateScenarioDetails(synopsisData.scenario, synopsisData.scenarioSynopsis);
         }
       });
       
     } catch (error) {
+      console.error('❌ Error in handleScenarioSelectedData:', error);
       this.showError(`Failed to handle scenario data: ${error.message}`);
     }
   }
@@ -286,6 +314,14 @@ export class UIController {
     
     if (data.scenarioData) {
       this.currentScenario = data.scenarioData;
+      
+      // Show the scenario preview section
+      const scenarioPreview = document.getElementById('scenario-preview');
+      if (scenarioPreview) {
+        console.log('📋 Making scenario preview visible from data-changed event');
+        scenarioPreview.classList.remove('hidden');
+        scenarioPreview.classList.add('block');
+      }
       
       // UIController responsibility: Update Key Assumptions section only
       const synopsis = this.extractKeyAssumptions(data.scenarioData);
@@ -1697,5 +1733,192 @@ export class UIController {
     // Request export from the system via event bus
     this.eventBus.emit('ui:single-scenario-export-requested', { format: 'csv' });
     console.log('📊 Single scenario export requested');
+  }
+
+  /**
+   * Open custom scenario management modal
+   */
+  openCustomScenarioModal() {
+    const modal = document.getElementById('custom-scenario-modal');
+    if (modal) {
+      modal.style.display = 'block';
+      this.populateCustomScenarioModal();
+    }
+  }
+
+  /**
+   * Close custom scenario management modal
+   */
+  closeCustomScenarioModal() {
+    const modal = document.getElementById('custom-scenario-modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  /**
+   * Setup custom scenario management modal
+   */
+  setupCustomScenarioManagement() {
+    const modal = document.getElementById('custom-scenario-modal');
+    const closeBtn = modal?.querySelector('.modal-close');
+    const clearAllBtn = document.getElementById('clear-all-custom');
+    const closeModalBtn = document.getElementById('close-modal-btn');
+    const modalHeader = modal?.querySelector('.modal-header');
+
+    // Close modal handlers
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    if (closeModalBtn) {
+      closeModalBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    // Click outside to close
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+          modal.style.display = 'none';
+        }
+      });
+    }
+
+    // Clear all scenarios handler
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', () => {
+        this.clearAllCustomScenarios();
+      });
+    }
+
+    // Handle individual delete scenario events
+    if (modalHeader) {
+      modalHeader.addEventListener('delete-scenario', (e) => {
+        const scenarioKey = e.detail.key;
+        this.deleteCustomScenario(scenarioKey);
+      });
+    }
+  }
+
+  /**
+   * Populate the custom scenario management modal
+   */
+  populateCustomScenarioModal() {
+    // Get storage info via ContentService
+    const storageInfo = this.getStorageInfo();
+    const userScenarios = this.getUserScenarios();
+
+    // Update storage info display
+    const storageInfoDiv = document.getElementById('storage-info');
+    if (storageInfoDiv) {
+      storageInfoDiv.innerHTML = `
+        <div class="storage-summary">
+          <p><strong>Storage Usage:</strong> ${storageInfo.userScenarioCount} scenarios, ${storageInfo.dataSizeKB} KB used</p>
+        </div>
+      `;
+    }
+
+    // Update scenario list
+    const scenarioListDiv = document.getElementById('custom-scenario-list');
+    if (scenarioListDiv) {
+      if (userScenarios.length === 0) {
+        scenarioListDiv.innerHTML = '<p class="no-scenarios">No custom scenarios found.</p>';
+      } else {
+        const scenarioItems = userScenarios.map(scenario => `
+          <div class="scenario-item">
+            <div class="scenario-info">
+              <strong>${scenario.title || scenario.key}</strong>
+              <small>Created: ${new Date(scenario.timestamp || Date.now()).toLocaleDateString()}</small>
+            </div>
+            <div class="scenario-actions">
+              <button class="btn btn--small btn--danger" data-scenario-key="${scenario.key}" onclick="this.closest('.modal-content').querySelector('.modal-header').dispatchEvent(new CustomEvent('delete-scenario', {detail: {key: '${scenario.key}'}}))">
+                🗑️ Delete
+              </button>
+            </div>
+          </div>
+        `).join('');
+        
+        scenarioListDiv.innerHTML = `<div class="scenario-items">${scenarioItems}</div>`;
+      }
+    }
+  }
+
+  /**
+   * Get storage info from ContentService
+   */
+  getStorageInfo() {
+    try {
+      const stored = localStorage.getItem('retirement-explorer-user-scenarios');
+      const userScenarios = stored ? JSON.parse(stored) : {};
+      const dataSize = JSON.stringify(userScenarios).length;
+      
+      return {
+        userScenarioCount: Object.keys(userScenarios).length,
+        dataSizeKB: Math.round(dataSize / 1024 * 100) / 100
+      };
+    } catch (error) {
+      return {
+        userScenarioCount: 0,
+        dataSizeKB: 0
+      };
+    }
+  }
+
+  /**
+   * Get user scenarios for management
+   */
+  getUserScenarios() {
+    try {
+      const stored = localStorage.getItem('retirement-explorer-user-scenarios');
+      const userScenarios = stored ? JSON.parse(stored) : {};
+      
+      return Object.entries(userScenarios).map(([key, scenario]) => ({
+        key,
+        ...scenario,
+        timestamp: scenario.metadata?.timestamp || Date.now()
+      }));
+    } catch (error) {
+      console.error('Error loading user scenarios for management:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Delete a specific custom scenario
+   */
+  deleteCustomScenario(scenarioKey) {
+    if (confirm(`Delete custom scenario "${scenarioKey}"?`)) {
+      this.eventBus.emit('content:delete-user-scenario', scenarioKey);
+      this.populateCustomScenarioModal(); // Refresh the modal
+    }
+  }
+
+  /**
+   * Clear all custom scenarios
+   */
+  clearAllCustomScenarios() {
+    const userScenarios = this.getUserScenarios();
+    if (userScenarios.length === 0) {
+      alert('No custom scenarios to clear.');
+      return;
+    }
+
+    if (confirm(`Delete all ${userScenarios.length} custom scenarios? This cannot be undone.`)) {
+      localStorage.removeItem('retirement-explorer-user-scenarios');
+      
+      // Refresh scenarios list via ContentService
+      if (this.eventBus) {
+        // Trigger a content refresh
+        this.eventBus.emit('content:refresh-scenarios');
+      }
+      
+      this.populateCustomScenarioModal(); // Refresh the modal
+      
+      console.log('🗑️ All custom scenarios cleared');
+    }
   }
 }
