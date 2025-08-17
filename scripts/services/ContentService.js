@@ -42,6 +42,29 @@ export class ContentService {
         this.eventBus.emit('content:story-error', { storyKey, error: error.message });
       }
     });
+
+    // Handle user scenario management
+    this.eventBus.on('content:save-user-scenario', (data) => {
+      try {
+        this.saveUserScenario(data.key, data.scenario);
+        this.eventBus.emit('content:user-scenario-saved', { key: data.key });
+        // Refresh scenarios list
+        this.eventBus.emit('scenarios:loaded', this.getAllScenarios());
+      } catch (error) {
+        this.eventBus.emit('content:user-scenario-error', { key: data.key, error: error.message });
+      }
+    });
+
+    this.eventBus.on('content:delete-user-scenario', (scenarioKey) => {
+      try {
+        this.deleteUserScenario(scenarioKey);
+        this.eventBus.emit('content:user-scenario-deleted', { key: scenarioKey });
+        // Refresh scenarios list
+        this.eventBus.emit('scenarios:loaded', this.getAllScenarios());
+      } catch (error) {
+        this.eventBus.emit('content:user-scenario-error', { key: scenarioKey, error: error.message });
+      }
+    });
   }
 
   /**
@@ -80,16 +103,27 @@ export class ContentService {
   }
 
   /**
-   * Load scenario files
+   * Load scenario files and user scenarios
    */
   async loadScenarios() {
+    // Load built-in scenarios from files
+    await this.loadBuiltInScenarios();
+    
+    // Load user scenarios from localStorage
+    this.loadUserScenarios();
+  }
+
+  /**
+   * Load built-in scenario files
+   */
+  async loadBuiltInScenarios() {
     const scenarioFiles = [
       'data/scenarios/jeffs-learning-journey-scenarios.json'
     ];
 
     for (const filePath of scenarioFiles) {
       try {
-        console.log(`🔍 Loading scenarios from: ${filePath}`);
+        console.log(`🔍 Loading built-in scenarios from: ${filePath}`);
         const response = await fetch(filePath);
         if (!response.ok) {
           throw new Error(`Failed to load ${filePath}: ${response.status}`);
@@ -107,11 +141,12 @@ export class ContentService {
               title: scenario.metadata?.title || key,
               description: scenario.metadata?.description || '',
               tags: scenario.metadata?.tags || [],
-              source: filePath
+              source: filePath,
+              isBuiltIn: true
             };
-            console.log(`✅ Loaded scenario: ${key}`);
+            console.log(`✅ Loaded built-in scenario: ${key}`);
           } else {
-            console.warn(`❌ Invalid scenario: ${key}`);
+            console.warn(`❌ Invalid built-in scenario: ${key}`);
           }
         }
       } catch (error) {
@@ -429,5 +464,167 @@ export class ContentService {
       .slice(0, 3); // Top 3 recommendations
 
     return recommendations;
+  }
+
+  // ===== USER SCENARIO MANAGEMENT (localStorage) =====
+
+  /**
+   * Save a user scenario to localStorage
+   * @param {string} key - Scenario key
+   * @param {Object} scenario - Scenario data
+   */
+  saveUserScenario(key, scenario) {
+    try {
+      // Validate scenario before saving
+      if (!this.validateScenario(scenario)) {
+        throw new Error('Invalid scenario data');
+      }
+
+      // Get existing user scenarios
+      const userScenarios = this.getUserScenariosFromStorage();
+      
+      // Add/update scenario
+      userScenarios[key] = scenario;
+      
+      // Save back to localStorage
+      localStorage.setItem('retirement-explorer-user-scenarios', JSON.stringify(userScenarios));
+      
+      // Update in-memory scenarios
+      this.scenarios.set(key, scenario);
+      this.registry.scenarios[key] = {
+        title: scenario.metadata?.title || key,
+        description: scenario.metadata?.description || '',
+        tags: scenario.metadata?.tags || [],
+        source: 'localStorage',
+        isBuiltIn: false,
+        isUserScenario: true
+      };
+      
+      console.log(`💾 Saved user scenario: ${key}`);
+    } catch (error) {
+      console.error(`❌ Failed to save user scenario ${key}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Load user scenarios from localStorage
+   */
+  loadUserScenarios() {
+    try {
+      const userScenarios = this.getUserScenariosFromStorage();
+      let loadedCount = 0;
+      
+      for (const [key, scenario] of Object.entries(userScenarios)) {
+        if (this.validateScenario(scenario)) {
+          this.scenarios.set(key, scenario);
+          this.registry.scenarios[key] = {
+            title: scenario.metadata?.title || key,
+            description: scenario.metadata?.description || '',
+            tags: scenario.metadata?.tags || [],
+            source: 'localStorage',
+            isBuiltIn: false,
+            isUserScenario: true
+          };
+          loadedCount++;
+        } else {
+          console.warn(`❌ Invalid user scenario: ${key}`);
+        }
+      }
+      
+      if (loadedCount > 0) {
+        console.log(`💾 Loaded ${loadedCount} user scenarios from localStorage`);
+      }
+    } catch (error) {
+      console.error('❌ Failed to load user scenarios from localStorage:', error);
+      // Don't throw - continue without user scenarios
+    }
+  }
+
+  /**
+   * Delete a user scenario from localStorage
+   * @param {string} key - Scenario key
+   */
+  deleteUserScenario(key) {
+    try {
+      // Get existing user scenarios
+      const userScenarios = this.getUserScenariosFromStorage();
+      
+      // Check if scenario exists and is user-created
+      if (!userScenarios[key]) {
+        throw new Error(`User scenario "${key}" not found`);
+      }
+      
+      // Remove from storage
+      delete userScenarios[key];
+      localStorage.setItem('retirement-explorer-user-scenarios', JSON.stringify(userScenarios));
+      
+      // Remove from in-memory scenarios
+      this.scenarios.delete(key);
+      delete this.registry.scenarios[key];
+      
+      console.log(`🗑️ Deleted user scenario: ${key}`);
+    } catch (error) {
+      console.error(`❌ Failed to delete user scenario ${key}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get user scenarios from localStorage
+   * @returns {Object} User scenarios object
+   */
+  getUserScenariosFromStorage() {
+    try {
+      const stored = localStorage.getItem('retirement-explorer-user-scenarios');
+      return stored ? JSON.parse(stored) : {};
+    } catch (error) {
+      console.error('❌ Failed to parse user scenarios from localStorage:', error);
+      return {};
+    }
+  }
+
+  /**
+   * Get all user scenario keys
+   * @returns {Array} Array of user scenario keys
+   */
+  getUserScenarioKeys() {
+    const userScenarios = this.getUserScenariosFromStorage();
+    return Object.keys(userScenarios);
+  }
+
+  /**
+   * Check if a scenario is user-created
+   * @param {string} key - Scenario key
+   * @returns {boolean} True if user-created
+   */
+  isUserScenario(key) {
+    return this.registry.scenarios[key]?.isUserScenario === true;
+  }
+
+  /**
+   * Get storage usage info
+   * @returns {Object} Storage usage information
+   */
+  getStorageInfo() {
+    try {
+      const userScenarios = this.getUserScenariosFromStorage();
+      const dataSize = JSON.stringify(userScenarios).length;
+      
+      return {
+        userScenarioCount: Object.keys(userScenarios).length,
+        dataSizeBytes: dataSize,
+        dataSizeKB: Math.round(dataSize / 1024 * 100) / 100,
+        isStorageAvailable: typeof(Storage) !== "undefined"
+      };
+    } catch (error) {
+      return {
+        userScenarioCount: 0,
+        dataSizeBytes: 0,
+        dataSizeKB: 0,
+        isStorageAvailable: false,
+        error: error.message
+      };
+    }
   }
 }

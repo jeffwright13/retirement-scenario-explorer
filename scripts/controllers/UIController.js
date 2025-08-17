@@ -387,14 +387,42 @@ export class UIController {
 
     this.scenarioDropdown.innerHTML = '<option value="">Select a scenario...</option>';
     
-    scenarios.forEach(scenario => {
-      const option = document.createElement('option');
-      option.value = scenario.key;
-      option.textContent = scenario.title || scenario.key;
-      this.scenarioDropdown.appendChild(option);
-    });
+    // Group scenarios by type
+    const builtInScenarios = scenarios.filter(s => s.isBuiltIn !== false);
+    const userScenarios = scenarios.filter(s => s.isUserScenario === true);
+    
+    // Add built-in scenarios
+    if (builtInScenarios.length > 0) {
+      const builtInGroup = document.createElement('optgroup');
+      builtInGroup.label = '📚 Built-in Scenarios';
+      
+      builtInScenarios.forEach(scenario => {
+        const option = document.createElement('option');
+        option.value = scenario.key;
+        option.textContent = scenario.title || scenario.key;
+        builtInGroup.appendChild(option);
+      });
+      
+      this.scenarioDropdown.appendChild(builtInGroup);
+    }
+    
+    // Add user scenarios
+    if (userScenarios.length > 0) {
+      const userGroup = document.createElement('optgroup');
+      userGroup.label = '💾 Custom Scenarios';
+      
+      userScenarios.forEach(scenario => {
+        const option = document.createElement('option');
+        option.value = scenario.key;
+        option.textContent = `${scenario.title || scenario.key}`;
+        option.style.fontStyle = 'italic';
+        userGroup.appendChild(option);
+      });
+      
+      this.scenarioDropdown.appendChild(userGroup);
+    }
 
-    console.log(`🎨 UI: Populated ${scenarios.length} scenarios`);
+    console.log(`🎨 UI: Populated ${builtInScenarios.length} built-in + ${userScenarios.length} custom scenarios`);
   }
 
   /**
@@ -787,17 +815,31 @@ export class UIController {
         throw new Error('Invalid scenario structure: missing metadata or plan');
       }
       
-      // Update current scenario
+      // Generate a unique key for the custom scenario
+      const timestamp = Date.now();
+      const scenarioTitle = parsedScenario.metadata?.title || 'Custom Scenario';
+      const customKey = `custom_${scenarioTitle.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${timestamp}`;
+      
+      // Save as user scenario via event bus
+      this.eventBus.emit('content:save-user-scenario', {
+        key: customKey,
+        scenario: parsedScenario
+      });
+      
+      // Update current scenario reference
       this.currentScenario = parsedScenario;
+      this.currentScenarioKey = customKey;
       
       // CLEAN ARCHITECTURE: Emit single, clear event for scenario data changes
       const eventData = {
         scenarioData: parsedScenario,
-        trigger: 'json-edit',
+        scenarioKey: customKey,
+        trigger: 'json-edit-save',
         timestamp: Date.now()
       };
       
       console.log('🔥 UIController: About to emit scenario:data-changed event!', {
+        scenarioKey: customKey,
         monthlyExpenses: parsedScenario?.plan?.monthly_expenses,
         annualExpenses: (parsedScenario?.plan?.monthly_expenses || 0) * 12,
         trigger: eventData.trigger
@@ -809,7 +851,7 @@ export class UIController {
       
       // Show success feedback
       feedback.className = 'validation-feedback success';
-      feedback.textContent = '✅ Scenario updated successfully!';
+      feedback.textContent = `✅ Scenario saved as "${scenarioTitle}" and updated!`;
       
       // Hide JSON editor after successful save
       setTimeout(() => {
@@ -817,7 +859,7 @@ export class UIController {
         feedback.style.display = 'none';
       }, 2000);
       
-      console.log('💾 JSON changes saved successfully - all UI elements updated');
+      console.log('💾 JSON changes saved to localStorage and UI updated');
       
     } catch (error) {
       // Show error feedback
