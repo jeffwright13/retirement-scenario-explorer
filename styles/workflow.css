@@ -1,0 +1,347 @@
+/* Guided Workflow Styles */
+
+.workflow-progress {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.workflow-steps {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.workflow-steps::before {
+  content: '';
+  position: absolute;
+  top: 2rem;
+  left: 4rem;
+  right: 4rem;
+  height: 2px;
+  background: var(--border-color);
+  z-index: 1;
+}
+
+.workflow-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.workflow-step:hover:not(.locked) {
+  background: var(--hover-color);
+}
+
+.workflow-step.active {
+  background: var(--primary-color-light);
+  border: 2px solid var(--primary-color);
+}
+
+.workflow-step.completed {
+  background: var(--success-color-light);
+  border: 2px solid var(--success-color);
+}
+
+.workflow-step.locked {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+
+.workflow-step.completed .step-number {
+  background: var(--success-color);
+}
+
+.workflow-step.locked .step-number {
+  background: var(--muted-color);
+}
+
+.step-icon {
+  font-size: 1.5rem;
+}
+
+.step-content {
+  min-height: 4rem;
+}
+
+.step-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  color: var(--text-color);
+}
+
+.step-description {
+  font-size: 0.85rem;
+  color: var(--muted-text-color);
+  margin: 0;
+  line-height: 1.3;
+}
+
+.step-status {
+  margin-top: 0.5rem;
+}
+
+.status-indicator {
+  font-size: 1.2rem;
+}
+
+.status-indicator.pending {
+  color: var(--warning-color);
+}
+
+.status-indicator.completed {
+  color: var(--success-color);
+}
+
+.status-indicator.locked {
+  color: var(--muted-color);
+}
+
+.status-indicator.in-progress {
+  color: var(--primary-color);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.workflow-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border-color);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), var(--success-color));
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+
+.workflow-guidance {
+  text-align: center;
+  padding: 0.75rem;
+  background: var(--info-color-light);
+  border: 1px solid var(--info-color);
+  border-radius: 6px;
+}
+
+.guidance-text {
+  margin: 0;
+  color: var(--text-color);
+  font-size: 0.95rem;
+}
+
+/* Workflow Content Panels */
+
+.workflow-content {
+  position: relative;
+}
+
+.workflow-panel {
+  display: none;
+  animation: fadeIn 0.3s ease;
+}
+
+.workflow-panel.active {
+  display: block;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.step-panel-header {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.step-panel-header h3 {
+  margin: 0 0 0.5rem 0;
+  color: var(--primary-color);
+  font-size: 1.4rem;
+}
+
+.step-panel-header > p {
+  margin: 0 0 1rem 0;
+  color: var(--muted-text-color);
+  font-size: 1rem;
+}
+
+.step-help {
+  margin-top: 1rem;
+}
+
+.step-help details {
+  background: var(--info-color-light);
+  border: 1px solid var(--info-color);
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.step-help summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--info-color-dark);
+  margin-bottom: 0.5rem;
+}
+
+.step-help summary:hover {
+  color: var(--primary-color);
+}
+
+.step-help p {
+  margin: 0.5rem 0 0 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: var(--text-color);
+}
+
+/* Step Navigation */
+
+.step-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+}
+
+.step-nav-button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.step-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.step-nav-button.btn--primary {
+  background: var(--primary-color);
+  color: white;
+}
+
+.step-nav-button.btn--primary:hover:not(:disabled) {
+  background: var(--primary-color-dark);
+}
+
+.step-nav-button.btn--secondary {
+  background: var(--surface-color);
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.step-nav-button.btn--secondary:hover:not(:disabled) {
+  background: var(--hover-color);
+}
+
+/* Responsive Design */
+
+@media (max-width: 768px) {
+  .workflow-steps {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .workflow-steps::before {
+    display: none;
+  }
+  
+  .workflow-step {
+    flex-direction: row;
+    text-align: left;
+    padding: 1rem;
+  }
+  
+  .step-indicator {
+    margin-right: 1rem;
+    margin-bottom: 0;
+  }
+  
+  .step-content {
+    min-height: auto;
+  }
+  
+  .step-status {
+    margin-top: 0;
+    margin-left: auto;
+  }
+}
+
+/* Integration with existing styles */
+
+.workflow-panel .scenario-selector,
+.workflow-panel .simulation-controls,
+.workflow-panel .results-section {
+  margin-top: 1.5rem;
+}
+
+.workflow-panel .analysis-status {
+  background: var(--warning-color-light);
+  border: 1px solid var(--warning-color);
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.workflow-panel .analysis-status p {
+  margin: 0;
+  color: var(--warning-color-dark);
+  font-weight: 500;
+}

@@ -119,6 +119,41 @@
     min-height: var(--btn-height-sm);
   }
 
+/* Consistent Step Element Styling */
+.scenario-dropdown.btn--success.btn--large,
+.simulation-controls .btn--success.btn--large {
+  width: 100%;
+  display: block;
+}
+
+/* Dropdown Styling to Match Button Style */
+.scenario-dropdown.btn--success.btn--large {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e"), linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  background-position: right 0.75rem center, 0 0 !important;
+  background-repeat: no-repeat, repeat !important;
+  background-size: 1.5em 1.5em, auto !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding-right: 2.5rem !important;
+  cursor: pointer;
+  text-align: left;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.scenario-dropdown.btn--success.btn--large option {
+  color: #000000 !important;
+  background: #ffffff !important;
+}
+
+.scenario-dropdown.btn--success.btn--large:focus {
+  outline: var(--focus-ring-width) solid var(--color-success-300);
+  outline-offset: var(--focus-ring-offset);
+}
+
 /* Export Toolbar Styles */
 .export-toolbar {
   background: var(--surface-color);

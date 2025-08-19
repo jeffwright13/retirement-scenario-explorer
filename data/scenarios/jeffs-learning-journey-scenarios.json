@@ -427,5 +427,419 @@
       "ira_growth": {"type": "fixed", "rate": 0.0625},
       "roth_growth": {"type": "fixed", "rate": 0.07}
     }
+  },
+  "jeffs-real-current-situation": {
+    "metadata": {
+      "title": "Jeff's Real Current Situation",
+      "description": "Jeff at 60 - laid off, applying for SSDI, nearly $1M in assets, needs tax strategy",
+      "tags": ["personal", "learning-journey", "current-reality", "tax-planning"]
+    },
+    "plan": {
+      "monthly_expenses": 6500,
+      "duration_months": 300,
+      "inflation_schedule": "realistic_inflation"
+    },
+    "income": [
+      {
+        "name": "SS",
+        "amount": 2442,
+        "start_month": 24
+      }
+    ],
+    "assets": [
+      {
+        "name": "High-Yield Savings",
+        "type": "taxable",
+        "balance": 129000,
+        "min_balance": 30000,
+        "return_schedule": "savings_growth"
+      },
+      {
+        "name": "Brokerage Investment",
+        "type": "taxable",
+        "balance": 518000,
+        "return_schedule": "investment_growth"
+      },
+      {
+        "name": "Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 320000,
+        "return_schedule": "ira_growth"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 12000,
+        "return_schedule": "roth_growth"
+      }
+    ],
+    "order": [
+      {"account": "High-Yield Savings", "order": 1},
+      {"account": "Brokerage Investment", "order": 2},
+      {"account": "Traditional IRA", "order": 3},
+      {"account": "Roth IRA", "order": 4}
+    ],
+    "rate_schedules": {
+      "realistic_inflation": {"type": "fixed", "rate": 0.035},
+      "savings_growth": {"type": "fixed", "rate": 0.037},
+      "investment_growth": {"type": "fixed", "rate": 0.065},
+      "ira_growth": {"type": "fixed", "rate": 0.0625},
+      "roth_growth": {"type": "fixed", "rate": 0.07}
+    }
+  },
+  "jeffs-status-quo-no-conversions": {
+    "metadata": {
+      "title": "Jeff's Status Quo - No Conversions",
+      "description": "Baseline: Sequential withdrawals, no tax optimization, higher lifetime taxes",
+      "tags": ["personal", "baseline", "no-optimization"]
+    },
+    "plan": {
+      "monthly_expenses": 7400,
+      "duration_months": 300,
+      "inflation_schedule": "realistic_inflation",
+      "stop_on_shortfall": true
+    },
+    "income": [
+      {
+        "name": "SSDI",
+        "amount": 2500,
+        "start_month": 8,
+        "notes": "Estimated SSDI approval timeline"
+      },
+      {
+        "name": "Full Social Security",
+        "amount": 3469,
+        "start_month": 84,
+        "notes": "Full retirement age at 67"
+      }
+    ],
+    "assets": [
+      {
+        "name": "High-Yield Savings",
+        "type": "taxable",
+        "balance": 129000,
+        "min_balance": 30000,
+        "return_schedule": "savings_rate"
+      },
+      {
+        "name": "Brokerage Investment",
+        "type": "taxable",
+        "balance": 518000,
+        "return_schedule": "market_growth"
+      },
+      {
+        "name": "Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 320000,
+        "return_schedule": "ira_growth",
+        "notes": "Subject to RMDs at 73, taxed at withdrawal"
+      },
+      {
+        "name": "Roth IRA",
+        "type": "tax_free",
+        "balance": 12000,
+        "return_schedule": "roth_growth"
+      }
+    ],
+    "order": [
+      {"account": "High-Yield Savings", "order": 1},
+      {"account": "Brokerage Investment", "order": 2},
+      {"account": "Traditional IRA", "order": 3},
+      {"account": "Roth IRA", "order": 4}
+    ],
+    "rate_schedules": {
+      "realistic_inflation": {"type": "fixed", "rate": 0.035},
+      "savings_rate": {"type": "fixed", "rate": 0.037},
+      "market_growth": {"type": "fixed", "rate": 0.065},
+      "ira_growth": {"type": "fixed", "rate": 0.062},
+      "roth_growth": {"type": "fixed", "rate": 0.07}
+    }
+  },
+
+  "jeffs-tax-smart-conversions": {
+    "metadata": {
+      "title": "Jeff's Tax-Smart Roth Conversion Strategy",
+      "description": "Optimized: Strategic conversions 2026-2032, tax payments, reduced RMDs",
+      "tags": ["personal", "tax-optimization", "roth-conversion"]
+    },
+    "plan": {
+      "monthly_expenses": 7400,
+      "duration_months": 300,
+      "inflation_schedule": "realistic_inflation",
+      "stop_on_shortfall": true
+    },
+    "income": [
+      {
+        "name": "SSDI",
+        "amount": 2500,
+        "start_month": 8
+      },
+      {
+        "name": "Full Social Security",
+        "amount": 3469,
+        "start_month": 84
+      },
+      {
+        "name": "Conversion Tax Payment 2026",
+        "amount": -358,
+        "start_month": 13,
+        "stop_month": 24,
+        "notes": "Tax cost of $35k conversion spread monthly"
+      },
+      {
+        "name": "Conversion Tax Payment 2027",
+        "amount": -538,
+        "start_month": 25,
+        "stop_month": 36,
+        "notes": "Tax cost of $40k conversion at higher rates"
+      },
+      {
+        "name": "Conversion Tax Payment 2028",
+        "amount": -538,
+        "start_month": 37,
+        "stop_month": 48,
+        "notes": "Tax cost of $40k conversion"
+      },
+      {
+        "name": "Conversion Tax Payment 2029",
+        "amount": -548,
+        "start_month": 49,
+        "stop_month": 60,
+        "notes": "Tax cost of $40k conversion with inflation"
+      },
+      {
+        "name": "Conversion Tax Payment 2030",
+        "amount": -478,
+        "start_month": 61,
+        "stop_month": 72,
+        "notes": "Tax cost of $35k conversion (Medicare year)"
+      },
+      {
+        "name": "Conversion Tax Payment 2031",
+        "amount": -584,
+        "start_month": 73,
+        "stop_month": 84,
+        "notes": "Tax cost of $40k conversion"
+      },
+      {
+        "name": "Conversion Tax Payment 2032",
+        "amount": -287,
+        "start_month": 85,
+        "stop_month": 96,
+        "notes": "Tax cost of final $20k conversion"
+      }
+    ],
+    "assets": [
+      {
+        "name": "High-Yield Savings",
+        "type": "taxable",
+        "balance": 129000,
+        "min_balance": 30000,
+        "return_schedule": "savings_rate"
+      },
+      {
+        "name": "Brokerage Investment",
+        "type": "taxable",
+        "balance": 518000,
+        "return_schedule": "market_growth"
+      },
+      {
+        "name": "Traditional IRA (Reduced)",
+        "type": "tax_deferred",
+        "balance": 320000,
+        "return_schedule": "ira_growth",
+        "notes": "Will be reduced to ~$70k through conversions"
+      },
+      {
+        "name": "Original Roth IRA",
+        "type": "tax_free",
+        "balance": 12000,
+        "return_schedule": "roth_growth"
+      },
+      {
+        "name": "Converted Roth Account",
+        "type": "tax_free",
+        "balance": 0,
+        "return_schedule": "roth_growth",
+        "notes": "Simulates converted Traditional IRA funds"
+      }
+    ],
+    "deposits": [
+      {
+        "name": "2026 Roth Conversion",
+        "target": "Converted Roth Account",
+        "amount": 2917,
+        "start_month": 13,
+        "stop_month": 24,
+        "notes": "Converting $35k Traditional to Roth over 12 months"
+      },
+      {
+        "name": "2027 Roth Conversion",
+        "target": "Converted Roth Account",
+        "amount": 3333,
+        "start_month": 25,
+        "stop_month": 36,
+        "notes": "Converting $40k Traditional to Roth"
+      },
+      {
+        "name": "2028 Roth Conversion",
+        "target": "Converted Roth Account",
+        "amount": 3333,
+        "start_month": 37,
+        "stop_month": 48,
+        "notes": "Converting $40k Traditional to Roth"
+      },
+      {
+        "name": "2029 Roth Conversion",
+        "target": "Converted Roth Account",
+        "amount": 3333,
+        "start_month": 49,
+        "stop_month": 60,
+        "notes": "Converting $40k Traditional to Roth"
+      },
+      {
+        "name": "2030 Roth Conversion",
+        "target": "Converted Roth Account",
+        "amount": 2917,
+        "start_month": 61,
+        "stop_month": 72,
+        "notes": "Converting $35k Traditional to Roth (Medicare year)"
+      },
+      {
+        "name": "2031 Roth Conversion",
+        "target": "Converted Roth Account",
+        "amount": 3333,
+        "start_month": 73,
+        "stop_month": 84,
+        "notes": "Converting $40k Traditional to Roth"
+      },
+      {
+        "name": "2032 Final Conversion",
+        "target": "Converted Roth Account",
+        "amount": 1667,
+        "start_month": 85,
+        "stop_month": 96,
+        "notes": "Final $20k conversion before full SS"
+      }
+    ],
+    "order": [
+      {
+        "account": "High-Yield Savings",
+        "order": 1,
+        "notes": "Emergency fund and immediate liquidity"
+      },
+      {
+        "account": "Brokerage Investment",
+        "order": 2,
+        "weight": 0.6,
+        "notes": "Primary funding source for conversions and expenses"
+      },
+      {
+        "account": "Traditional IRA (Reduced)",
+        "order": 2,
+        "weight": 0.4,
+        "notes": "Partial draws to simulate conversion impact"
+      },
+      {
+        "account": "Original Roth IRA",
+        "order": 3,
+        "notes": "Preserve original Roth for later"
+      },
+      {
+        "account": "Converted Roth Account",
+        "order": 4,
+        "notes": "Last resort - let converted funds grow tax-free"
+      }
+    ],
+    "rate_schedules": {
+      "realistic_inflation": {"type": "fixed", "rate": 0.035},
+      "savings_rate": {"type": "fixed", "rate": 0.037},
+      "market_growth": {"type": "fixed", "rate": 0.065},
+      "ira_growth": {"type": "fixed", "rate": 0.062},
+      "roth_growth": {"type": "fixed", "rate": 0.07}
+    }
+  },
+
+  "jeffs-post-conversion-years": {
+    "metadata": {
+      "title": "Jeff's Post-Conversion Years (2033+)",
+      "description": "Benefits phase: Mostly tax-free withdrawals, minimal RMDs, optimized for longevity",
+      "tags": ["personal", "post-optimization", "benefits-phase"]
+    },
+    "plan": {
+      "monthly_expenses": 7400,
+      "duration_months": 240,
+      "inflation_schedule": "realistic_inflation",
+      "stop_on_shortfall": true,
+      "start_date": "2033-01-01"
+    },
+    "income": [
+      {
+        "name": "Full Social Security",
+        "amount": 4200,
+        "start_month": 1,
+        "notes": "Inflated SS benefits after 8 years of COLA"
+      }
+    ],
+    "assets": [
+      {
+        "name": "High-Yield Savings",
+        "type": "taxable",
+        "balance": 100000,
+        "min_balance": 50000,
+        "return_schedule": "savings_rate",
+        "notes": "Reduced but adequate emergency fund"
+      },
+      {
+        "name": "Remaining Brokerage",
+        "type": "taxable",
+        "balance": 300000,
+        "return_schedule": "market_growth",
+        "notes": "After funding 7 years of conversions"
+      },
+      {
+        "name": "Small Traditional IRA",
+        "type": "tax_deferred",
+        "balance": 70000,
+        "return_schedule": "ira_growth",
+        "notes": "Minimal RMDs - most converted to Roth"
+      },
+      {
+        "name": "Large Roth Portfolio",
+        "type": "tax_free",
+        "balance": 350000,
+        "return_schedule": "roth_growth",
+        "notes": "Original $12k + $250k conversions + 7 years growth"
+      }
+    ],
+    "order": [
+      {
+        "account": "Remaining Brokerage",
+        "order": 1,
+        "notes": "Tax-efficient capital gains harvesting"
+      },
+      {
+        "account": "Large Roth Portfolio",
+        "order": 2,
+        "notes": "Tax-free withdrawals - the payoff!"
+      },
+      {
+        "account": "Small Traditional IRA",
+        "order": 3,
+        "notes": "Minimal RMDs only when required"
+      },
+      {
+        "account": "High-Yield Savings",
+        "order": 4,
+        "notes": "Emergency reserve"
+      }
+    ],
+    "rate_schedules": {
+      "realistic_inflation": {"type": "fixed", "rate": 0.035},
+      "savings_rate": {"type": "fixed", "rate": 0.037},
+      "market_growth": {"type": "fixed", "rate": 0.065},
+      "ira_growth": {"type": "fixed", "rate": 0.062},
+      "roth_growth": {"type": "fixed", "rate": 0.07}
+    }
   }
 }

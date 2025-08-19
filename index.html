@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="styles/custom-scenario-modal.css">
   <link rel="stylesheet" href="styles/info-modal.css">
   <link rel="stylesheet" href="styles/utilities.css">
+  <link rel="stylesheet" href="styles/workflow.css">
 </head>
 <body>
   <div class="app-container">
@@ -140,35 +141,58 @@
 
     <!-- Scenario Mode Container -->
     <div class="scenario-mode-container" id="scenario-mode-container">
-      <!-- Tab Navigation -->
-      <div class="scenario-tabs">
-        <button class="tab-button active" data-tab="configure">📝 Configure Scenario</button>
-        <button class="tab-button" data-tab="single-analysis">📊 Single Analysis</button>
-        <button class="tab-button" data-tab="monte-carlo">🎲 Monte Carlo</button>
-      </div>
-
-      <!-- Centralized Export Toolbar -->
-      <div class="export-toolbar" id="export-toolbar">
-        <div class="export-toolbar-content">
-          <span class="export-toolbar-label">📤 Export:</span>
-          <div class="export-buttons">
-            <button id="export-scenario-config" class="btn btn--export btn--small" title="Export current scenario configuration">
-              📄 Scenario Config
-            </button>
-            <button id="export-scenario-results" class="btn btn--export btn--small" style="display: none;" title="Single Scenario Results">
-              📊 Results
-            </button>
-            <button id="export-monte-carlo-results" class="btn btn--export btn--small" style="display: none;" title="Export Monte Carlo analysis">
-              🎲 MC Analysis
-            </button>
-            <button id="export-monte-carlo-returns" class="btn btn--export btn--small" style="display: none;" title="Export Monte Carlo return sequences">
-              📈 MC Returns
-            </button>
-            <button id="manage-custom-scenarios" class="btn btn--export btn--small" title="Manage custom scenarios">
-              🗂️ Manage Custom
-            </button>
+      <!-- Guided Workflow Progress -->
+      <div class="workflow-progress">
+        <div class="workflow-steps">
+          <div class="workflow-step active" data-step="1" id="workflow-step-1">
+            <div class="step-indicator">
+              <span class="step-number">1</span>
+              <span class="step-icon">🎯</span>
+            </div>
+            <div class="step-content">
+              <h3 class="step-title">Choose Your Scenario</h3>
+              <p class="step-description">Select or create your retirement scenario</p>
+            </div>
+            <div class="step-status" id="step-1-status">
+              <span class="status-indicator pending">⏸️</span>
+            </div>
+          </div>
+          
+          <div class="workflow-step locked" data-step="2" id="workflow-step-2">
+            <div class="step-indicator">
+              <span class="step-number">2</span>
+              <span class="step-icon">📊</span>
+            </div>
+            <div class="step-content">
+              <h3 class="step-title">Test Scenario</h3>
+              <p class="step-description">Run single analysis to see results</p>
+            </div>
+            <div class="step-status" id="step-2-status">
+              <span class="status-indicator locked">🔒</span>
+            </div>
+          </div>
+          
+          <div class="workflow-step locked" data-step="3" id="workflow-step-3">
+            <div class="step-indicator">
+              <span class="step-number">3</span>
+              <span class="step-icon">🎲</span>
+            </div>
+            <div class="step-content">
+              <h3 class="step-title">Risk Analysis</h3>
+              <p class="step-description">Run Monte Carlo for statistical insights</p>
+            </div>
+            <div class="step-status" id="step-3-status">
+              <span class="status-indicator locked">🔒</span>
+            </div>
           </div>
         </div>
+        
+        <div class="workflow-progress-bar">
+          <div class="progress-fill" id="workflow-progress-fill" style="width: 0%"></div>
+        </div>
+        
+      </div>
+
 
       <!-- Custom Scenario Management Modal -->
       <div id="custom-scenario-modal" class="modal" style="display: none;">
@@ -192,21 +216,16 @@
         </div>
       </div>
 
-      <!-- Tab Content -->
-      <div class="tab-content">
-        <!-- Configure Scenario Tab -->
-        <div class="tab-panel active" id="configure-tab">
-          <div class="tab-panel-header">
-            <h3>📝 Configure Scenario</h3>
-            <p>Select and configure your retirement scenario for analysis</p>
-          </div>
-          
+      <!-- Workflow Content -->
+      <div class="workflow-content">
+        <!-- Step 1: Choose Scenario -->
+        <div class="workflow-panel active" id="step-1-panel" data-step="1">
           <div class="scenario-selector">
-            <label for="scenario-dropdown" class="form-label">Choose Scenario:</label>
-            <select id="scenario-dropdown" class="form-select scenario-dropdown">
-              <option value="">Choose a Scenario...</option>
+            <select id="scenario-dropdown" class="form-select scenario-dropdown btn btn--success btn--large">
+              <option value="" style="font-weight: bold;">Choose Your Scenario</option>
             </select>
           </div>
+          
           
           <div class="scenario-preview hidden" id="scenario-preview">
             <h4>📋 Scenario Details:</h4>
@@ -251,9 +270,6 @@
                 <div id="config-income-breakdown" class="income-breakdown"></div>
               </div>
               
-              <div class="config-actions">
-                <button id="toggle-json-btn" class="btn btn--primary">📝 Edit Scenario Data</button>
-              </div>
             </div>
             
             <!-- JSON Editor (initially hidden) -->
@@ -277,15 +293,11 @@
           </div>
         </div>
 
-        <!-- Single Analysis Tab -->
-        <div class="tab-panel" id="single-analysis-tab">
-          <div class="tab-panel-header">
-            <h3>📊 Single Scenario Analysis</h3>
-            <p>Run and analyze a single retirement scenario</p>
-          </div>
+        <!-- Step 2: Test Scenario -->
+        <div class="workflow-panel" id="step-2-panel" data-step="2">
           
           <div class="analysis-status" id="single-analysis-status">
-            <p>Select a scenario in the Configure tab to enable analysis.</p>
+            <p>Complete Step 1 to unlock this analysis.</p>
           </div>
           
           <!-- Single Scenario Simulation Controls -->
@@ -321,17 +333,14 @@
           <div class="simulation-options">
             <button id="toggle-csv-btn" class="btn btn--secondary" style="display: none;">📊 Export CSV Data</button>
           </div>
+          
         </div>
 
-        <!-- Monte Carlo Tab -->
-        <div class="tab-panel" id="monte-carlo-tab">
-          <div class="tab-panel-header">
-            <h3>🎲 Monte Carlo Analysis</h3>
-            <p>Run probabilistic analysis with thousands of scenarios</p>
-          </div>
+        <!-- Step 3: Risk Analysis -->
+        <div class="workflow-panel" id="step-3-panel" data-step="3">
           
           <div class="analysis-status" id="monte-carlo-analysis-status">
-            <p>Select a scenario in the Configure tab to enable Monte Carlo analysis.</p>
+            <p>Complete Steps 1 & 2 to unlock Monte Carlo analysis.</p>
           </div>
           
           <!-- Monte Carlo Simulation Controls -->
@@ -456,70 +465,39 @@
               <!-- Text set dynamically -->
             </button>
           </div>
+          
         </div>
 
         <!-- Compare tab removed - no implementation yet -->
       </div>
 
-
-
-      <!-- JSON Section -->
-      <div class="json-section">
-        <div id="json-container" class="json-container json-container--collapsed">
-          <div class="json-header">
-            <h3>📝 Scenario Configuration</h3>
-            <div class="json-actions">
-              <button id="select-json-btn" class="btn btn--secondary btn--small">Select All</button>
-            </div>
-          </div>
-          <textarea id="json-input" class="json-input" placeholder="Select a scenario from the dropdown above, or paste your own JSON configuration here..."></textarea>
-        </div>
-      </div>
-
-      <!-- CSV Section -->
-      <div class="csv-section csv-section--collapsed" id="csv-section">
-        <div class="csv-header">
-          <h3>📊 Detailed Results (CSV)</h3>
-          <div class="csv-actions">
-            <button id="select-csv-btn" class="btn btn--secondary btn--small">Select All</button>
-          </div>
-        </div>
-        <pre id="csv-container" class="csv-container csv-container--collapsed"></pre>
-      </div>
-
-      <!-- Monte Carlo Section -->
-      <div class="monte-carlo-section monte-carlo-section--collapsed" id="monte-carlo-section">
-        <div class="monte-carlo-header">
-          <h3>🎲 Monte Carlo Analysis</h3>
-          <div class="monte-carlo-actions">
-            <button id="cancel-monte-carlo" class="btn btn--secondary btn--small" style="display: none;">Cancel</button>
-          </div>
-        </div>
-        
-        <!-- Monte Carlo Configuration -->
-        <div class="monte-carlo-config">
-          <div class="config-row">
-            <label for="monte-carlo-iterations">Iterations:</label>
-            <input type="number" id="monte-carlo-iterations" value="100" min="50" max="1000" step="50">
-            
-            <label for="monte-carlo-seed">Random Seed (optional):</label>
-            <input type="number" id="monte-carlo-seed" placeholder="Leave blank for random">
-            
-            <button id="run-monte-carlo-analysis" class="btn btn--monte-carlo">
-              🚀 Run Analysis
+      <!-- Centralized Export Toolbar -->
+      <div class="export-toolbar" id="export-toolbar">
+        <div class="export-toolbar-content">
+          <span class="export-toolbar-label">🔧 Scenario Tools:</span>
+          <div class="export-buttons">
+            <button id="export-scenario-config" class="btn btn--export btn--small" title="Export current scenario configuration">
+              📄 Scenario Config
+            </button>
+            <button id="export-scenario-results" class="btn btn--export btn--small" style="display: none;" title="Single Scenario Results">
+              📊 Results
+            </button>
+            <button id="export-monte-carlo-results" class="btn btn--export btn--small" style="display: none;" title="Export Monte Carlo analysis">
+              🎲 MC Analysis
+            </button>
+            <button id="export-monte-carlo-returns" class="btn btn--export btn--small" style="display: none;" title="Export Monte Carlo return sequences">
+              📈 MC Returns
+            </button>
+            <button id="toggle-json-btn" class="btn btn--export btn--small" title="Edit scenario data directly">
+              📝 Edit Scenario Data
+            </button>
+            <button id="manage-custom-scenarios" class="btn btn--export btn--small" title="Manage custom scenarios">
+              🗂️ Manage Custom Scenarios
             </button>
           </div>
         </div>
-        
-        <!-- Monte Carlo Progress (minimal, near the action) -->
-        <div class="monte-carlo-status-section">
-          <progress id="monte-carlo-progress" max="100" value="0" style="display: none;"></progress>
-          <div id="monte-carlo-progress-text"></div>
-        </div>
-        
-        <!-- Monte Carlo Error Display -->
-        <div id="monte-carlo-error" class="error-display" style="display: none;"></div>
       </div>
+
       </div>
     </div>
   </div>
@@ -550,27 +528,27 @@
         </div>
 
         <div class="info-section">
-          <h3>🚀 Quick 2-Minute Walkthrough</h3>
+          <h3>🚀 Simple 3-Step Process</h3>
           
           <div class="walkthrough-step">
-            <h4>Step 1: Choose a Scenario (Upper-Left)</h4>
-            <p>Select from pre-built scenarios like "Conservative Retirement" or "Market Crash Test" - or create your own custom scenario with your specific numbers. You can save your custom scenarios for later use.</p>
+            <h4>🎯 Step 1: Choose Your Scenario</h4>
+            <p>Select from pre-built scenarios or create your own. The tool will guide you through each step and unlock the next one automatically.</p>
           </div>
 
           <div class="walkthrough-step">
-            <h4>Step 2: Run Single Analysis (Upper-Middle)</h4>
-            <p>Click "Run Analysis" to see exactly how your money flows month by month. You'll see when assets run out, how income covers expenses, and get a detailed breakdown.</p>
+            <h4>📊 Step 2: Test Your Scenario</h4>
+            <p>See exactly how your money flows month by month. You'll get insights about when assets run out and how income covers expenses.</p>
           </div>
 
           <div class="walkthrough-step">
-            <h4>Step 3: Run Monte Carlo Analysis (Upper-Right)</h4>
-            <p>Click "Monte Carlo Analysis" to test your scenario against thousands of possible market conditions. See your probability of success and identify potential risks.</p>
+            <h4>🎲 Step 3: Understand Your Risk</h4>
+            <p>Test against thousands of market conditions to see your probability of success and identify potential risks.</p>
           </div>
         </div>
 
         <div class="info-section">
           <h3>💪 Ready to get started?</h3>
-          <p>Pick a scenario from the dropdown above and click "Run Analysis" to see your first retirement projection!</p>
+          <p>The tool will guide you step-by-step. Just follow the workflow indicators at the top!</p>
         </div>
       </div>
       

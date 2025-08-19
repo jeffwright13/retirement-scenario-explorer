@@ -1,0 +1,224 @@
+{
+    "jeffs-current-situation": {
+      "metadata": {
+        "title": "Jeff's Real Situation - Age 60 Tax Window",
+        "description": "Modeling Jeff's 7-year tax optimization window before full Social Security",
+        "tags": ["personal", "tax-optimization", "real-scenario"]
+      },
+      "plan": {
+        "monthly_expenses": 6500,
+        "duration_months": 300,
+        "inflation_schedule": "realistic_inflation",
+        "stop_on_shortfall": true
+      },
+      "income": [
+        {
+          "name": "SSDI (Estimated)",
+          "amount": 2500,
+          "start_month": 8,
+          "notes": "SSDI approval estimated 8 months out"
+        },
+        {
+          "name": "Full Social Security",
+          "amount": 3469,
+          "start_month": 84,
+          "notes": "Full retirement age at 67 (7 years out)"
+        }
+      ],
+      "assets": [
+        {
+          "name": "High-Yield Savings",
+          "type": "taxable",
+          "balance": 129000,
+          "min_balance": 30000,
+          "return_schedule": "savings_rate",
+          "notes": "3.7% APY money market"
+        },
+        {
+          "name": "Brokerage Investment",
+          "type": "taxable", 
+          "balance": 518000,
+          "return_schedule": "market_growth",
+          "notes": "Taxable investment account"
+        },
+        {
+          "name": "Traditional IRA",
+          "type": "tax_deferred",
+          "balance": 320000,
+          "return_schedule": "ira_growth",
+          "notes": "Subject to RMDs at 73, tax optimization target"
+        },
+        {
+          "name": "Roth IRA",
+          "type": "tax_free",
+          "balance": 12000,
+          "return_schedule": "roth_growth",
+          "notes": "Tax-free growth and withdrawals"
+        }
+      ],
+      "order": [
+        {
+          "account": "High-Yield Savings",
+          "order": 1,
+          "notes": "Use cash first for immediate needs"
+        },
+        {
+          "account": "Brokerage Investment", 
+          "order": 2,
+          "weight": 0.6,
+          "notes": "Primary withdrawal source - harvest gains strategically"
+        },
+        {
+          "account": "Traditional IRA",
+          "order": 2, 
+          "weight": 0.4,
+          "notes": "Convert to Roth during low-income years (2026-2032)"
+        },
+        {
+          "account": "Roth IRA",
+          "order": 3,
+          "notes": "Last resort - preserve tax-free growth"
+        }
+      ],
+      "rate_schedules": {
+        "realistic_inflation": {"type": "fixed", "rate": 0.035},
+        "savings_rate": {"type": "fixed", "rate": 0.037},
+        "market_growth": {"type": "fixed", "rate": 0.065},
+        "ira_growth": {"type": "fixed", "rate": 0.062},
+        "roth_growth": {"type": "fixed", "rate": 0.07}
+      }
+    },
+  
+    "jeffs-tax-optimized-strategy": {
+      "metadata": {
+        "title": "Jeff's Tax-Optimized Strategy (Manual Approximation)",
+        "description": "Manually modeling Roth conversions via deposits to approximate tax optimization",
+        "tags": ["personal", "tax-optimization", "roth-conversion-simulation"]
+      },
+      "plan": {
+        "monthly_expenses": 6500,
+        "duration_months": 300,
+        "inflation_schedule": "realistic_inflation",
+        "stop_on_shortfall": true
+      },
+      "income": [
+        {
+          "name": "SSDI",
+          "amount": 2500,
+          "start_month": 8
+        },
+        {
+          "name": "Full Social Security", 
+          "amount": 3469,
+          "start_month": 84
+        }
+      ],
+      "assets": [
+        {
+          "name": "High-Yield Savings",
+          "type": "taxable",
+          "balance": 129000,
+          "min_balance": 30000,
+          "return_schedule": "savings_rate"
+        },
+        {
+          "name": "Brokerage Investment",
+          "type": "taxable",
+          "balance": 518000, 
+          "return_schedule": "market_growth"
+        },
+        {
+          "name": "Traditional IRA",
+          "type": "tax_deferred",
+          "balance": 320000,
+          "return_schedule": "ira_growth"
+        },
+        {
+          "name": "Roth IRA", 
+          "type": "tax_free",
+          "balance": 12000,
+          "return_schedule": "roth_growth"
+        },
+        {
+          "name": "Roth Conversion Account",
+          "type": "tax_free",
+          "balance": 0,
+          "return_schedule": "roth_growth",
+          "notes": "Simulated Roth conversions via deposits"
+        }
+      ],
+      "deposits": [
+        {
+          "name": "Roth Conversion Year 1",
+          "target": "Roth Conversion Account",
+          "amount": 3333,
+          "start_month": 13,
+          "stop_month": 24,
+          "notes": "Converting $40k Traditional to Roth in low-income year"
+        },
+        {
+          "name": "Roth Conversion Year 2", 
+          "target": "Roth Conversion Account",
+          "amount": 3333,
+          "start_month": 25,
+          "stop_month": 36,
+          "notes": "Converting $40k Traditional to Roth in low-income year"
+        },
+        {
+          "name": "Roth Conversion Year 3",
+          "target": "Roth Conversion Account", 
+          "amount": 3333,
+          "start_month": 37,
+          "stop_month": 48,
+          "notes": "Converting $40k Traditional to Roth in low-income year"
+        },
+        {
+          "name": "Roth Conversion Year 4",
+          "target": "Roth Conversion Account",
+          "amount": 3333,
+          "start_month": 49,
+          "stop_month": 60,
+          "notes": "Converting $40k Traditional to Roth in low-income year"  
+        },
+        {
+          "name": "Roth Conversion Year 5",
+          "target": "Roth Conversion Account",
+          "amount": 3333,
+          "start_month": 61,
+          "stop_month": 72,
+          "notes": "Converting $40k Traditional to Roth in low-income year"
+        }
+      ],
+      "order": [
+        {
+          "account": "High-Yield Savings",
+          "order": 1
+        },
+        {
+          "account": "Brokerage Investment",
+          "order": 2,
+          "weight": 0.7
+        },
+        {
+          "account": "Traditional IRA", 
+          "order": 2,
+          "weight": 0.3
+        },
+        {
+          "account": "Roth IRA",
+          "order": 3
+        },
+        {
+          "account": "Roth Conversion Account",
+          "order": 4
+        }
+      ],
+      "rate_schedules": {
+        "realistic_inflation": {"type": "fixed", "rate": 0.035},
+        "savings_rate": {"type": "fixed", "rate": 0.037},
+        "market_growth": {"type": "fixed", "rate": 0.065},
+        "ira_growth": {"type": "fixed", "rate": 0.062},
+        "roth_growth": {"type": "fixed", "rate": 0.07}
+      }
+    }
+  }

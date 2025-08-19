@@ -572,6 +572,17 @@
     padding: var(--space-2);
   }
 
+  .scenario-dropdown option:first-child {
+    font-weight: bold !important;
+  }
+
+  /* Override conflicting dropdown styles for workflow */
+  .workflow-panel .scenario-dropdown {
+    border: none !important;
+    background-image: none !important;
+    padding-right: 2.5rem !important;
+  }
+
   /* Responsive design for tabs */
   @media (max-width: 768px) {
     .scenario-tabs {

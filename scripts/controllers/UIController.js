@@ -289,6 +289,20 @@ export class UIController {
         console.error('❌ Could not find scenario-preview element');
       }
       
+      // Enable the run button for step 2
+      if (this.runButton) {
+        this.runButton.disabled = false;
+        this.runButton.textContent = '🚀 Run Single Scenario';
+      }
+      
+      // Update step 2 status message
+      const step2Status = document.getElementById('single-analysis-status');
+      if (step2Status) {
+        step2Status.innerHTML = '<p>✅ Ready to run! Click the button below to analyze your scenario.</p>';
+        step2Status.style.background = 'var(--success-color-light)';
+        step2Status.style.borderColor = 'var(--success-color)';
+      }
+      
       // Immediately update scenario details with basic info
       this.updateScenarioDetails(data.scenario);
       
@@ -402,6 +416,21 @@ export class UIController {
     this.displaySimulationResults(data);
     this.showSimulationFeedback('completed');
     this.showSuccess('Simulation completed successfully');
+    
+    // Enable Monte Carlo button for step 3
+    const monteCarloBtn = document.getElementById('run-monte-carlo-btn');
+    if (monteCarloBtn) {
+      monteCarloBtn.disabled = false;
+      monteCarloBtn.textContent = '🎲 Run Monte Carlo Analysis';
+    }
+    
+    // Update step 3 status message
+    const step3Status = document.getElementById('monte-carlo-analysis-status');
+    if (step3Status) {
+      step3Status.innerHTML = '<p>✅ Ready for risk analysis! Run Monte Carlo to test market volatility.</p>';
+      step3Status.style.background = 'var(--success-color-light)';
+      step3Status.style.borderColor = 'var(--success-color)';
+    }
   }
 
   /**
@@ -422,7 +451,7 @@ export class UIController {
   populateScenarioDropdown(scenarios) {
     if (!this.scenarioDropdown) return;
 
-    this.scenarioDropdown.innerHTML = '<option value="">Select a scenario...</option>';
+    this.scenarioDropdown.innerHTML = '<option value="" style="font-weight: bold;">Choose Your Scenario</option>';
     
     // Group scenarios by type
     const builtInScenarios = scenarios.filter(s => s.isBuiltIn !== false);

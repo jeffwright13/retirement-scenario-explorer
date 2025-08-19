@@ -219,7 +219,7 @@ class TabController {
         runButton.textContent = '🚀 Select Scenario First';
       }
     } else {
-      if (statusDiv) statusDiv.innerHTML = '<p>✅ Ready to run single scenario analysis.</p>';
+      if (statusDiv) statusDiv.style.display = 'none';
       if (runButton) {
         runButton.disabled = false;
         runButton.textContent = '🚀 Run Single Scenario';
@@ -244,7 +244,7 @@ class TabController {
       return false;
     }
 
-    if (statusDiv) statusDiv.innerHTML = '<p>✅ Ready to run Monte Carlo analysis.</p>';
+    if (statusDiv) statusDiv.style.display = 'none';
     if (runButton) {
       runButton.disabled = false;
       runButton.textContent = '🎲 Run Monte Carlo Analysis';

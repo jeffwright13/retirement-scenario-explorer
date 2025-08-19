@@ -15,6 +15,7 @@ import { ScenarioController } from './controllers/ScenarioController.js';
 import { StoryController } from './controllers/StoryController.js';
 import { TabController } from './controllers/TabController.js';
 import { ModeController } from './controllers/ModeController.js';
+import { WorkflowController } from './controllers/WorkflowController.js';
 import { MonteCarloController } from './controllers/MonteCarloController.js';
 import { InsightsController } from './controllers/InsightsController.js';
 import { ExportController } from './controllers/ExportController.js';
@@ -58,6 +59,9 @@ class RetirementScenarioApp {
   initializeControllers() {
     // Initialize mode controller first to handle mode switching
     this.modeController = new ModeController(this.eventBus);
+    
+    // Initialize workflow controller for guided user experience
+    this.workflowController = new WorkflowController(this.eventBus);
     
     // Initialize tab controller for Scenario Mode tabbed interface
     this.tabController = new TabController(this.eventBus);
@@ -227,6 +231,7 @@ class RetirementScenarioApp {
     this.storyController.initialize();
     this.tabController.initialize();
     this.modeController.initialize();
+    this.workflowController.initialize();
     this.monteCarloController.initialize();
     this.insightsController.initialize();
     this.monteCarloChart.initialize();
