@@ -10,6 +10,7 @@ import { ValidationService } from './services/ValidationService.js';
 import { MonteCarloService } from './services/MonteCarloService.js';
 import { ReturnModelService } from './services/ReturnModelService.js';
 import { StoryEngineService } from './services/StoryEngineService.js';
+import { ExamplesService } from './services/ExamplesService.js';
 import { UIController } from './controllers/UIController.js';
 import { ScenarioController } from './controllers/ScenarioController.js';
 import { StoryController } from './controllers/StoryController.js';
@@ -51,6 +52,7 @@ class RetirementScenarioApp {
     this.returnModelService = new ReturnModelService(this.eventBus);
     this.monteCarloService = new MonteCarloService(this.eventBus);
     this.storyEngineService = new StoryEngineService(this.eventBus);
+    this.examplesService = new ExamplesService(this.eventBus);
   }
 
   /**
@@ -238,8 +240,9 @@ class RetirementScenarioApp {
     this.monteCarloUI.initialize();
     this.storyUI.initialize();
     
-    // Load initial content
+    // Load initial content and examples
     await this.contentService.loadAllContent();
+    await this.examplesService.loadCatalog();
     
     console.log('✅ Application initialized successfully');
   }
@@ -310,6 +313,23 @@ class RetirementScenarioApp {
    */
   getStories() {
     return this.contentService.getAllStories();
+  }
+
+  /**
+   * Get examples catalog
+   * @returns {Array} Examples catalog
+   */
+  getExamplesCatalog() {
+    return this.examplesService.getCatalog();
+  }
+
+  /**
+   * Load example by ID
+   * @param {string} id - Example ID
+   * @returns {Promise<Object>} Example scenario
+   */
+  async loadExample(id) {
+    return await this.examplesService.loadExampleById(id);
   }
 
   /**

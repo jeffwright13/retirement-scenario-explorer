@@ -118,7 +118,7 @@ export class ContentService {
    */
   async loadBuiltInScenarios() {
     const scenarioFiles = [
-      'data/scenarios/jeffs-learning-journey-scenarios.json'
+      'data/scenarios/learning-journey-scenarios.json'
     ];
 
     for (const filePath of scenarioFiles) {
@@ -165,7 +165,7 @@ export class ContentService {
    */
   async loadStories() {
     const storyFiles = [
-      'data/stories/jeffs-learning-journey.json'
+      'data/stories/learning-journey.json'
     ];
 
     for (const filePath of storyFiles) {

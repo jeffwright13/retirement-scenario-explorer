@@ -1,10 +1,10 @@
 {
   "$schema": "../docs/scenario-schema.json",
-  "jeffs-stage-1-no-growth": {
+  "stage-1-no-growth": {
     "metadata": {
       "title": "Stage 1: No Growth Model",
       "description": "Modeling retirement with 0% growth - assets treated as cash under a mattress",
-      "tags": ["personal", "learning-journey", "no-growth", "beginner-mistake"]
+      "tags": ["learning-journey", "no-growth", "beginner-mistake"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -51,11 +51,11 @@
     }
   },
 
-  "jeffs-stage-2-with-growth": {
+  "stage-2-with-growth": {
     "metadata": {
       "title": "Stage 2: With Growth Model",
       "description": "Same scenario but with realistic compound growth rates on all assets",
-      "tags": ["personal", "learning-journey", "compound-interest", "discovery"]
+      "tags": ["learning-journey", "compound-interest", "discovery"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -105,11 +105,11 @@
     }
   },
 
-  "jeffs-stage-3-inflation-reality": {
+  "stage-3-inflation-reality": {
     "metadata": {
       "title": "Stage 3: With Inflation Model",
       "description": "Adding realistic inflation to expenses - watching purchasing power erode over time",
-      "tags": ["personal", "learning-journey", "inflation", "reality-check"]
+      "tags": ["learning-journey", "inflation", "reality-check"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -160,11 +160,11 @@
     }
   },
 
-  "jeffs-stage-4a-with-social-security": {
+  "stage-4a-with-social-security": {
     "metadata": {
       "title": "Stage 4a: Social Security Income",
       "description": "Adding Social Security to see how guaranteed income dramatically improves sustainability",
-      "tags": ["personal", "learning-journey", "social-security", "guaranteed-income"]
+      "tags": ["learning-journey", "social-security", "guaranteed-income"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -222,11 +222,11 @@
     }
   },
 
-  "jeffs-stage-4b-with-social-security-disability": {
+  "stage-4b-with-social-security-disability": {
     "metadata": {
       "title": "Stage 4b: Social Security Disability Income",
       "description": "Adding Social Security Disability to see how FRA income taken at 60 years old dramatically improves sustainability",
-      "tags": ["personal", "learning-journey", "social-security", "guaranteed-income"]
+      "tags": ["learning-journey", "social-security", "guaranteed-income"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -284,11 +284,11 @@
     }
   },
 
-  "jeffs-stage-5-full-complexity": {
+  "stage-5-full-complexity": {
     "metadata": {
       "title": "Stage 5: Full Complexity",
       "description": "More sophisticated modeling with strategic withdrawal order and acknowledgment of remaining uncertainties",
-      "tags": ["personal", "learning-journey"]
+      "tags": ["learning-journey"]
     },
     "plan": {
       "monthly_expenses": 8500,
@@ -367,11 +367,11 @@
     }
   },
 
-  "jeffs-stage-6-workable-solution": {
+  "stage-6-workable-solution": {
     "metadata": {
       "title": "Stage 6: The Workable Solution (Hard Choices Pay Off)",
       "description": "A realistic plan that actually passes Monte Carlo analysis - with reduced expenses, delayed SS, and more assets",
-      "tags": ["personal", "learning-journey", "workable-solution", "monte-carlo-success"]
+      "tags": ["learning-journey", "workable-solution", "monte-carlo-success"]
     },
     "plan": {
       "monthly_expenses": 5500,
@@ -428,11 +428,11 @@
       "roth_growth": {"type": "fixed", "rate": 0.07}
     }
   },
-  "jeffs-real-current-situation": {
+  "real-current-situation": {
     "metadata": {
-      "title": "Jeff's Real Current Situation",
-      "description": "Jeff at 60 - laid off, applying for SSDI, nearly $1M in assets, needs tax strategy",
-      "tags": ["personal", "learning-journey", "current-reality", "tax-planning"]
+      "title": "Real Current Situation",
+      "description": "Age 60 - laid off, applying for SSDI, nearly $1M in assets, needs tax strategy",
+      "tags": ["learning-journey", "current-reality", "tax-planning"]
     },
     "plan": {
       "monthly_expenses": 6500,
@@ -487,11 +487,11 @@
       "roth_growth": {"type": "fixed", "rate": 0.07}
     }
   },
-  "jeffs-status-quo-no-conversions": {
+  "status-quo-no-conversions": {
     "metadata": {
-      "title": "Jeff's Status Quo - No Conversions",
+      "title": "Status Quo - No Conversions",
       "description": "Baseline: Sequential withdrawals, no tax optimization, higher lifetime taxes",
-      "tags": ["personal", "baseline", "no-optimization"]
+      "tags": ["baseline", "no-optimization"]
     },
     "plan": {
       "monthly_expenses": 7400,
@@ -556,11 +556,11 @@
     }
   },
 
-  "jeffs-tax-smart-conversions": {
+  "tax-smart-conversions": {
     "metadata": {
-      "title": "Jeff's Tax-Smart Roth Conversion Strategy",
+      "title": "Tax-Smart Roth Conversion Strategy",
       "description": "Optimized: Strategic conversions 2026-2032, tax payments, reduced RMDs",
-      "tags": ["personal", "tax-optimization", "roth-conversion"]
+      "tags": ["tax-optimization", "roth-conversion"]
     },
     "plan": {
       "monthly_expenses": 7400,
@@ -760,11 +760,11 @@
     }
   },
 
-  "jeffs-post-conversion-years": {
+  "post-conversion-years": {
     "metadata": {
-      "title": "Jeff's Post-Conversion Years (2033+)",
+      "title": "Post-Conversion Years (2033+)",
       "description": "Benefits phase: Mostly tax-free withdrawals, minimal RMDs, optimized for longevity",
-      "tags": ["personal", "post-optimization", "benefits-phase"]
+      "tags": ["post-optimization", "benefits-phase"]
     },
     "plan": {
       "monthly_expenses": 7400,

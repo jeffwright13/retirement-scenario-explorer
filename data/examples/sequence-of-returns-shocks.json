@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "id": "sequence-of-returns-shocks",
+    "title": "Sequence of Returns: Early Bear, Then Recovery",
+    "description": "Highlights path dependence and ruin risk from early vs late losses",
+    "level": "intermediate",
+    "objective": "Demonstrate why timing of returns matters for withdrawals",
+    "expected_outcome": "Early losses cause higher ruin probability than late losses"
+  },
+  "assumptions": {
+    "inflation_rate_annual": 0.025,
+    "fee_rate_annual": 0.005,
+    "return_model": {
+      "type": "sequence",
+      "returns": [-0.20, -0.15, -0.10, 0.08, 0.12, 0.15, 0.18, 0.10, 0.08, 0.06, 0.05, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04, 0.04]
+    }
+  },
+  "accounts": [
+    {
+      "name": "Taxable",
+      "start_balance": 400000,
+      "preferred_spend_source": true
+    },
+    {
+      "name": "Traditional IRA", 
+      "start_balance": 500000
+    },
+    {
+      "name": "Roth IRA",
+      "start_balance": 100000
+    }
+  ],
+  "events": [
+    {
+      "type": "withdrawal_recurring",
+      "amount": 5000,
+      "start_time": "2026-01",
+      "stop_time": "2046-12",
+      "inflation_indexed": true
+    }
+  ]
+}

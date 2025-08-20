@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "id": "zero-assumptions",
+    "title": "Zero Assumptions",
+    "description": "No growth, no inflation, flat withdrawal - baseline smoke test",
+    "level": "beginner",
+    "objective": "Understand basic withdrawal mechanics without complexity",
+    "expected_outcome": "Balances decay linearly over time"
+  },
+  "assumptions": {
+    "inflation_rate_annual": 0.0,
+    "fee_rate_annual": 0.0,
+    "return_model": {
+      "type": "fixed_nominal",
+      "rate_annual": 0.0
+    }
+  },
+  "accounts": [
+    {
+      "name": "Taxable",
+      "start_balance": 300000,
+      "preferred_spend_source": true
+    },
+    {
+      "name": "Traditional IRA", 
+      "start_balance": 321000
+    },
+    {
+      "name": "Roth IRA",
+      "start_balance": 11970
+    }
+  ],
+  "events": [
+    {
+      "type": "withdrawal_recurring",
+      "amount": 4000,
+      "start_time": "2026-01",
+      "stop_time": "2046-12",
+      "inflation_indexed": false
+    }
+  ]
+}

@@ -453,6 +453,26 @@ export class UIController {
 
     this.scenarioDropdown.innerHTML = '<option value="" style="font-weight: bold;">Choose Your Scenario</option>';
     
+    // Get examples from the global app instance
+    const examplesCatalog = window.app?.getExamplesCatalog() || [];
+    
+    // Add progressive learning examples first
+    if (examplesCatalog.length > 0) {
+      const examplesGroup = document.createElement('optgroup');
+      examplesGroup.label = '🎓 Learning Examples';
+      
+      examplesCatalog.forEach(example => {
+        const option = document.createElement('option');
+        option.value = `example:${example.id}`;
+        option.textContent = `${example.title} (${example.level})`;
+        option.style.color = example.level === 'beginner' ? '#2563eb' : 
+                           example.level === 'intermediate' ? '#7c3aed' : '#dc2626';
+        examplesGroup.appendChild(option);
+      });
+      
+      this.scenarioDropdown.appendChild(examplesGroup);
+    }
+    
     // Group scenarios by type
     const builtInScenarios = scenarios.filter(s => s.isBuiltIn !== false);
     const userScenarios = scenarios.filter(s => s.isUserScenario === true);
@@ -488,7 +508,7 @@ export class UIController {
       this.scenarioDropdown.appendChild(userGroup);
     }
 
-    console.log(`🎨 UI: Populated ${builtInScenarios.length} built-in + ${userScenarios.length} custom scenarios`);
+    console.log(`🎨 UI: Populated ${examplesCatalog.length} examples + ${builtInScenarios.length} built-in + ${userScenarios.length} custom scenarios`);
   }
 
   /**

@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "id": "guardrails-guyton-klinger",
+    "title": "Guardrails (Guyton-Klinger)",
+    "description": "Dynamic spending with raise/cut rules based on portfolio performance",
+    "level": "advanced",
+    "objective": "Implement flexible spending strategies",
+    "expected_outcome": "Portfolio lasts longer with dynamic spending adjustments"
+  },
+  "assumptions": {
+    "inflation_rate_annual": 0.025,
+    "fee_rate_annual": 0.007,
+    "return_model": {
+      "type": "variable",
+      "mean_annual": 0.07,
+      "volatility": 0.15
+    },
+    "guardrails": {
+      "enabled": true,
+      "raise_threshold": 1.20,
+      "cut_threshold": 0.80,
+      "adjustment_percentage": 0.10
+    }
+  },
+  "accounts": [
+    {
+      "name": "Taxable",
+      "start_balance": 350000,
+      "preferred_spend_source": true
+    },
+    {
+      "name": "Traditional IRA", 
+      "start_balance": 450000
+    },
+    {
+      "name": "Roth IRA",
+      "start_balance": 150000
+    }
+  ],
+  "events": [
+    {
+      "type": "withdrawal_recurring",
+      "amount": 4000,
+      "start_time": "2026-01",
+      "stop_time": "2046-12",
+      "inflation_indexed": true,
+      "guardrails_enabled": true
+    }
+  ]
+}

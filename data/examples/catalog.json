@@ -1,0 +1,74 @@
+[
+  {
+    "id": "zero-assumptions",
+    "title": "Zero Assumptions: no growth, no inflation, flat withdrawals",
+    "level": "beginner",
+    "description": "Pure arithmetic: validates pipeline and charts.",
+    "objective": "Understand basic withdrawal mechanics without complexity",
+    "knobs": ["withdrawal_amount"],
+    "expected_outcome": "Balances decay linearly over time"
+  },
+  {
+    "id": "fixed-return-4pct",
+    "title": "Fixed Return: 4% nominal, flat withdrawals",
+    "level": "beginner", 
+    "description": "Adds deterministic growth to check compounding.",
+    "objective": "See how consistent returns affect portfolio longevity",
+    "knobs": ["return_rate", "withdrawal_amount"],
+    "expected_outcome": "Portfolio grows initially, then declines based on withdrawal rate"
+  },
+  {
+    "id": "fees-drag-comparison",
+    "title": "Fees Drag: 0.2% vs 1.0% annual fees",
+    "level": "beginner",
+    "description": "Compare identical portfolios with different fee structures.",
+    "objective": "Quantify the impact of investment fees over time",
+    "knobs": ["fee_rate_annual"],
+    "expected_outcome": "Higher fees significantly reduce portfolio longevity"
+  },
+  {
+    "id": "inflation-adjusted-withdrawals",
+    "title": "Inflation-Indexed Withdrawals (CPI 3%)",
+    "level": "intermediate",
+    "description": "Introduces CPI and real vs. nominal views.",
+    "objective": "Understand purchasing power preservation",
+    "knobs": ["inflation_rate", "inflation_indexed"],
+    "expected_outcome": "Nominal withdrawals increase yearly to maintain real spending power"
+  },
+  {
+    "id": "sequence-of-returns-shocks",
+    "title": "Sequence of Returns: early bear, then recovery",
+    "level": "intermediate",
+    "description": "Highlights path dependence and ruin risk.",
+    "objective": "Demonstrate why timing of returns matters for withdrawals",
+    "knobs": ["return_sequence"],
+    "expected_outcome": "Early losses cause higher ruin probability than late losses"
+  },
+  {
+    "id": "volatility-vs-mean",
+    "title": "Volatility Impact: same average, different variance",
+    "level": "intermediate", 
+    "description": "Compare smooth vs volatile returns with identical averages.",
+    "objective": "Show how volatility affects withdrawal sustainability",
+    "knobs": ["return_volatility"],
+    "expected_outcome": "Higher volatility increases ruin risk despite same average return"
+  },
+  {
+    "id": "guardrails-guyton-klinger",
+    "title": "Guardrails (Guyton-Klinger)",
+    "level": "advanced",
+    "description": "Dynamic spending with raise/cut rules.",
+    "objective": "Implement flexible spending strategies",
+    "knobs": ["guardrail_thresholds", "spending_adjustments"],
+    "expected_outcome": "Portfolio lasts longer with dynamic spending adjustments"
+  },
+  {
+    "id": "glidepath-equity-reduction",
+    "title": "Glidepath: Reducing Equity Over Time",
+    "level": "advanced",
+    "description": "Shift from aggressive to conservative allocation with age.",
+    "objective": "Balance growth potential with stability as retirement progresses",
+    "knobs": ["equity_allocation_schedule"],
+    "expected_outcome": "Reduced volatility in later years at cost of some growth"
+  }
+]

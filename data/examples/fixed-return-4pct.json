@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "id": "fixed-return-4pct",
+    "title": "Fixed Return: 4% Nominal",
+    "description": "Deterministic 4% annual growth with flat withdrawals",
+    "level": "beginner",
+    "objective": "See how consistent returns affect portfolio longevity",
+    "expected_outcome": "Portfolio grows initially, then declines based on withdrawal rate"
+  },
+  "assumptions": {
+    "inflation_rate_annual": 0.0,
+    "fee_rate_annual": 0.0,
+    "return_model": {
+      "type": "fixed_nominal",
+      "rate_annual": 0.04
+    }
+  },
+  "accounts": [
+    {
+      "name": "Taxable",
+      "start_balance": 300000,
+      "preferred_spend_source": true
+    },
+    {
+      "name": "Traditional IRA", 
+      "start_balance": 321000
+    },
+    {
+      "name": "Roth IRA",
+      "start_balance": 11970
+    }
+  ],
+  "events": [
+    {
+      "type": "withdrawal_recurring",
+      "amount": 4000,
+      "start_time": "2026-01",
+      "stop_time": "2046-12",
+      "inflation_indexed": false
+    }
+  ]
+}

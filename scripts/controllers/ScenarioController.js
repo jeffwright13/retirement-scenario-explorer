@@ -51,7 +51,19 @@ export class ScenarioController {
     try {
       console.log(`📊 Selecting scenario: ${scenarioKey}`);
       
-      const scenario = await this.contentService.getScenario(scenarioKey);
+      let scenario;
+      
+      // Check if this is an example scenario
+      if (scenarioKey.startsWith('example:')) {
+        const exampleId = scenarioKey.replace('example:', '');
+        scenario = await window.app.loadExample(exampleId);
+        scenario.key = scenarioKey;
+        scenario.title = scenario.metadata?.title || exampleId;
+        scenario.isExample = true;
+      } else {
+        scenario = await this.contentService.getScenario(scenarioKey);
+      }
+      
       this.currentScenario = scenario;
       
       // Validate the scenario

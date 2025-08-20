@@ -1,0 +1,42 @@
+{
+  "metadata": {
+    "id": "inflation-adjusted-withdrawals",
+    "title": "Inflation-Indexed Withdrawals",
+    "description": "CPI 3%; flat real spending power maintained",
+    "level": "intermediate",
+    "objective": "Understand purchasing power preservation",
+    "expected_outcome": "Nominal withdrawals increase yearly to maintain real spending power"
+  },
+  "assumptions": {
+    "inflation_rate_annual": 0.03,
+    "fee_rate_annual": 0.002,
+    "return_model": {
+      "type": "fixed_nominal",
+      "rate_annual": 0.04
+    }
+  },
+  "accounts": [
+    {
+      "name": "Taxable",
+      "start_balance": 300000,
+      "preferred_spend_source": true
+    },
+    {
+      "name": "Traditional IRA", 
+      "start_balance": 321000
+    },
+    {
+      "name": "Roth IRA",
+      "start_balance": 11970
+    }
+  ],
+  "events": [
+    {
+      "type": "withdrawal_recurring",
+      "amount": 4000,
+      "start_time": "2026-01",
+      "stop_time": "2046-12",
+      "inflation_indexed": true
+    }
+  ]
+}
