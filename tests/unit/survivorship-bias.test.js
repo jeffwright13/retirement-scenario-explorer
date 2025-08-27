@@ -208,7 +208,7 @@ describe('Survivorship Bias vs Min Balance Behavior', () => {
           {
             name: "Savings with Min Balance",
             type: "taxable",
-            balance: 129000,
+            balance: 125000,
             min_balance: 60000, // NON-ZERO minimum balance
             return_schedule: "low_returns"
           }

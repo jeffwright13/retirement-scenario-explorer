@@ -1,11 +1,11 @@
 {
   "$schema": "../docs/scenario-schema.json",
   
-  "jeffs-status-quo-no-conversions": {
+  "baseline-no-conversions": {
     "metadata": {
-      "title": "Jeff's Status Quo - No Conversions",
-      "description": "Baseline: Sequential withdrawals, no tax optimization, higher lifetime taxes",
-      "tags": ["personal", "baseline", "no-optimization"]
+      "title": "Baseline Strategy - No Conversions",
+      "description": "Sequential withdrawals with no tax optimization - higher lifetime taxes",
+      "tags": ["baseline", "no-optimization", "comparison"]
     },
     "plan": {
       "monthly_expenses": 7400,
@@ -15,10 +15,10 @@
     },
     "income": [
       {
-        "name": "SSDI",
+        "name": "Early Social Security",
         "amount": 2500,
         "start_month": 8,
-        "notes": "Estimated SSDI approval timeline"
+        "notes": "Early claiming with reduced benefits"
       },
       {
         "name": "Full Social Security",
@@ -70,11 +70,11 @@
     }
   },
 
-  "jeffs-tax-smart-conversions": {
+  "tax-smart-conversions": {
     "metadata": {
-      "title": "Jeff's Tax-Smart Roth Conversion Strategy",
-      "description": "Optimized: Strategic conversions 2026-2032, tax payments, reduced RMDs",
-      "tags": ["personal", "tax-optimization", "roth-conversion"]
+      "title": "Tax-Smart Roth Conversion Strategy",
+      "description": "Strategic conversions during low-income years with tax payments and reduced RMDs",
+      "tags": ["tax-optimization", "roth-conversion", "advanced-strategy"]
     },
     "plan": {
       "monthly_expenses": 7400,
@@ -274,11 +274,11 @@
     }
   },
 
-  "jeffs-post-conversion-years": {
+  "post-conversion-years": {
     "metadata": {
-      "title": "Jeff's Post-Conversion Years (2033+)",
+      "title": "Post-Conversion Benefits Phase",
       "description": "Benefits phase: Mostly tax-free withdrawals, minimal RMDs, optimized for longevity",
-      "tags": ["personal", "post-optimization", "benefits-phase"]
+      "tags": ["post-optimization", "benefits-phase", "tax-free-withdrawals"]
     },
     "plan": {
       "monthly_expenses": 7400,

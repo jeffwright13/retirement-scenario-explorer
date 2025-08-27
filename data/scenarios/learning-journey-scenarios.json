@@ -7,7 +7,7 @@
       "tags": ["learning-journey", "no-growth", "beginner-mistake"]
     },
     "plan": {
-      "monthly_expenses": 8500,
+      "monthly_expenses": 8000,
       "duration_months": 300,
       "inflation_schedule": "no_inflation"
     },
@@ -16,26 +16,26 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 129000,
+        "balance": 125000,
         "min_balance": 0,
         "return_schedule": "no_growth"
       },
       {
         "name": "Investment",
         "type": "taxable",
-        "balance": 513000,
+        "balance": 500000,
         "return_schedule": "no_growth"
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
-        "balance": 323000,
+        "balance": 300000,
         "return_schedule": "no_growth"
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
-        "balance": 12000,
+        "balance": 15000,
         "return_schedule": "no_growth"
       }
     ],
@@ -58,7 +58,7 @@
       "tags": ["learning-journey", "compound-interest", "discovery"]
     },
     "plan": {
-      "monthly_expenses": 8500,
+      "monthly_expenses": 8000,
       "duration_months": 300,
       "inflation_schedule": "no_inflation"
     },
@@ -67,26 +67,26 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 129000,
+        "balance": 125000,
         "min_balance": 60000,
         "return_schedule": "savings_growth"
       },
       {
         "name": "Investment",
         "type": "taxable",
-        "balance": 513000,
+        "balance": 500000,
         "return_schedule": "investment_growth"
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
-        "balance": 323000,
+        "balance": 300000,
         "return_schedule": "ira_growth"
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
-        "balance": 12000,
+        "balance": 15000,
         "return_schedule": "roth_growth"
       }
     ],
@@ -112,7 +112,7 @@
       "tags": ["learning-journey", "inflation", "reality-check"]
     },
     "plan": {
-      "monthly_expenses": 8500,
+      "monthly_expenses": 8000,
       "duration_months": 300,
       "inflation_schedule": "realistic_inflation",
       "stop_on_shortfall": true
@@ -122,26 +122,26 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 129000,
+        "balance": 125000,
         "min_balance": 60000,
         "return_schedule": "savings_growth"
       },
       {
         "name": "Investment",
         "type": "taxable",
-        "balance": 513000,
+        "balance": 500000,
         "return_schedule": "investment_growth"
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
-        "balance": 323000,
+        "balance": 300000,
         "return_schedule": "ira_growth"
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
-        "balance": 12000,
+        "balance": 15000,
         "return_schedule": "roth_growth"
       }
     ],
@@ -184,7 +184,7 @@
       {
         "name": "Savings",
         "type": "taxable",
-        "balance": 60000,
+        "balance": 75000,
         "min_balance": 0,
         "return_schedule": "savings_growth"
       },
@@ -428,11 +428,11 @@
       "roth_growth": {"type": "fixed", "rate": 0.07}
     }
   },
-  "real-current-situation": {
+  "baseline-current-situation": {
     "metadata": {
-      "title": "Real Current Situation",
-      "description": "Age 60 - laid off, applying for SSDI, nearly $1M in assets, needs tax strategy",
-      "tags": ["learning-journey", "current-reality", "tax-planning"]
+      "title": "Baseline Current Situation",
+      "description": "Early retirement scenario with moderate assets requiring strategic planning",
+      "tags": ["learning-journey", "baseline-reality", "tax-planning"]
     },
     "plan": {
       "monthly_expenses": 6500,
@@ -441,8 +441,8 @@
     },
     "income": [
       {
-        "name": "SS",
-        "amount": 2442,
+        "name": "Social Security",
+        "amount": 2400,
         "start_month": 24
       }
     ],
@@ -450,26 +450,26 @@
       {
         "name": "High-Yield Savings",
         "type": "taxable",
-        "balance": 129000,
+        "balance": 125000,
         "min_balance": 30000,
         "return_schedule": "savings_growth"
       },
       {
         "name": "Brokerage Investment",
         "type": "taxable",
-        "balance": 518000,
+        "balance": 500000,
         "return_schedule": "investment_growth"
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
-        "balance": 320000,
+        "balance": 300000,
         "return_schedule": "ira_growth"
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
-        "balance": 12000,
+        "balance": 15000,
         "return_schedule": "roth_growth"
       }
     ],

@@ -1,9 +1,9 @@
 {
-    "jeffs-current-situation": {
+    "early-retirement-baseline": {
       "metadata": {
-        "title": "Jeff's Real Situation - Age 60 Tax Window",
-        "description": "Modeling Jeff's 7-year tax optimization window before full Social Security",
-        "tags": ["personal", "tax-optimization", "real-scenario"]
+        "title": "Early Retirement Baseline - Tax Optimization Window",
+        "description": "Modeling a 7-year tax optimization strategy before full Social Security benefits",
+        "tags": ["early-retirement", "tax-optimization", "baseline-scenario"]
       },
       "plan": {
         "monthly_expenses": 6500,
@@ -13,45 +13,45 @@
       },
       "income": [
         {
-          "name": "SSDI (Estimated)",
+          "name": "Early Social Security",
           "amount": 2500,
           "start_month": 8,
-          "notes": "SSDI approval estimated 8 months out"
+          "notes": "Early claiming strategy with reduced benefits"
         },
         {
           "name": "Full Social Security",
-          "amount": 3469,
+          "amount": 3400,
           "start_month": 84,
-          "notes": "Full retirement age at 67 (7 years out)"
+          "notes": "Full retirement benefits at age 67"
         }
       ],
       "assets": [
         {
           "name": "High-Yield Savings",
           "type": "taxable",
-          "balance": 129000,
+          "balance": 125000,
           "min_balance": 30000,
           "return_schedule": "savings_rate",
-          "notes": "3.7% APY money market"
+          "notes": "Emergency fund and immediate liquidity"
         },
         {
           "name": "Brokerage Investment",
           "type": "taxable", 
-          "balance": 518000,
+          "balance": 500000,
           "return_schedule": "market_growth",
           "notes": "Taxable investment account"
         },
         {
           "name": "Traditional IRA",
           "type": "tax_deferred",
-          "balance": 320000,
+          "balance": 300000,
           "return_schedule": "ira_growth",
           "notes": "Subject to RMDs at 73, tax optimization target"
         },
         {
           "name": "Roth IRA",
           "type": "tax_free",
-          "balance": 12000,
+          "balance": 15000,
           "return_schedule": "roth_growth",
           "notes": "Tax-free growth and withdrawals"
         }
@@ -89,11 +89,11 @@
       }
     },
   
-    "jeffs-tax-optimized-strategy": {
+    "tax-optimized-strategy": {
       "metadata": {
-        "title": "Jeff's Tax-Optimized Strategy (Manual Approximation)",
-        "description": "Manually modeling Roth conversions via deposits to approximate tax optimization",
-        "tags": ["personal", "tax-optimization", "roth-conversion-simulation"]
+        "title": "Tax-Optimized Strategy with Roth Conversions",
+        "description": "Strategic Roth conversions during low-income years to minimize lifetime taxes",
+        "tags": ["tax-optimization", "roth-conversion", "advanced-strategy"]
       },
       "plan": {
         "monthly_expenses": 6500,
@@ -103,13 +103,13 @@
       },
       "income": [
         {
-          "name": "SSDI",
+          "name": "Early Social Security",
           "amount": 2500,
           "start_month": 8
         },
         {
           "name": "Full Social Security", 
-          "amount": 3469,
+          "amount": 3400,
           "start_month": 84
         }
       ],
@@ -117,26 +117,26 @@
         {
           "name": "High-Yield Savings",
           "type": "taxable",
-          "balance": 129000,
+          "balance": 125000,
           "min_balance": 30000,
           "return_schedule": "savings_rate"
         },
         {
           "name": "Brokerage Investment",
           "type": "taxable",
-          "balance": 518000, 
+          "balance": 500000, 
           "return_schedule": "market_growth"
         },
         {
           "name": "Traditional IRA",
           "type": "tax_deferred",
-          "balance": 320000,
+          "balance": 300000,
           "return_schedule": "ira_growth"
         },
         {
           "name": "Roth IRA", 
           "type": "tax_free",
-          "balance": 12000,
+          "balance": 15000,
           "return_schedule": "roth_growth"
         },
         {
