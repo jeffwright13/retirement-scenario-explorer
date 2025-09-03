@@ -11,6 +11,7 @@ import { MonteCarloService } from './services/MonteCarloService.js';
 import { ReturnModelService } from './services/ReturnModelService.js';
 import { StoryEngineService } from './services/StoryEngineService.js';
 import { ExamplesService } from './services/ExamplesService.js';
+import { ScenarioBuilderService } from './services/ScenarioBuilderService.js';
 import { UIController } from './controllers/UIController.js';
 import { ScenarioController } from './controllers/ScenarioController.js';
 import { StoryController } from './controllers/StoryController.js';
@@ -20,9 +21,11 @@ import { WorkflowController } from './controllers/WorkflowController.js';
 import { MonteCarloController } from './controllers/MonteCarloController.js';
 import { InsightsController } from './controllers/InsightsController.js';
 import { ExportController } from './controllers/ExportController.js';
+import { ScenarioBuilderController } from './controllers/ScenarioBuilderController.js';
 import { MonteCarloChart } from './components/MonteCarloChart.js';
 import { MonteCarloUI } from './ui/MonteCarloUI.js';
 import { StoryUI } from './ui/StoryUI.js';
+import { ScenarioBuilderUI } from './ui/ScenarioBuilderUI.js';
 
 class RetirementScenarioApp {
   constructor() {
@@ -53,28 +56,45 @@ class RetirementScenarioApp {
     this.monteCarloService = new MonteCarloService(this.eventBus);
     this.storyEngineService = new StoryEngineService(this.eventBus);
     this.examplesService = new ExamplesService(this.eventBus);
+    this.scenarioBuilderService = new ScenarioBuilderService(this.eventBus);
   }
 
   /**
    * Initialize all controllers
    */
   initializeControllers() {
-    // Initialize mode controller first to handle mode switching
-    this.modeController = new ModeController(this.eventBus);
-    
-    // Initialize workflow controller for guided user experience
+    // Core UI and workflow controllers
+    this.uiController = new UIController(this.eventBus);
+    this.scenarioController = new ScenarioController(
+      this.contentService, 
+      this.simulationService, 
+      this.validationService, 
+      this.eventBus
+    );
     this.workflowController = new WorkflowController(this.eventBus);
     
-    // Initialize tab controller for Scenario Mode tabbed interface
-    this.tabController = new TabController(this.eventBus);
-    
-    // Story Mode is temporarily disabled
-    console.warn('⚠️ Story Mode is currently disabled for maintenance');
-    
-    // Initialize Story UI in a disabled state
+    // UI components (must be created before controllers that use them)
+    this.monteCarloChart = new MonteCarloChart(this.eventBus);
+    this.monteCarloUI = new MonteCarloUI(this.eventBus);
     this.storyUI = new StoryUI(this.eventBus);
+    this.scenarioBuilderUI = new ScenarioBuilderUI(this.eventBus);
     
-    // Create but don't initialize StoryController
+    // Feature controllers
+    this.monteCarloController = new MonteCarloController(
+      this.eventBus,
+      this.monteCarloService,
+      this.monteCarloChart,
+      this.monteCarloUI
+    );
+    this.insightsController = new InsightsController(this.eventBus);
+    this.exportController = new ExportController(this.eventBus);
+    this.scenarioBuilderController = new ScenarioBuilderController(
+      this.eventBus,
+      this.scenarioBuilderService,
+      this.scenarioBuilderUI
+    );
+    
+    // Story mode controllers (if enabled)
     this.storyController = new Proxy({}, {
       get: (target, prop) => {
         if (prop === 'isInStoryMode') return () => false;
@@ -89,24 +109,8 @@ class RetirementScenarioApp {
       this.eventBus.emit('mode:switch-to-scenario');
     });
     
-    this.scenarioController = new ScenarioController(
-      this.contentService, 
-      this.simulationService, 
-      this.validationService, 
-      this.eventBus
-    );
-    
-    this.uiController = new UIController(this.eventBus);
-    this.exportController = new ExportController(this.eventBus);
-    this.monteCarloController = new MonteCarloController(
-      this.eventBus,
-      this.monteCarloService,
-      this.monteCarloChart,
-      this.monteCarloUI
-    );
-    this.monteCarloChart = new MonteCarloChart(this.eventBus);
-    this.monteCarloUI = new MonteCarloUI(this.eventBus);
-    this.insightsController = new InsightsController(this.eventBus);
+    this.modeController = new ModeController(this.eventBus);
+    this.tabController = new TabController(this.eventBus);
   }
 
   /**
@@ -239,6 +243,8 @@ class RetirementScenarioApp {
     this.monteCarloChart.initialize();
     this.monteCarloUI.initialize();
     this.storyUI.initialize();
+    this.scenarioBuilderController.initialize();
+    this.scenarioBuilderUI.initialize();
     
     // Load initial content and examples
     await this.contentService.loadAllContent();
@@ -386,7 +392,8 @@ class RetirementScenarioApp {
     return {
       story: this.storyController,
       scenario: this.scenarioController,
-      ui: this.uiController
+      ui: this.uiController,
+      scenarioBuilder: this.scenarioBuilderController
     };
   }
 
@@ -398,7 +405,8 @@ class RetirementScenarioApp {
     return {
       content: this.contentService,
       simulation: this.simulationService,
-      validation: this.validationService
+      validation: this.validationService,
+      scenarioBuilder: this.scenarioBuilderService
     };
   }
 }

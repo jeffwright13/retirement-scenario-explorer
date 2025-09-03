@@ -31,7 +31,8 @@ const mockDOMElements = {
   'run-monte-carlo-btn': { disabled: true, textContent: '' },
   'single-analysis-status': { innerHTML: '', style: {} },
   'monte-carlo-analysis-status': { innerHTML: '', style: {} },
-  'scenario-preview': { classList: { remove: jest.fn(), add: jest.fn() } }
+  'scenario-preview': { classList: { remove: jest.fn(), add: jest.fn() } },
+  'create-new-scenario-btn': { addEventListener: jest.fn() }
 };
 
 // Mock document.getElementById and querySelector

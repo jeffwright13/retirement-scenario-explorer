@@ -26,6 +26,8 @@ describe('Testing Setup Verification', () => {
     document.body.innerHTML = `
       <div id="test-element">Test Content</div>
       <button id="test-button">Click Me</button>
+      <button id="create-new-scenario-btn">Create New Scenario</button>
+      <div id="notification-container"></div>
     `;
   });
 

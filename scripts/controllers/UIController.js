@@ -34,6 +34,7 @@ export class UIController {
     this.scenarioDropdown = document.getElementById('scenario-dropdown');
     this.storyDropdown = document.getElementById('story-dropdown');
     this.runButton = document.getElementById('run-btn-primary');
+    this.createScenarioBtn = document.getElementById('create-scenario-btn');
     // Note: jsonPreview is no longer used - we have enhanced config synopsis instead
     this.jsonPreview = null; // Deprecated - using enhanced config synopsis
     
@@ -49,6 +50,7 @@ export class UIController {
     console.log('🎨 UI elements initialized:', {
       scenarioDropdown: !!this.scenarioDropdown,
       runButton: !!this.runButton,
+      createScenarioBtn: !!this.createScenarioBtn,
       jsonPreview: !!this.jsonPreview,
       resultsSection: !!this.resultsSection,
       chartArea: !!this.chartArea,
@@ -112,6 +114,9 @@ export class UIController {
     const toggleJsonBtn = document.getElementById('toggle-json-btn');
     if (toggleJsonBtn) {
       toggleJsonBtn.addEventListener('click', () => {
+        // Navigate to step 1 (Choose Your Scenario) first
+        this.eventBus.emit('workflow:activate-step', { step: 1 });
+        // Then toggle the JSON editor
         this.toggleJsonEditor();
       });
     }
@@ -161,6 +166,15 @@ export class UIController {
     if (manageCustomBtn) {
       manageCustomBtn.addEventListener('click', () => {
         this.openCustomScenarioModal();
+      });
+    }
+
+    // Create New Scenario button
+    const createNewScenarioBtn = document.getElementById('create-scenario-btn');
+    if (createNewScenarioBtn) {
+      createNewScenarioBtn.addEventListener('click', () => {
+        console.log('🏗️ Create New Scenario button clicked');
+        this.eventBus.emit('scenario-builder:open');
       });
     }
 
@@ -962,6 +976,7 @@ export class UIController {
     const feedback = document.getElementById('json-validation-feedback');
     if (feedback) {
       feedback.style.display = 'none';
+      feedback.className = 'validation-feedback'; // Reset class to base state
     }
     this.toggleJsonEditor();
     console.log('❌ JSON changes cancelled');
@@ -994,6 +1009,7 @@ export class UIController {
       // Show success feedback
       feedback.className = 'validation-feedback success';
       feedback.textContent = '✅ JSON is valid and ready to save!';
+      feedback.style.display = ''; // Clear any inline display style
       
       console.log('✅ JSON validation passed');
       
@@ -1001,6 +1017,7 @@ export class UIController {
       // Show error feedback
       feedback.className = 'validation-feedback error';
       feedback.textContent = `❌ Validation Error: ${error.message}`;
+      feedback.style.display = ''; // Clear any inline display style
       console.error('❌ JSON validation error:', error);
     }
   }
@@ -1724,6 +1741,16 @@ export class UIController {
     const csvButton = document.getElementById('toggle-csv-btn');
     if (csvButton) {
       csvButton.style.display = 'none';
+    }
+  }
+
+  /**
+   * Hide Export Single Results button when simulation starts
+   */
+  hideExportSingleResultsButton() {
+    const singleResultsButton = document.getElementById('export-single-results-btn');
+    if (singleResultsButton) {
+      singleResultsButton.style.display = 'none';
     }
   }
 

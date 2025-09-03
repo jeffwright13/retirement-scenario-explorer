@@ -1,0 +1,226 @@
+{
+  "perfect-world-70k": {
+    "title": "Perfect World: Living on Exactly 7% Returns",
+    "description": "The theoretical scenario your brother-in-law described: $1M earning 7%, spending exactly $70K/year. This works in a perfect world with no inflation, market volatility, or real-life complications.",
+    "plan": {
+      "monthly_expenses": 5833,
+      "duration_months": 360
+    },
+    "income": [],
+    "assets": [
+      {
+        "name": "Investment Portfolio",
+        "type": "taxable",
+        "balance": 1000000,
+        "interest_rate": 0.07,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Investment Portfolio",
+        "order": 1
+      }
+    ]
+  },
+
+  "realistic-90k-lifestyle": {
+    "title": "Reality Check: $90K Annual Lifestyle",
+    "description": "More realistic scenario: $1M portfolio, but needing $90K/year ($7,500/month) for comfortable retirement. Watch how the 'death spiral' begins immediately as you withdraw more than the returns generate.",
+    "plan": {
+      "monthly_expenses": 7500,
+      "duration_months": 360
+    },
+    "income": [],
+    "assets": [
+      {
+        "name": "Investment Portfolio",
+        "type": "taxable",
+        "balance": 1000000,
+        "interest_rate": 0.07,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Investment Portfolio",
+        "order": 1
+      }
+    ]
+  },
+
+  "the-4-percent-rule": {
+    "title": "The 4% Rule: Why It Exists",
+    "description": "Financial planners recommend 4% withdrawal rate ($40K from $1M) because it historically survives market volatility and inflation. Notice how this preserves wealth much longer.",
+    "plan": {
+      "monthly_expenses": 3333,
+      "duration_months": 360
+    },
+    "income": [],
+    "assets": [
+      {
+        "name": "Investment Portfolio",
+        "type": "taxable",
+        "balance": 1000000,
+        "interest_rate": 0.07,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Investment Portfolio",
+        "order": 1
+      }
+    ]
+  },
+
+  "with-social-security-buffer": {
+    "title": "Adding Social Security: Game Changer",
+    "description": "Same $90K lifestyle, but Social Security starts at 67 ($2,800/month). This reduces the portfolio withdrawal to $4,700/month and dramatically improves sustainability.",
+    "plan": {
+      "monthly_expenses": 7500,
+      "duration_months": 360
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 2800,
+        "start_month": 84
+      }
+    ],
+    "assets": [
+      {
+        "name": "Investment Portfolio", 
+        "type": "taxable",
+        "balance": 1000000,
+        "interest_rate": 0.07,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Investment Portfolio",
+        "order": 1
+      }
+    ]
+  },
+
+  "inflation-reality-check": {
+    "title": "Inflation Reality: 3% Annual Expense Growth",
+    "description": "Same $1M portfolio and $70K starting expenses, BUT expenses grow 3% annually due to inflation. Even living 'within your means' initially, inflation slowly destroys the math.",
+    "plan": {
+      "monthly_expenses": 5833,
+      "inflation_rate": 0.03,
+      "duration_months": 360
+    },
+    "income": [],
+    "assets": [
+      {
+        "name": "Investment Portfolio",
+        "type": "taxable", 
+        "balance": 1000000,
+        "interest_rate": 0.07,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Investment Portfolio",
+        "order": 1
+      }
+    ]
+  },
+
+  "sequence-risk-simulation": {
+    "title": "Sequence of Returns Risk Demo",
+    "description": "Shows why early market crashes are devastating. Same $1M, $90K lifestyle, but imagine 2008-style crash in years 1-2. Even with recovery, early losses + withdrawals = disaster.",
+    "plan": {
+      "monthly_expenses": 7500,
+      "duration_months": 360
+    },
+    "income": [],
+    "assets": [
+      {
+        "name": "Investment Portfolio (Pre-Crash)",
+        "type": "taxable",
+        "balance": 1000000,
+        "interest_rate": 0.07,
+        "compounding": "monthly"
+      },
+      {
+        "name": "Market Crash Loss Year 1",
+        "type": "taxable",
+        "balance": -200000,
+        "start_month": 12
+      },
+      {
+        "name": "Market Crash Loss Year 2", 
+        "type": "taxable",
+        "balance": -100000,
+        "start_month": 24
+      }
+    ],
+    "order": [
+      {
+        "account": "Investment Portfolio (Pre-Crash)",
+        "order": 1
+      }
+    ]
+  },
+
+  "what-you-actually-need": {
+    "title": "What You Actually Need: $2.25M for $90K Lifestyle",
+    "description": "Following the 4% rule: $90K ÷ 4% = $2.25M needed. This scenario shows how $2.25M can sustainably provide $90K/year indefinitely with 7% returns.",
+    "plan": {
+      "monthly_expenses": 7500,
+      "duration_months": 360
+    },
+    "income": [],
+    "assets": [
+      {
+        "name": "Properly Sized Portfolio",
+        "type": "taxable",
+        "balance": 2250000,
+        "interest_rate": 0.07,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "Properly Sized Portfolio", 
+        "order": 1
+      }
+    ]
+  },
+
+  "middle-class-reality": {
+    "title": "Middle Class Reality: $500K + Social Security",
+    "description": "More typical scenario: $500K in retirement savings, modest $60K/year needs, Social Security at 67. Shows why most people can't afford to retire early.",
+    "plan": {
+      "monthly_expenses": 5000,
+      "duration_months": 360
+    },
+    "income": [
+      {
+        "name": "Social Security",
+        "amount": 2400,
+        "start_month": 84
+      }
+    ],
+    "assets": [
+      {
+        "name": "401k & IRA",
+        "type": "taxable",
+        "balance": 500000,
+        "interest_rate": 0.06,
+        "compounding": "monthly"
+      }
+    ],
+    "order": [
+      {
+        "account": "401k & IRA",
+        "order": 1
+      }
+    ]
+  }
+}
