@@ -226,36 +226,95 @@ export class MonteCarloController {
 
   /**
    * Get default variable ranges for retirement scenarios
-   * Focus on varying ASSET RETURNS for market-dependent investments
+   * Dynamically generates ranges based on asset market_dependent flags
    */
   getDefaultVariableRanges() {
-    return {
-      // Investment account returns (stocks/bonds) - high volatility
-      'rate_schedules.investment_growth.rate': {
-        type: 'normal',
-        mean: 0.065, // 6.5% baseline from scenario
-        stdDev: 0.15 // 15% annual volatility (realistic for stock/bond mix)
-      },
-      
-      // Traditional IRA returns (market-dependent) - high volatility  
-      'rate_schedules.ira_growth.rate': {
-        type: 'normal',
-        mean: 0.0625, // 6.25% baseline from scenario
-        stdDev: 0.14 // 14% annual volatility (slightly more conservative)
-      },
-      
-      // Roth IRA returns (market-dependent) - high volatility
-      'rate_schedules.roth_growth.rate': {
-        type: 'normal',
-        mean: 0.07, // 7% baseline from scenario  
-        stdDev: 0.16 // 16% annual volatility (potentially more aggressive allocation)
+    const variableRanges = {};
+    
+    if (!this.currentScenarioData || !this.currentScenarioData.assets) {
+      console.log('🎲 MonteCarloController: No scenario data available for variable ranges');
+      return variableRanges;
+    }
+
+    // Scan assets for market-dependent investments
+    this.currentScenarioData.assets.forEach(asset => {
+      if (asset.market_dependent === true && asset.return_schedule) {
+        const scheduleKey = `rate_schedules.${asset.return_schedule}.rate`;
+        
+        // Get current rate from rate schedules
+        const currentRate = this.currentScenarioData.rate_schedules?.[asset.return_schedule]?.rate || 0.07;
+        
+        // Determine volatility based on asset type
+        const volatility = this.getVolatilityForAsset(asset);
+        
+        variableRanges[scheduleKey] = {
+          type: 'normal',
+          mean: currentRate,
+          stdDev: volatility
+        };
+        
+        console.log(`🎲 MonteCarloController: Adding variability to ${asset.name} (${asset.return_schedule}): ${(currentRate * 100).toFixed(1)}% ± ${(volatility * 100).toFixed(1)}%`);
+      } else {
+        console.log(`🎲 MonteCarloController: Keeping ${asset.name} stable (market_dependent: ${asset.market_dependent})`);
       }
+    });
+
+    console.log(`🎲 MonteCarloController: Generated ${Object.keys(variableRanges).length} variable ranges`);
+    return variableRanges;
+  }
+
+
+  /**
+   * Get appropriate volatility for an asset based on its type
+   */
+  getVolatilityForAsset(asset) {
+    // Use investment type if available (from scenario builder)
+    if (asset.investment_type) {
+      const investmentType = asset.investment_type.toLowerCase();
       
-      // NOTE: Savings account (savings_growth) intentionally NOT varied
-      // as it represents stable bank savings/CDs with predictable returns
-      // NOTE: Expenses and income intentionally NOT varied 
-      // as they represent planned/contractual amounts
-    };
+      switch (investmentType) {
+        case 'stocks':
+          return 0.18; // 18% volatility for stocks
+        case 'bonds':
+          return 0.08; // 8% volatility for bonds
+        case 'mixed':
+          return 0.12; // 12% volatility for mixed portfolios
+        case 'real_estate':
+          return 0.15; // 15% volatility for REITs
+        case 'savings':
+        case 'cd':
+        case 'money_market':
+          return 0.02; // 2% volatility for stable assets (minimal)
+        default:
+          return 0.12; // Default mixed portfolio volatility
+      }
+    }
+
+    // Fallback to legacy keyword matching for backward compatibility
+    const assetType = asset.type?.toLowerCase() || '';
+    const assetName = asset.name?.toLowerCase() || '';
+
+    // Conservative investments (but still market-dependent) - check first
+    if (assetName.includes('conservative') || assetName.includes('stable')) {
+      return 0.05; // 5% volatility for conservative investments
+    }
+
+    // High volatility assets (stocks, aggressive investments)
+    if (assetType.includes('stock') || assetName.includes('stock') || 
+        assetType.includes('equity') || assetName.includes('equity') ||
+        assetName.includes('aggressive')) {
+      return 0.18; // 18% volatility for stocks
+    }
+
+    // Medium volatility assets (bonds, balanced funds)
+    if (assetType.includes('bond') || assetName.includes('bond') ||
+        assetName.includes('balanced') || assetName.includes('mixed') ||
+        assetType.includes('investment')) {
+      return 0.08; // 8% volatility for bonds and general investments
+    }
+
+    // Default volatility for general investments
+    return 0.15; // 15% volatility for mixed stock/bond portfolios
   }
 
   /**
@@ -280,10 +339,10 @@ export class MonteCarloController {
     const progressText = document.getElementById('monte-carlo-progress-text');
     
     if (progressBar && progressText) {
-      if (this.isAnalysisRunning) {
+      if (this.isAnalysisRunning && this.analysisProgress) {
         progressBar.style.display = 'block';
-        progressBar.value = this.analysisProgress.percentage;
-        progressText.textContent = `${this.analysisProgress.completed}/${this.analysisProgress.total} (${this.analysisProgress.percentage}%)`;
+        progressBar.value = this.analysisProgress.percentage || 0;
+        progressText.textContent = `${this.analysisProgress.completed || 0}/${this.analysisProgress.total || 0} (${this.analysisProgress.percentage || 0}%)`;
       } else {
         progressBar.style.display = 'none';
         progressText.textContent = '';

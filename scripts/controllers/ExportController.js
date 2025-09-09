@@ -92,6 +92,7 @@ export class ExportController {
     this.eventBus.on('montecarlo:completed', (data) => {
       this.monteCarloResults = data;
       this.updateToolbarVisibility();
+      console.log('📊 ExportController: Monte Carlo results received, updating toolbar visibility');
     });
 
     // Clear results when new scenario is selected
@@ -122,10 +123,14 @@ export class ExportController {
     const showResultsBtn = this.currentTab === 'single-analysis' && this.simulationResults !== null;
     this.toggleButton(this.scenarioResultsBtn, showResultsBtn);
 
-    // Monte Carlo buttons - visible on MC tab when results exist
-    const showMCBtn = this.currentTab === 'monte-carlo' && this.monteCarloResults !== null;
+    // Monte Carlo buttons - visible when results exist (regardless of tab)
+    const showMCBtn = this.monteCarloResults !== null;
     this.toggleButton(this.monteCarloResultsBtn, showMCBtn);
     this.toggleButton(this.monteCarloReturnsBtn, showMCBtn);
+    
+    if (showMCBtn) {
+      console.log('📊 ExportController: Showing MC export buttons');
+    }
   }
 
   /**

@@ -313,21 +313,38 @@ export function simulateScenarioAdvanced(scenario) {
     }
 
     // 5. Apply asset growth (FIXED: Now works with both old and new rate systems)
-    for (const assetName of allAssetNames) {
-      const asset = assetMap[assetName];
-      
-      if (asset && asset.balance !== undefined) {
-        // Asset is active - apply growth
-        const growthRate = rateManager.getRate(asset.return_schedule, month);
-        const monthlyGrowthRate = growthRate / 12;
-        const growth = asset.balance * monthlyGrowthRate;
-        asset.balance += growth;
+    // CRITICAL FIX: Only apply growth if auto-stop hasn't occurred yet
+    if (autoStoppedMonth === null) {
+      for (const assetName of allAssetNames) {
+        const asset = assetMap[assetName];
         
-        // Record the new balance
-        balanceHistory[assetName].push(asset.balance);
-      } else {
-        // Asset is not yet active - record zero
-        balanceHistory[assetName].push(0);
+        if (asset && asset.balance !== undefined) {
+          // Asset is active - apply growth
+          const growthRate = rateManager.getRate(asset.return_schedule, month);
+          const monthlyGrowthRate = growthRate / 12;
+          const growth = asset.balance * monthlyGrowthRate;
+          asset.balance += growth;
+          
+          // Record the new balance
+          balanceHistory[assetName].push(asset.balance);
+        } else {
+          // Asset is not yet active - record zero
+          balanceHistory[assetName].push(0);
+        }
+      }
+    } else {
+      // Auto-stop has occurred - freeze asset growth, just record current balances
+      console.log(`❄️ Asset growth frozen after auto-stop at month ${autoStoppedMonth}`);
+      for (const assetName of allAssetNames) {
+        const asset = assetMap[assetName];
+        
+        if (asset && asset.balance !== undefined) {
+          // Record frozen balance (no growth)
+          balanceHistory[assetName].push(asset.balance);
+        } else {
+          // Asset is not yet active - record zero
+          balanceHistory[assetName].push(0);
+        }
       }
     }
 
@@ -339,6 +356,7 @@ export function simulateScenarioAdvanced(scenario) {
       autoStoppedMonth = month + 1;
       actualDuration = month + 1;
       console.log(`🛑 Auto-stopping simulation at month ${actualDuration} due to shortfall of $${remainingShortfall.toFixed(2)}`);
+      console.log(`❄️ Asset growth will be frozen from this point forward`);
       
       // Debug: Log current asset balances at auto-stop
       console.log(`📊 Asset balances at auto-stop:`, Object.fromEntries(

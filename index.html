@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Retirement Scenario Explorer</title>
+  <link rel="icon" type="image/png" href="favicon.png">
   <script src="https://cdn.plot.ly/plotly-3.1.0.js" charset="utf-8"></script>
   <!-- AJV temporarily disabled due to MIME type issues -->
   <!-- <script src="https://unpkg.com/ajv@8.12.0/dist/ajv.bundle.js"></script> -->
@@ -339,6 +340,12 @@
           
           <div class="simulation-options">
             <button id="toggle-csv-btn" class="btn btn--secondary" style="display: none;">📊 Export CSV Data</button>
+          </div>
+          
+          <!-- CSV Export Container -->
+          <div id="csv-container" class="csv-container csv-container--collapsed" style="display: none;">
+            <h4>📊 CSV Export Data</h4>
+            <pre id="csv-text"></pre>
           </div>
           
         </div>

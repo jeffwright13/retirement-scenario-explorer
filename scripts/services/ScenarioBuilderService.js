@@ -209,8 +209,11 @@ export class ScenarioBuilderService {
    */
   convertFormToJson(formData) {
     const scenario = {
-      title: formData.title,
-      description: formData.description || '',
+      metadata: {
+        title: formData.title || 'Custom Scenario',
+        description: formData.description || 'Created with Scenario Builder',
+        tags: ['custom']
+      },
       plan: {
         monthly_expenses: formData.monthlyExpenses,
         duration_months: formData.durationYears * 12,
@@ -262,7 +265,9 @@ export class ScenarioBuilderService {
           type: asset.type || 'taxable',
           balance: asset.balance,
           compounding: 'monthly',
-          return_schedule: scheduleKey
+          return_schedule: scheduleKey,
+          market_dependent: asset.marketDependent !== undefined ? asset.marketDependent : this.getMarketDependency(asset),
+          investment_type: asset.investmentType || 'mixed'
         };
 
         if (asset.returnRate) {
@@ -300,13 +305,53 @@ export class ScenarioBuilderService {
       }));
     }
 
-    console.log('🏗️ JSON scenario ready:', scenario);
-    console.log('🏗️ Assets in scenario:', scenario.assets);
+    console.log('🏗️ ScenarioBuilderService: Converted form data to scenario JSON:', scenario);
+    console.log('🏗️ Assets in scenario:', scenario.assets.map(a => `${a.name} (market_dependent: ${a.market_dependent})`));
     console.log('🏗️ Rate schedules created:', Object.keys(scenario.rate_schedules));
-    if (scenario.assets.length > 0) {
-      console.log('🏗️ First asset return_schedule:', scenario.assets[0].return_schedule);
-    }
     return scenario;
+  }
+
+  /**
+   * Determine if an asset should be subject to market volatility in Monte Carlo analysis
+   */
+  getMarketDependency(asset) {
+    // Check if explicitly set by user
+    if (asset.marketDependent !== undefined) {
+      return asset.marketDependent;
+    }
+
+    // Use investment type if available
+    if (asset.investmentType) {
+      const investmentType = asset.investmentType.toLowerCase();
+      
+      // Stable investment types
+      const STABLE_INVESTMENT_TYPES = ['savings', 'cd', 'money_market'];
+      if (STABLE_INVESTMENT_TYPES.includes(investmentType)) {
+        return false;
+      }
+      
+      // Market-dependent investment types
+      const MARKET_DEPENDENT_TYPES = ['stocks', 'bonds', 'mixed', 'real_estate'];
+      if (MARKET_DEPENDENT_TYPES.includes(investmentType)) {
+        return true;
+      }
+    }
+
+    // Fallback to legacy keyword matching for backward compatibility
+    const assetName = asset.name?.toLowerCase() || '';
+    const STABLE_KEYWORDS = ['savings', 'cash', 'cd', 'certificate', 'money market'];
+    const MARKET_DEPENDENT_KEYWORDS = ['stock', 'equity', 'investment', 'mutual', 'etf', 'reit', 'bond'];
+
+    if (STABLE_KEYWORDS.some(keyword => assetName.includes(keyword))) {
+      return false;
+    }
+
+    if (MARKET_DEPENDENT_KEYWORDS.some(keyword => assetName.includes(keyword))) {
+      return true;
+    }
+
+    // Default: assume market-dependent for unknown types (conservative approach)
+    return true;
   }
 
   /**

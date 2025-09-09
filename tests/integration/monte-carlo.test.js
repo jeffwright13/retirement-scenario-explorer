@@ -275,21 +275,39 @@ describe('Monte Carlo Analysis Integration', () => {
     });
 
     test('should get default variable ranges', () => {
+      // Set up scenario data with market-dependent assets
+      monteCarloController.currentScenarioData = {
+        assets: [
+          {
+            name: 'Stock Portfolio',
+            type: 'taxable',
+            return_schedule: 'stocks_growth',
+            market_dependent: true,
+            investment_type: 'stocks'
+          }
+        ],
+        rate_schedules: {
+          stocks_growth: { type: 'fixed', rate: 0.08 }
+        }
+      };
+
       const ranges = monteCarloController.getDefaultVariableRanges();
       
       expect(ranges).toBeDefined();
       expect(typeof ranges).toBe('object');
       
-      // Should include at least some default ranges
+      // Should include ranges for market-dependent assets
       const rangeKeys = Object.keys(ranges);
       expect(rangeKeys.length).toBeGreaterThan(0);
       
-      // Check structure of first range if any exist
-      if (rangeKeys.length > 0) {
-        const firstRange = ranges[rangeKeys[0]];
-        expect(firstRange).toHaveProperty('type');
-        expect(['normal', 'uniform', 'triangular']).toContain(firstRange.type);
-      }
+      // Check structure of first range
+      const firstRange = ranges[rangeKeys[0]];
+      expect(firstRange).toHaveProperty('mean');
+      expect(firstRange).toHaveProperty('stdDev');
+      expect(firstRange).toHaveProperty('type');
+      expect(typeof firstRange.mean).toBe('number');
+      expect(typeof firstRange.stdDev).toBe('number');
+      expect(typeof firstRange.type).toBe('string');
     });
 
     test('should export results in JSON format', () => {

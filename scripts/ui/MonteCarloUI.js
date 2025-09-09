@@ -7,6 +7,9 @@ export class MonteCarloUI {
     this.eventBus = eventBus;
     this.isInitialized = false;
     
+    // Current scenario data (stored from event bus)
+    this.currentScenarioData = null;
+    
     // UI elements will be initialized when DOM is ready
     this.runButton = null;
     this.cancelButton = null;
@@ -28,7 +31,29 @@ export class MonteCarloUI {
   initialize() {
     console.log('🎲 Initializing Monte Carlo UI');
     this.setupEventListeners();
+    this.setupScenarioDataListeners();
     this.isInitialized = true;
+  }
+
+  /**
+   * Set up event listeners for scenario data changes
+   */
+  setupScenarioDataListeners() {
+    // Listen for scenario changes to update our state
+    this.eventBus.on('scenario:selected', (data) => {
+      this.currentScenarioData = data.scenario;
+      console.log('🎲 MonteCarloUI: Scenario data updated via scenario:selected:', data.scenario?.metadata?.title);
+    });
+
+    this.eventBus.on('scenario:loaded', (data) => {
+      this.currentScenarioData = data.scenario;
+      console.log('🎲 MonteCarloUI: Scenario data updated via scenario:loaded:', data.scenario?.name);
+    });
+
+    this.eventBus.on('scenario:data-changed', (data) => {
+      this.currentScenarioData = data.scenarioData;
+      console.log('🎲 MonteCarloUI: Scenario data updated via scenario:data-changed:', data.scenarioData?.metadata?.title);
+    });
   }
 
   /**
@@ -166,18 +191,20 @@ export class MonteCarloUI {
     }
     
     // Get target survival time in years (convert to months)
+    const scenarioDurationMonths = this.currentScenarioData?.plan?.duration_months || 300;
+    
     if (this.targetYearsInput && this.targetYearsInput.value) {
       const targetYears = parseFloat(this.targetYearsInput.value);
       if (targetYears && targetYears > 0) {
         config.targetSurvivalMonths = Math.round(targetYears * 12);
         console.log(`🎲 MonteCarloUI: Target years from input: ${targetYears}, converted to months: ${config.targetSurvivalMonths}`);
       } else {
-        config.targetSurvivalMonths = 300; // Default 25 years
-        console.log('🎲 MonteCarloUI: Invalid target years input, using default: 300 months (25 years)');
+        config.targetSurvivalMonths = scenarioDurationMonths; // Use scenario duration
+        console.log(`🎲 MonteCarloUI: Invalid target years input, using scenario duration: ${scenarioDurationMonths} months (${(scenarioDurationMonths/12).toFixed(1)} years)`);
       }
     } else {
-      config.targetSurvivalMonths = 300; // Default 25 years
-      console.log('🎲 MonteCarloUI: No target years input, using default: 300 months (25 years)');
+      config.targetSurvivalMonths = scenarioDurationMonths; // Use scenario duration
+      console.log(`🎲 MonteCarloUI: No target years input, using scenario duration: ${scenarioDurationMonths} months (${(scenarioDurationMonths/12).toFixed(1)} years)`);
     }
     console.log(`🎲 MonteCarloUI: FINAL CONFIG - Using target months: ${config.targetSurvivalMonths} (${(config.targetSurvivalMonths/12).toFixed(1)} years)`);
     console.log(`🎲 MonteCarloUI: FULL CONFIG OBJECT:`, JSON.stringify(config, null, 2));

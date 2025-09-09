@@ -75,19 +75,22 @@
         "name": "Investment",
         "type": "taxable",
         "balance": 500000,
-        "return_schedule": "investment_growth"
+        "return_schedule": "investment_growth",
+        "market_dependent": true
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
         "balance": 300000,
-        "return_schedule": "ira_growth"
+        "return_schedule": "ira_growth",
+        "market_dependent": true
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
         "balance": 15000,
-        "return_schedule": "roth_growth"
+        "return_schedule": "roth_growth",
+        "market_dependent": true
       }
     ],
     "order": [
@@ -130,19 +133,22 @@
         "name": "Investment",
         "type": "taxable",
         "balance": 500000,
-        "return_schedule": "investment_growth"
+        "return_schedule": "investment_growth",
+        "market_dependent": true
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
         "balance": 300000,
-        "return_schedule": "ira_growth"
+        "return_schedule": "ira_growth",
+        "market_dependent": true
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
         "balance": 15000,
-        "return_schedule": "roth_growth"
+        "return_schedule": "roth_growth",
+        "market_dependent": true
       }
     ],
     "order": [
@@ -192,19 +198,22 @@
         "name": "Investment",
         "type": "taxable",
         "balance": 513000,
-        "return_schedule": "investment_growth"
+        "return_schedule": "investment_growth",
+        "market_dependent": true
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
         "balance": 323000,
-        "return_schedule": "ira_growth"
+        "return_schedule": "ira_growth",
+        "market_dependent": true
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
         "balance": 12000,
-        "return_schedule": "roth_growth"
+        "return_schedule": "roth_growth",
+        "market_dependent": true
       }
     ],
     "order": [
@@ -248,25 +257,29 @@
         "type": "taxable",
         "balance": 129000,
         "min_balance": 60000,
-        "return_schedule": "savings_growth"
+        "return_schedule": "savings_growth",
+        "market_dependent": false
       },
       {
         "name": "Investment",
         "type": "taxable",
         "balance": 513000,
-        "return_schedule": "investment_growth"
+        "return_schedule": "investment_growth",
+        "market_dependent": true
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
         "balance": 323000,
-        "return_schedule": "ira_growth"
+        "return_schedule": "ira_growth",
+        "market_dependent": true
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
         "balance": 12000,
-        "return_schedule": "roth_growth"
+        "return_schedule": "roth_growth",
+        "market_dependent": true
       }
     ],
     "order": [
@@ -335,7 +348,8 @@
         "name": "Traditional IRA",
         "type": "tax_deferred",
         "balance": 323000,
-        "return_schedule": "ira_growth"
+        "return_schedule": "ira_growth",
+        "market_dependent": true
       },
       {
         "name": "Roth IRA",
@@ -399,19 +413,22 @@
         "name": "Investment",
         "type": "taxable",
         "balance": 620000,
-        "return_schedule": "investment_growth"
+        "return_schedule": "investment_growth",
+        "market_dependent": true
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
         "balance": 375000,
-        "return_schedule": "ira_growth"
+        "return_schedule": "ira_growth",
+        "market_dependent": true
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
         "balance": 25000,
-        "return_schedule": "roth_growth"
+        "return_schedule": "roth_growth",
+        "market_dependent": true
       }
     ],
     "order": [
@@ -458,19 +475,22 @@
         "name": "Brokerage Investment",
         "type": "taxable",
         "balance": 500000,
-        "return_schedule": "investment_growth"
+        "return_schedule": "investment_growth",
+        "market_dependent": true
       },
       {
         "name": "Traditional IRA",
         "type": "tax_deferred",
         "balance": 300000,
-        "return_schedule": "ira_growth"
+        "return_schedule": "ira_growth",
+        "market_dependent": true
       },
       {
         "name": "Roth IRA",
         "type": "tax_free",
         "balance": 15000,
-        "return_schedule": "roth_growth"
+        "return_schedule": "roth_growth",
+        "market_dependent": true
       }
     ],
     "order": [
@@ -538,7 +558,8 @@
         "name": "Roth IRA",
         "type": "tax_free",
         "balance": 12000,
-        "return_schedule": "roth_growth"
+        "return_schedule": "roth_growth",
+        "market_dependent": true
       }
     ],
     "order": [
@@ -654,7 +675,8 @@
         "name": "Original Roth IRA",
         "type": "tax_free",
         "balance": 12000,
-        "return_schedule": "roth_growth"
+        "return_schedule": "roth_growth",
+        "market_dependent": true
       },
       {
         "name": "Converted Roth Account",

@@ -204,7 +204,8 @@ export class ScenarioBuilderController {
     
     // Generate unique key for the scenario
     const timestamp = Date.now();
-    const scenarioKey = `custom_${jsonScenario.title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${timestamp}`;
+    const title = jsonScenario.metadata?.title || jsonScenario.title || 'Custom Scenario';
+    const scenarioKey = `custom_${title.toLowerCase().replace(/[^a-z0-9]/g, '_')}_${timestamp}`;
     
     // Save as custom scenario
     this.eventBus.emit('content:save-user-scenario', {

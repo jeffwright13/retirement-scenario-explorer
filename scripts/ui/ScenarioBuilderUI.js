@@ -307,6 +307,18 @@ export class ScenarioBuilderUI {
             </select>
           </div>
           <div class="form-group">
+            <label>Investment Type</label>
+            <select name="assets[${index}].investmentType">
+              <option value="stocks" ${asset.investmentType === 'stocks' ? 'selected' : ''}>Stocks/Equities</option>
+              <option value="bonds" ${asset.investmentType === 'bonds' ? 'selected' : ''}>Bonds</option>
+              <option value="mixed" ${asset.investmentType === 'mixed' || !asset.investmentType ? 'selected' : ''}>Mixed Portfolio</option>
+              <option value="savings" ${asset.investmentType === 'savings' ? 'selected' : ''}>Savings/Cash</option>
+              <option value="cd" ${asset.investmentType === 'cd' ? 'selected' : ''}>Certificate of Deposit</option>
+              <option value="money_market" ${asset.investmentType === 'money_market' ? 'selected' : ''}>Money Market</option>
+              <option value="real_estate" ${asset.investmentType === 'real_estate' ? 'selected' : ''}>Real Estate/REITs</option>
+            </select>
+          </div>
+          <div class="form-group">
             <button type="button" class="remove-btn" data-type="asset" data-index="${index}">Remove</button>
           </div>
         </div>
@@ -328,6 +340,15 @@ export class ScenarioBuilderUI {
           <div class="form-group">
             <label>Withdrawal Order</label>
             <input type="number" name="assets[${index}].order" value="${asset.order || index + 1}" min="1" max="10">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" name="assets[${index}].marketDependent" ${asset.marketDependent !== false ? 'checked' : ''}>
+              Subject to market volatility (Monte Carlo analysis)
+            </label>
+            <small class="help-text">When checked, this asset will show variable returns in Monte Carlo simulations. Uncheck for stable assets like savings accounts.</small>
           </div>
         </div>
       </div>
@@ -407,9 +428,11 @@ export class ScenarioBuilderUI {
       const asset = {
         name: assetForm.querySelector(`input[name="assets[${index}].name"]`).value,
         type: assetForm.querySelector(`select[name="assets[${index}].type"]`).value,
+        investmentType: assetForm.querySelector(`select[name="assets[${index}].investmentType"]`).value,
         balance: parseFloat(assetForm.querySelector(`input[name="assets[${index}].balance"]`).value) || 0,
         returnRate: parseFloat(assetForm.querySelector(`input[name="assets[${index}].returnRate"]`).value) || 7,
-        order: parseInt(assetForm.querySelector(`input[name="assets[${index}].order"]`).value) || index + 1
+        order: parseInt(assetForm.querySelector(`input[name="assets[${index}].order"]`).value) || index + 1,
+        marketDependent: assetForm.querySelector(`input[name="assets[${index}].marketDependent"]`).checked
       };
       data.assets.push(asset);
     });
