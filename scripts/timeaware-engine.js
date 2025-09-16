@@ -6,13 +6,14 @@
 
 import { RateScheduleManager } from './rate-schedules.js';
 import { getMonthlyIncome } from './utils.js';
+import { TaxService } from './services/TaxService.js';
 
 // ---- WITHDRAWAL HELPER FUNCTIONS ----
 
 /**
- * Process withdrawals with support for proportional withdrawals by weight
+ * Process withdrawals with support for proportional withdrawals by weight and tax-aware calculations
  */
-function processWithdrawals(shortfall, drawOrder, assetMap, log) {
+function processWithdrawals(shortfall, drawOrder, assetMap, log, taxService) {
   let remainingShortfall = shortfall;
 
   // Group assets by order
@@ -35,19 +36,19 @@ function processWithdrawals(shortfall, drawOrder, assetMap, log) {
 
     if (group.length === 1) {
       // Single asset - existing logic
-      remainingShortfall = withdrawFromSingleAsset(group[0], assetMap, remainingShortfall, log);
+      remainingShortfall = withdrawFromSingleAsset(group[0], assetMap, remainingShortfall, log, taxService);
     } else {
       // Multiple assets with same order - check for weights
       const hasWeights = group.some(entry => typeof entry.weight === 'number');
 
       if (hasWeights) {
         // Proportional withdrawal by weight
-        remainingShortfall = withdrawProportionally(group, assetMap, remainingShortfall, log);
+        remainingShortfall = withdrawProportionally(group, assetMap, remainingShortfall, log, taxService);
       } else {
         // No weights specified - use existing sequential logic within the group
         for (const entry of group) {
           if (remainingShortfall <= 0) break;
-          remainingShortfall = withdrawFromSingleAsset(entry, assetMap, remainingShortfall, log);
+          remainingShortfall = withdrawFromSingleAsset(entry, assetMap, remainingShortfall, log, taxService);
         }
       }
     }
@@ -57,9 +58,9 @@ function processWithdrawals(shortfall, drawOrder, assetMap, log) {
 }
 
 /**
- * Withdraw from a single asset (standard sequential withdrawal)
+ * Withdraw from a single asset with tax-aware calculations
  */
-function withdrawFromSingleAsset(entry, assetMap, shortfall, log) {
+function withdrawFromSingleAsset(entry, assetMap, shortfall, log, taxService) {
   const asset = assetMap[entry.account];
   if (!asset || asset.balance <= 0) {
     return shortfall;
@@ -74,26 +75,49 @@ function withdrawFromSingleAsset(entry, assetMap, shortfall, log) {
     return shortfall;
   }
 
-  const withdrawal = Math.min(availableBalance, shortfall);
-  asset.balance -= withdrawal;
+  // Calculate tax-aware withdrawal amount
+  const accountType = asset.type || 'taxable';
+  const taxCalc = taxService.calculateGrossWithdrawal(shortfall, accountType);
+  
+  // Don't withdraw more than available, even if taxes require it
+  const grossWithdrawal = Math.min(availableBalance, taxCalc.grossWithdrawal);
+  
+  // If we can't withdraw the full gross amount needed, recalculate net coverage
+  let actualNetCovered, actualTaxOwed;
+  if (grossWithdrawal < taxCalc.grossWithdrawal) {
+    // Partial withdrawal - calculate actual net amount covered
+    const partialTaxCalc = taxService.calculateTaxOnWithdrawal(grossWithdrawal, accountType);
+    actualNetCovered = partialTaxCalc.netAmount;
+    actualTaxOwed = partialTaxCalc.taxOwed;
+  } else {
+    // Full withdrawal as planned
+    actualNetCovered = taxCalc.netAmount;
+    actualTaxOwed = taxCalc.taxOwed;
+  }
 
-  if (withdrawal > 0) {
+  asset.balance -= grossWithdrawal;
+
+  if (grossWithdrawal > 0) {
     log.withdrawals.push({ 
       from: asset.name, 
-      amount: withdrawal,
+      accountType: accountType,
+      grossAmount: grossWithdrawal,
+      netAmount: actualNetCovered,
+      taxOwed: actualTaxOwed,
+      effectiveTaxRate: actualTaxOwed / grossWithdrawal,
       remainingBalance: asset.balance,
       minBalance: minBalance,
-      availableBalance: availableBalance - withdrawal
+      availableBalance: Math.max(0, asset.balance - minBalance)
     });
   }
 
-  return shortfall - withdrawal;
+  return shortfall - actualNetCovered;
 }
 
 /**
- * Withdraw proportionally from multiple assets based on weights
+ * Withdraw proportionally from multiple assets based on weights with tax-aware calculations
  */
-function withdrawProportionally(assetGroup, assetMap, shortfall, log) {
+function withdrawProportionally(assetGroup, assetMap, shortfall, log, taxService) {
   // Get available assets with their weights (respecting min_balance)
   const availableAssets = assetGroup
     .map(entry => {
@@ -125,27 +149,50 @@ function withdrawProportionally(assetGroup, assetMap, shortfall, log) {
   const actualWithdrawal = Math.min(shortfall, totalAvailable);
   let remainingToWithdraw = actualWithdrawal;
 
-  // Withdraw proportionally from each asset
+  // Withdraw proportionally from each asset with tax-aware calculations
   availableAssets.forEach(({ entry, asset, availableBalance }, index) => {
     if (remainingToWithdraw <= 0.01) return; // Small threshold to avoid floating point issues
 
     const proportion = normalizedWeights[index];
-    let targetWithdrawal = actualWithdrawal * proportion;
+    let targetNetWithdrawal = actualWithdrawal * proportion;
 
+    // Calculate tax-aware gross withdrawal needed for this asset
+    const accountType = asset.type || 'taxable';
+    const taxCalc = taxService.calculateGrossWithdrawal(targetNetWithdrawal, accountType);
+    
     // Don't withdraw more than the asset has available (respecting min_balance)
-    targetWithdrawal = Math.min(targetWithdrawal, availableBalance);
+    const grossWithdrawal = Math.min(taxCalc.grossWithdrawal, availableBalance);
+    
+    // Don't withdraw more than we still need (in net terms)
+    const maxNetNeeded = Math.min(targetNetWithdrawal, remainingToWithdraw);
+    
+    // Recalculate actual amounts based on constraints
+    let actualGross, actualNet, actualTax;
+    if (grossWithdrawal < taxCalc.grossWithdrawal) {
+      // Constrained by available balance
+      const constrainedCalc = taxService.calculateTaxOnWithdrawal(grossWithdrawal, accountType);
+      actualGross = grossWithdrawal;
+      actualNet = Math.min(constrainedCalc.netAmount, maxNetNeeded);
+      actualTax = constrainedCalc.taxOwed;
+    } else {
+      // Can withdraw full amount
+      actualGross = grossWithdrawal;
+      actualNet = maxNetNeeded;
+      actualTax = taxCalc.taxOwed;
+    }
 
-    // Don't withdraw more than we still need
-    targetWithdrawal = Math.min(targetWithdrawal, remainingToWithdraw);
-
-    if (targetWithdrawal > 0.01) { // Small threshold
-      asset.balance -= targetWithdrawal;
-      remainingToWithdraw -= targetWithdrawal;
+    if (actualGross > 0.01) { // Small threshold
+      asset.balance -= actualGross;
+      remainingToWithdraw -= actualNet;
       
       const minBalance = asset.min_balance || 0;
       log.withdrawals.push({
         from: asset.name,
-        amount: targetWithdrawal,
+        accountType: accountType,
+        grossAmount: actualGross,
+        netAmount: actualNet,
+        taxOwed: actualTax,
+        effectiveTaxRate: actualTax / actualGross,
         weight: entry.weight,
         proportion: proportion,
         remainingBalance: asset.balance,
@@ -161,13 +208,17 @@ function withdrawProportionally(assetGroup, assetMap, shortfall, log) {
 // ---- MAIN SIMULATION FUNCTION ----
 
 export function simulateScenarioAdvanced(scenario) {
-  console.log('🚀 Running Advanced Time-Aware Simulation with Auto-Stop and Proportional Withdrawals');
+  console.log('🚀 Running Advanced Time-Aware Simulation with Auto-Stop, Proportional Withdrawals, and Tax-Aware Calculations');
 
   // Initialize rate schedule manager
   const rateManager = new RateScheduleManager();
   if (scenario.rate_schedules) {
     rateManager.loadSchedules(scenario.rate_schedules);
   }
+
+  // Initialize tax service with scenario configuration
+  const taxConfig = scenario.plan?.tax_config || {};
+  const taxService = new TaxService(taxConfig);
 
   // Deep copy assets to avoid mutation
   const allAssets = JSON.parse(JSON.stringify(scenario.assets));
@@ -305,8 +356,8 @@ export function simulateScenarioAdvanced(scenario) {
       shortfall: 0,
     };
 
-    // 4. Process withdrawals (with proportional support)
-    const remainingShortfall = processWithdrawals(shortfall, drawOrder, assetMap, log);
+    // 4. Process withdrawals (with proportional support and tax-aware calculations)
+    const remainingShortfall = processWithdrawals(shortfall, drawOrder, assetMap, log, taxService);
 
     if (remainingShortfall > 0) {
       log.shortfall = remainingShortfall;
@@ -320,8 +371,7 @@ export function simulateScenarioAdvanced(scenario) {
         
         if (asset && asset.balance !== undefined) {
           // Asset is active - apply growth
-          const growthRate = rateManager.getRate(asset.return_schedule, month);
-          const monthlyGrowthRate = growthRate / 12;
+          const monthlyGrowthRate = getAssetReturns(asset, month);
           const growth = asset.balance * monthlyGrowthRate;
           asset.balance += growth;
           

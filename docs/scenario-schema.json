@@ -74,6 +74,34 @@
                 "type": "string",
                 "format": "date",
                 "description": "Optional start date for the scenario"
+              },
+              "tax_config": {
+                "type": "object",
+                "description": "Tax rates by account type for accurate withdrawal calculations",
+                "properties": {
+                  "tax_deferred": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "default": 0.22,
+                    "description": "Tax rate for traditional 401k/IRA withdrawals (decimal, e.g., 0.22 = 22%)"
+                  },
+                  "taxable": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "default": 0.15,
+                    "description": "Capital gains tax rate for taxable account withdrawals (decimal)"
+                  },
+                  "tax_free": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "default": 0.0,
+                    "description": "Tax rate for Roth IRA/401k withdrawals (should be 0)"
+                  }
+                },
+                "additionalProperties": false
               }
             }
           },
