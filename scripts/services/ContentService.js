@@ -210,8 +210,12 @@ export class ContentService {
    * Basic scenario validation
    */
   validateScenario(scenario) {
-    const hasValidPlan = scenario.plan;
-    const hasValidAssets = scenario.assets && Array.isArray(scenario.assets);
+    if (!scenario || typeof scenario !== 'object') {
+      return false;
+    }
+    
+    const hasValidPlan = !!scenario.plan;
+    const hasValidAssets = !!(scenario.assets && Array.isArray(scenario.assets));
     const hasValidExpenses = typeof scenario.plan?.monthly_expenses === 'number';
     
     const isValid = hasValidPlan && hasValidAssets && hasValidExpenses;
@@ -236,9 +240,13 @@ export class ContentService {
    * Basic story validation
    */
   validateStory(story) {
-    return story.metadata &&
-           story.chapters &&
-           Array.isArray(story.chapters);
+    if (!story || typeof story !== 'object') {
+      return false;
+    }
+    
+    return !!(story.metadata &&
+              story.chapters &&
+              Array.isArray(story.chapters));
   }
 
   /**
@@ -449,7 +457,7 @@ export class ContentService {
    * @returns {Array} Recommended scenarios
    */
   getRecommendedScenarios(currentScenarioKey) {
-    const currentScenario = this.contentManager.getScenario(currentScenarioKey);
+    const currentScenario = this.scenarios.get(currentScenarioKey);
     if (!currentScenario) return [];
 
     // Simple recommendation logic - scenarios with similar tags

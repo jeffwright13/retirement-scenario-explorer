@@ -5,7 +5,11 @@
 export class InsightsController {
   constructor(eventBus) {
     this.eventBus = eventBus;
+    this.insightsSection = null;
+    this.insightsList = null;
+    this.currentInsights = null;
     this.currentScenarioData = null;
+    this.requestCounter = 0;
     
     this.setupEventListeners();
   }
@@ -74,7 +78,7 @@ export class InsightsController {
       scenarioData: scenarioData,
       simulationResults: simulationResults,
       trigger: trigger,
-      requestId: `insights-${Date.now()}`
+      requestId: `insights-${Date.now()}-${++this.requestCounter}`
     });
   }
 

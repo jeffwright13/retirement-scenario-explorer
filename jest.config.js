@@ -18,13 +18,13 @@ module.exports = {
     '!scripts/**/*.spec.js'
   ],
   
-  // Coverage thresholds (adjusted to current codebase reality)
+  // Coverage thresholds (adjusted to actual coverage levels or 50%, whichever is higher)
   coverageThreshold: {
     global: {
-      branches: 25,
-      functions: 30,
-      lines: 28,
-      statements: 28
+      branches: 40,    // Current: 44.46%, target: 50%
+      functions: 50,   // Current: 53.14%, maintain current level
+      lines: 50,       // Current: 51.29%, maintain current level  
+      statements: 50   // Current: 50.98%, maintain current level
     }
   },
   
