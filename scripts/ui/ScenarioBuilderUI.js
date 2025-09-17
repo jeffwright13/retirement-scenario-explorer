@@ -127,6 +127,50 @@ export class ScenarioBuilderUI {
               </div>
             </div>
 
+            <!-- Tax Configuration Section -->
+            <div class="form-section">
+              <h3>Tax Configuration</h3>
+              <div class="form-help">
+                Configure tax rates for different account types to get accurate withdrawal projections.
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="tax-deferred-rate">Tax-Deferred Accounts</label>
+                  <div class="input-with-suffix">
+                    <input type="number" id="tax-deferred-rate" name="taxDeferredRate" min="0" max="50" step="1" value="22">
+                    <span class="suffix">%</span>
+                  </div>
+                  <div class="field-help">Tax rate for traditional 401k, IRA withdrawals</div>
+                </div>
+                <div class="form-group">
+                  <label for="taxable-rate">Taxable Accounts</label>
+                  <div class="input-with-suffix">
+                    <input type="number" id="taxable-rate" name="taxableRate" min="0" max="50" step="1" value="15">
+                    <span class="suffix">%</span>
+                  </div>
+                  <div class="field-help">Capital gains tax rate for brokerage accounts</div>
+                </div>
+                <div class="form-group">
+                  <label for="tax-free-rate">Tax-Free Accounts</label>
+                  <div class="input-with-suffix">
+                    <input type="number" id="tax-free-rate" name="taxFreeRate" min="0" max="50" step="1" value="0" readonly>
+                    <span class="suffix">%</span>
+                  </div>
+                  <div class="field-help">Tax rate for Roth IRA, Roth 401k (always 0%)</div>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group full-width">
+                  <div class="tax-preset-buttons">
+                    <button type="button" class="btn btn-outline btn-small" data-preset="conservative">Conservative (12%, 0%, 0%)</button>
+                    <button type="button" class="btn btn-outline btn-small" data-preset="moderate">Moderate (22%, 15%, 0%)</button>
+                    <button type="button" class="btn btn-outline btn-small" data-preset="high-earner">High Earner (32%, 20%, 0%)</button>
+                  </div>
+                  <div class="field-help">Quick presets based on common tax situations</div>
+                </div>
+              </div>
+            </div>
+
             <!-- Assets Section -->
             <div class="form-section">
               <h3>Assets & Accounts</h3>
@@ -259,6 +303,14 @@ export class ScenarioBuilderUI {
     this.modal.querySelector('.scenario-builder-overlay').addEventListener('click', () => {
       this.eventBus.emit('scenario-builder:close');
     });
+
+    // Tax preset buttons
+    document.querySelectorAll('.tax-preset-buttons button').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const preset = e.target.dataset.preset;
+        this.applyTaxPreset(preset);
+      });
+    });
   }
 
   showBuilder() {
@@ -281,6 +333,11 @@ export class ScenarioBuilderUI {
     document.getElementById('duration-years').value = formData.durationYears || 30;
     document.getElementById('inflation-rate').value = formData.inflationRate || 3;
     document.getElementById('stop-on-shortfall').checked = formData.stopOnShortfall !== false;
+    
+    // Load tax configuration
+    document.getElementById('tax-deferred-rate').value = formData.taxDeferredRate || 22;
+    document.getElementById('taxable-rate').value = formData.taxableRate || 15;
+    document.getElementById('tax-free-rate').value = formData.taxFreeRate || 0;
 
     // Load assets
     this.renderAssets(formData.assets || []);
@@ -418,6 +475,9 @@ export class ScenarioBuilderUI {
       durationYears: parseInt(formData.get('durationYears')) || 30,
       inflationRate: parseFloat(formData.get('inflationRate')) || 3,
       stopOnShortfall: formData.get('stopOnShortfall') === 'on',
+      taxDeferredRate: parseFloat(formData.get('taxDeferredRate')) || 22,
+      taxableRate: parseFloat(formData.get('taxableRate')) || 15,
+      taxFreeRate: parseFloat(formData.get('taxFreeRate')) || 0,
       assets: [],
       income: []
     };
@@ -500,6 +560,24 @@ export class ScenarioBuilderUI {
     } else {
       saveBtn.disabled = true;
       previewBtn.disabled = true;
+    }
+  }
+
+  applyTaxPreset(preset) {
+    const presets = {
+      'conservative': { taxDeferred: 12, taxable: 0, taxFree: 0 },
+      'moderate': { taxDeferred: 22, taxable: 15, taxFree: 0 },
+      'high-earner': { taxDeferred: 32, taxable: 20, taxFree: 0 }
+    };
+
+    const config = presets[preset];
+    if (config) {
+      document.getElementById('tax-deferred-rate').value = config.taxDeferred;
+      document.getElementById('taxable-rate').value = config.taxable;
+      document.getElementById('tax-free-rate').value = config.taxFree;
+      
+      // Trigger form change event
+      this.collectFormData();
     }
   }
 

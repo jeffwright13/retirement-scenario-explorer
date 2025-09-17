@@ -401,16 +401,18 @@ export class MonteCarloChart {
     
     // Individual trajectory traces (rainbow colors, higher opacity)
     const rainbowColors = [
-      'rgba(255, 99, 132, 0.3)',   // Red
-      'rgba(54, 162, 235, 0.3)',   // Blue
-      'rgba(255, 205, 86, 0.3)',   // Yellow
-      'rgba(75, 192, 192, 0.3)',   // Teal
-      'rgba(153, 102, 255, 0.3)',  // Purple
-      'rgba(255, 159, 64, 0.3)',   // Orange
-      'rgba(199, 199, 199, 0.3)',  // Grey
-      'rgba(83, 102, 255, 0.3)',   // Indigo
-      'rgba(255, 99, 255, 0.3)',   // Pink
-      'rgba(99, 255, 132, 0.3)'    // Green
+      'rgba(255, 99, 132, 0.7)',   // Red
+      'rgba(54, 162, 235, 0.7)',   // Blue
+      'rgba(255, 205, 86, 0.8)',   // Yellow (higher opacity for visibility)
+      'rgba(75, 192, 192, 0.7)',   // Teal
+      'rgba(153, 102, 255, 0.7)',  // Purple
+      'rgba(255, 159, 64, 0.7)',   // Orange
+      'rgba(46, 204, 113, 0.7)',   // Green (replaced grey with green)
+      'rgba(83, 102, 255, 0.7)',   // Indigo
+      'rgba(255, 99, 255, 0.7)',   // Pink
+      'rgba(26, 188, 156, 0.7)',   // Turquoise
+      'rgba(241, 196, 15, 0.7)',   // Gold
+      'rgba(231, 76, 60, 0.7)'     // Crimson
     ];
     
     trajectories.forEach((trajectory, index) => {
@@ -903,10 +905,17 @@ export class MonteCarloChart {
     
     const successRate = (analysis.successRate * 100).toFixed(1);
     
+    // Check if scenario has tax configuration to show tax-aware note
+    const hasTaxConfig = analysis?.scenario?.plan?.tax_config;
+    const taxNote = hasTaxConfig ? 
+      `<p style="margin: 5px 0 0 0; font-size: 13px; color: #28a745;"><strong>💰 Tax-Aware Analysis:</strong> Projections include taxes on withdrawals from tax-deferred accounts (${(hasTaxConfig.tax_deferred * 100).toFixed(0)}%), taxable accounts (${(hasTaxConfig.taxable * 100).toFixed(0)}%), and tax-free accounts (${(hasTaxConfig.tax_free * 100).toFixed(0)}%)</p>` : 
+      '';
+
     legend.innerHTML = `
       <div class="legend-header" style="margin-bottom: 15px;">
         <h4 style="color: #d9534f; margin: 0 0 10px 0; font-size: 18px;">🔍 CHART LEGEND - What Each Line Means</h4>
         <p style="margin: 0; font-size: 14px; color: #666;"><strong>Total Asset Balance:</strong> Combined balance across all assets (Savings, Investment, Traditional IRA, Roth IRA)</p>
+        ${taxNote}
       </div>
       
       <div class="legend-items" style="display: grid; gap: 12px;">

@@ -197,6 +197,7 @@ export class UIController {
     this.eventBus.on('simulation:regular-completed', () => {
       this.showExportCsvButton();
       this.showExportSingleResultsButton();
+      this.setupWithdrawalDetailsToggle();
     });
     this.eventBus.on('simulation:started', (data) => {
       // Only hide for regular simulations, not Monte Carlo
@@ -1227,6 +1228,10 @@ export class UIController {
       } else {
         this.populateCSVExport(resultsArray);
       }
+
+      // Display tax summary and withdrawal details
+      this.displayTaxSummary(resultsArray);
+      this.displayWithdrawalDetails(resultsArray);
       
       console.log('✅ displaySimulationResults completed successfully');
       
@@ -1356,6 +1361,8 @@ export class UIController {
     console.log('🔍 Sample result data:', results[0]);
     console.log('🔍 Balance history keys:', Object.keys(balanceHistory));
     console.log('🔍 Balance history structure:', balanceHistory);
+    console.log('🔍 Chart data - Results length:', results.length, 'months');
+    console.log('🔍 Chart data - Final result:', results[results.length - 1]);
 
     // Create MM-YY formatted dates starting from current date
     const startDate = new Date();
@@ -1380,13 +1387,44 @@ export class UIController {
       console.log('🔍 Asset names found:', assetNames);
       console.log('🔍 Income events found:', incomeEvents.length);
       
-      // Define colors for each asset type
-      const assetColors = {
+      // Define colors for each asset type with fallback color assignment
+      const predefinedAssetColors = {
         'Savings': '#10b981',           // Green
         'Investment': '#3b82f6',        // Blue  
         'Traditional IRA': '#f59e0b',   // Amber
-        'Roth IRA': '#8b5cf6'          // Purple
+        'Roth IRA': '#8b5cf6',         // Purple
+        'Investment Portfolio': '#3b82f6', // Blue (common name)
+        '401k': '#f59e0b',             // Amber (tax-deferred)
+        'IRA': '#f59e0b',              // Amber (tax-deferred)
+        'Brokerage': '#3b82f6',        // Blue (taxable)
+        'Cash': '#10b981',             // Green (savings-like)
+        'Emergency Fund': '#059669'     // Dark green
       };
+      
+      // Color palette for dynamic assignment
+      const colorPalette = [
+        '#10b981', // Green
+        '#3b82f6', // Blue
+        '#f59e0b', // Amber
+        '#8b5cf6', // Purple
+        '#ef4444', // Red
+        '#06b6d4', // Cyan
+        '#84cc16', // Lime
+        '#f97316', // Orange
+        '#ec4899', // Pink
+        '#6366f1'  // Indigo
+      ];
+      
+      // Create asset color mapping
+      const assetColors = {};
+      assetNames.forEach((assetName, index) => {
+        if (predefinedAssetColors[assetName]) {
+          assetColors[assetName] = predefinedAssetColors[assetName];
+        } else {
+          // Assign colors from palette cyclically
+          assetColors[assetName] = colorPalette[index % colorPalette.length];
+        }
+      });
       
       // Define colors for income events
       const incomeColors = {
@@ -1731,6 +1769,159 @@ export class UIController {
     const csvButton = document.getElementById('toggle-csv-btn');
     if (csvButton) {
       csvButton.style.display = 'inline-block';
+    }
+  }
+
+  /**
+   * Display tax summary from simulation results
+   */
+  displayTaxSummary(results) {
+    const taxSummarySection = document.getElementById('tax-summary-section');
+    const taxSummaryContent = document.getElementById('tax-summary-content');
+    
+    if (!taxSummarySection || !taxSummaryContent || !results) {
+      return;
+    }
+
+    // Calculate total tax metrics
+    let totalGrossWithdrawals = 0;
+    let totalNetWithdrawals = 0;
+    let totalTaxesPaid = 0;
+    let monthsWithWithdrawals = 0;
+
+    results.forEach(result => {
+      if (result.withdrawals && Array.isArray(result.withdrawals)) {
+        const monthTotals = result.withdrawals.reduce((totals, w) => {
+          totals.gross += w.grossAmount || w.amount || 0;
+          totals.net += w.netAmount || w.amount || 0;
+          totals.tax += w.taxOwed || 0;
+          return totals;
+        }, { gross: 0, net: 0, tax: 0 });
+
+        if (monthTotals.gross > 0) {
+          totalGrossWithdrawals += monthTotals.gross;
+          totalNetWithdrawals += monthTotals.net;
+          totalTaxesPaid += monthTotals.tax;
+          monthsWithWithdrawals++;
+        }
+      }
+    });
+
+    // Only show tax summary if there were withdrawals with tax information
+    if (totalTaxesPaid > 0 || totalGrossWithdrawals !== totalNetWithdrawals) {
+      const effectiveTaxRate = totalGrossWithdrawals > 0 ? (totalTaxesPaid / totalGrossWithdrawals) * 100 : 0;
+      
+      taxSummaryContent.innerHTML = `
+        <div class="tax-summary-grid">
+          <div class="tax-summary-item">
+            <div class="tax-summary-value">$${totalGrossWithdrawals.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+            <div class="tax-summary-label">Total Gross Withdrawals</div>
+          </div>
+          <div class="tax-summary-item">
+            <div class="tax-summary-value">$${totalNetWithdrawals.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+            <div class="tax-summary-label">Total Net Received</div>
+          </div>
+          <div class="tax-summary-item">
+            <div class="tax-summary-value">$${totalTaxesPaid.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</div>
+            <div class="tax-summary-label">Total Taxes Paid</div>
+          </div>
+          <div class="tax-summary-item">
+            <div class="tax-summary-value">${effectiveTaxRate.toFixed(1)}%</div>
+            <div class="tax-summary-label">Effective Tax Rate</div>
+          </div>
+        </div>
+      `;
+      
+      taxSummarySection.style.display = 'block';
+    } else {
+      taxSummarySection.style.display = 'none';
+    }
+  }
+
+  /**
+   * Display detailed withdrawal information
+   */
+  displayWithdrawalDetails(results) {
+    const withdrawalDetailsSection = document.getElementById('withdrawal-details-section');
+    const withdrawalDetailsContent = document.getElementById('withdrawal-details-content');
+    
+    if (!withdrawalDetailsSection || !withdrawalDetailsContent || !results) {
+      return;
+    }
+
+    // Check if there are any withdrawals with tax information
+    const hasWithdrawals = results.some(result => 
+      result.withdrawals && Array.isArray(result.withdrawals) && result.withdrawals.length > 0
+    );
+
+    if (!hasWithdrawals) {
+      withdrawalDetailsSection.style.display = 'none';
+      return;
+    }
+
+    let withdrawalHtml = '';
+    
+    // Add header
+    withdrawalHtml += `
+      <div class="withdrawal-item withdrawal-item-header">
+        <div>Account</div>
+        <div>Type</div>
+        <div>Gross Amount</div>
+        <div>Net Amount</div>
+        <div>Tax Owed</div>
+      </div>
+    `;
+
+    results.forEach((result, monthIndex) => {
+      if (result.withdrawals && Array.isArray(result.withdrawals) && result.withdrawals.length > 0) {
+        const monthDate = new Date();
+        monthDate.setMonth(monthDate.getMonth() + monthIndex);
+        
+        withdrawalHtml += `
+          <div class="withdrawal-month">
+            <div class="withdrawal-month-header">
+              Month ${monthIndex + 1} - ${monthDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long' })}
+            </div>
+        `;
+
+        result.withdrawals.forEach(withdrawal => {
+          const grossAmount = withdrawal.grossAmount || withdrawal.amount || 0;
+          const netAmount = withdrawal.netAmount || withdrawal.amount || 0;
+          const taxOwed = withdrawal.taxOwed || 0;
+          const accountType = withdrawal.accountType || 'unknown';
+
+          withdrawalHtml += `
+            <div class="withdrawal-item">
+              <div class="account-name">${withdrawal.from || 'Unknown Account'}</div>
+              <div class="account-type">${accountType.replace('_', ' ')}</div>
+              <div class="amount gross">$${grossAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div class="amount net">$${netAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+              <div class="amount tax">$${taxOwed.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</div>
+            </div>
+          `;
+        });
+
+        withdrawalHtml += '</div>';
+      }
+    });
+
+    withdrawalDetailsContent.innerHTML = withdrawalHtml;
+    withdrawalDetailsSection.style.display = 'block';
+  }
+
+  /**
+   * Setup withdrawal details toggle functionality
+   */
+  setupWithdrawalDetailsToggle() {
+    const toggleBtn = document.getElementById('toggle-withdrawal-details-btn');
+    const container = document.getElementById('withdrawal-details-container');
+    
+    if (toggleBtn && container) {
+      toggleBtn.addEventListener('click', () => {
+        const isVisible = container.style.display !== 'none';
+        container.style.display = isVisible ? 'none' : 'block';
+        toggleBtn.textContent = isVisible ? '📋 Show Withdrawal Log' : '📋 Hide Withdrawal Log';
+      });
     }
   }
 

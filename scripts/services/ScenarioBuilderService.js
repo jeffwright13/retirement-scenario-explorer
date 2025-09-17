@@ -230,6 +230,15 @@ export class ScenarioBuilderService {
       scenario.plan.inflation_rate = formData.inflationRate / 100;
     }
 
+    // Add tax configuration
+    if (formData.taxDeferredRate !== undefined || formData.taxableRate !== undefined || formData.taxFreeRate !== undefined) {
+      scenario.plan.tax_config = {
+        tax_deferred: (formData.taxDeferredRate || 22) / 100,
+        taxable: (formData.taxableRate || 15) / 100,
+        tax_free: (formData.taxFreeRate || 0) / 100
+      };
+    }
+
     // Create rate schedules using standard names that work with Monte Carlo variable ranges
     if (formData.assets && formData.assets.length > 0) {
       formData.assets.forEach(asset => {
