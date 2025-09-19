@@ -325,6 +325,7 @@
 
 /* Integration with existing styles */
 
+.workflow-panel .scenario-controls,
 .workflow-panel .scenario-selector,
 .workflow-panel .simulation-controls,
 .workflow-panel .results-section {

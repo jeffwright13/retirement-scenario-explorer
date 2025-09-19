@@ -466,7 +466,7 @@ export class UIController {
   populateScenarioDropdown(scenarios) {
     if (!this.scenarioDropdown) return;
 
-    this.scenarioDropdown.innerHTML = '<option value="" style="font-weight: bold;">Choose Your Scenario</option>';
+    this.scenarioDropdown.innerHTML = '<option value="" style="font-weight: bold;">Choose Scenario</option>';
     
     // Get examples from the global app instance
     const examplesCatalog = window.app?.getExamplesCatalog() || [];

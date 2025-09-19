@@ -590,6 +590,7 @@ export class ScenarioBuilderUI {
     
     const data = {
       title: formData.get('title'),
+      description: formData.get('description'),
       monthlyExpenses: parseFloat(formData.get('monthlyExpenses')) || 0,
       durationYears: parseInt(formData.get('durationYears')) || 30,
       inflationRate: parseFloat(formData.get('inflationRate')) || 3,

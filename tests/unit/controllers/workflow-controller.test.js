@@ -51,7 +51,16 @@ describe('WorkflowController', () => {
     mockDOM.elements['step-1-next'] = { disabled: true, addEventListener: jest.fn() };
     mockDOM.elements['step-2-next'] = { disabled: true, addEventListener: jest.fn() };
     mockDOM.elements['step-3-complete'] = { disabled: true, addEventListener: jest.fn() };
-    mockDOM.elements['create-new-scenario-btn'] = { addEventListener: jest.fn() };
+    mockDOM.elements['create-scenario-btn'] = { 
+      addEventListener: jest.fn(),
+      classList: { contains: jest.fn().mockReturnValue(true) },
+      textContent: 'Scenario Builder'
+    };
+    mockDOM.elements['scenario-dropdown'] = { 
+      addEventListener: jest.fn(),
+      value: '',
+      querySelector: jest.fn()
+    };
     mockDOM.elements['.guidance-text'] = { innerHTML: '' };
 
     // Mock document.getElementById globally

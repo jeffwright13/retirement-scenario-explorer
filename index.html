@@ -222,17 +222,13 @@
       <div class="workflow-content">
         <!-- Step 1: Choose Scenario -->
         <div class="workflow-panel active" id="step-1-panel" data-step="1">
-          <div class="scenario-selector">
-            <select id="scenario-dropdown" class="form-select scenario-dropdown btn btn--success btn--large">
-              <option value="" style="font-weight: bold;">Choose Your Scenario</option>
-            </select>
-          </div>
-          
-          <div class="scenario-actions">
-            <button type="button" class="btn btn-primary" id="create-scenario-btn">
-              <span class="btn-icon">✨</span>
-              Create New Scenario
+          <div class="scenario-controls">
+            <button type="button" class="btn btn--success btn--large scenario-builder-btn" id="create-scenario-btn">
+              Scenario Builder
             </button>
+            <select id="scenario-dropdown" class="form-select scenario-dropdown btn btn--success btn--large">
+              <option value="" style="font-weight: bold;">Choose Scenario</option>
+            </select>
           </div>
           
           <div class="scenario-preview hidden" id="scenario-preview">

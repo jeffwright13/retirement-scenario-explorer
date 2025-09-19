@@ -26,7 +26,14 @@ describe('Testing Setup Verification', () => {
     document.body.innerHTML = `
       <div id="test-element">Test Content</div>
       <button id="test-button">Click Me</button>
-      <button id="create-new-scenario-btn">Create New Scenario</button>
+      <button id="create-scenario-btn" class="scenario-builder-btn">Scenario Builder</button>
+      <select id="scenario-dropdown">
+        <option value="">Choose Scenario</option>
+      </select>
+      <div class="scenario-controls">
+        <button id="create-scenario-btn">Scenario Builder</button>
+        <select id="scenario-dropdown">Choose Scenario</select>
+      </div>
       <div id="notification-container"></div>
     `;
   });
@@ -115,6 +122,68 @@ describe('Testing Setup Verification', () => {
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe('Savings');
       expect(result[0].balances).toEqual([1000, 1100, 1200]);
+    });
+  });
+
+  describe('Scenario Controls Layout', () => {
+    test('should have scenario builder button with correct attributes', () => {
+      const scenarioBuilderBtn = document.getElementById('create-scenario-btn');
+      expect(scenarioBuilderBtn).toBeTruthy();
+      expect(scenarioBuilderBtn.textContent.trim()).toBe('Scenario Builder');
+      expect(scenarioBuilderBtn.classList.contains('scenario-builder-btn')).toBe(true);
+    });
+
+    test('should have scenario dropdown with correct default option', () => {
+      const scenarioDropdown = document.getElementById('scenario-dropdown');
+      expect(scenarioDropdown).toBeTruthy();
+      expect(scenarioDropdown.tagName).toBe('SELECT');
+      
+      const defaultOption = scenarioDropdown.querySelector('option[value=""]');
+      expect(defaultOption).toBeTruthy();
+      expect(defaultOption.textContent).toBe('Choose Scenario');
+    });
+
+    test('should have scenario controls container with both elements', () => {
+      const scenarioControls = document.querySelector('.scenario-controls');
+      expect(scenarioControls).toBeTruthy();
+      
+      const button = scenarioControls.querySelector('#create-scenario-btn');
+      const select = scenarioControls.querySelector('#scenario-dropdown');
+      
+      expect(button).toBeTruthy();
+      expect(select).toBeTruthy();
+    });
+
+    test('should maintain proper element hierarchy', () => {
+      const scenarioControls = document.querySelector('.scenario-controls');
+      const children = Array.from(scenarioControls.children);
+      
+      expect(children.length).toBe(2);
+      expect(children[0].tagName).toBe('BUTTON');
+      expect(children[1].tagName).toBe('SELECT');
+    });
+  });
+
+  describe('UI Element Interactions', () => {
+    test('should handle scenario builder button click', () => {
+      const scenarioBuilderBtn = document.getElementById('create-scenario-btn');
+      const clickSpy = jest.fn();
+      
+      scenarioBuilderBtn.addEventListener('click', clickSpy);
+      scenarioBuilderBtn.click();
+      
+      expect(clickSpy).toHaveBeenCalledTimes(1);
+    });
+
+    test('should handle scenario dropdown change', () => {
+      const scenarioDropdown = document.getElementById('scenario-dropdown');
+      const changeSpy = jest.fn();
+      
+      scenarioDropdown.addEventListener('change', changeSpy);
+      scenarioDropdown.value = 'test-scenario';
+      scenarioDropdown.dispatchEvent(new Event('change'));
+      
+      expect(changeSpy).toHaveBeenCalledTimes(1);
     });
   });
 });

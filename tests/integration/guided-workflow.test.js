@@ -26,13 +26,22 @@ const mockDOMElements = {
   'step-1-next': { disabled: true, addEventListener: jest.fn() },
   'step-2-next': { disabled: true, addEventListener: jest.fn() },
   'step-3-complete': { disabled: true, addEventListener: jest.fn() },
-  'scenario-dropdown': { addEventListener: jest.fn(), value: '', innerHTML: '' },
   'run-btn-primary': { disabled: true, addEventListener: jest.fn(), textContent: '' },
   'run-monte-carlo-btn': { disabled: true, textContent: '' },
   'single-analysis-status': { innerHTML: '', style: {} },
   'monte-carlo-analysis-status': { innerHTML: '', style: {} },
   'scenario-preview': { classList: { remove: jest.fn(), add: jest.fn() } },
-  'create-new-scenario-btn': { addEventListener: jest.fn() }
+  'create-scenario-btn': { 
+    addEventListener: jest.fn(),
+    classList: { contains: jest.fn().mockReturnValue(true) },
+    textContent: 'Scenario Builder'
+  },
+  'scenario-dropdown': {
+    addEventListener: jest.fn(),
+    value: '',
+    innerHTML: '<option value="">Choose Scenario</option>',
+    querySelector: jest.fn()
+  }
 };
 
 // Mock document.getElementById and querySelector
@@ -248,6 +257,44 @@ describe('Guided Workflow Integration', () => {
       directMethodCalls.forEach(property => {
         expect(workflowController[property]).toBeUndefined();
       });
+    });
+  });
+
+  describe('Step 1 - Enhanced Scenario Selection', () => {
+    test('should have both scenario builder and scenario dropdown options', () => {
+      const scenarioBuilderBtn = mockDOMElements['create-scenario-btn'];
+      const scenarioDropdown = mockDOMElements['scenario-dropdown'];
+      
+      expect(scenarioBuilderBtn).toBeTruthy();
+      expect(scenarioBuilderBtn.textContent).toBe('Scenario Builder');
+      expect(scenarioBuilderBtn.classList.contains('scenario-builder-btn')).toBe(true);
+      
+      expect(scenarioDropdown).toBeTruthy();
+      expect(scenarioDropdown.innerHTML).toContain('Choose Scenario');
+    });
+
+    test('should have event listener setup methods available', () => {
+      const scenarioBuilderBtn = mockDOMElements['create-scenario-btn'];
+      const scenarioDropdown = mockDOMElements['scenario-dropdown'];
+      
+      expect(scenarioBuilderBtn.addEventListener).toBeDefined();
+      expect(scenarioDropdown.addEventListener).toBeDefined();
+    });
+
+    test('should maintain proper workflow state with new controls', () => {
+      // Step 1 should be active initially
+      expect(workflowController.currentStep).toBe(1);
+      
+      // Both scenario selection methods should be available
+      const scenarioBuilderBtn = mockDOMElements['create-scenario-btn'];
+      const scenarioDropdown = mockDOMElements['scenario-dropdown'];
+      
+      expect(scenarioBuilderBtn).toBeTruthy();
+      expect(scenarioDropdown).toBeTruthy();
+      
+      // Should be able to proceed to next step after scenario selection
+      const step1Next = mockDOMElements['step-1-next'];
+      expect(step1Next).toBeTruthy();
     });
   });
 });

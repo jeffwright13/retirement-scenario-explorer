@@ -346,7 +346,60 @@
     display: none;
   }
 
-  /* ===== SCENARIO SELECTOR ===== */
+  /* ===== SCENARIO CONTROLS ===== */
+  .scenario-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+  }
+
+  .scenario-controls button,
+  .scenario-controls select {
+    flex: 1;
+    min-width: 0; /* Allow flex items to shrink */
+  }
+
+  /* Ensure both elements have consistent styling */
+  .scenario-controls .btn--success,
+  .scenario-controls .scenario-dropdown {
+    height: 48px; /* Fixed height for perfect alignment */
+    padding: var(--space-3) var(--space-4);
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Both elements take full width in vertical layout */
+  .scenario-controls button,
+  .scenario-controls select {
+    width: 100%;
+  }
+
+  /* Scenario Builder button styling - optional action */
+  .scenario-builder-btn {
+    justify-content: flex-start !important; /* Left-align text */
+    opacity: 0.85; /* Slightly transparent to indicate optional */
+    position: relative;
+  }
+
+  .scenario-builder-btn:hover {
+    opacity: 1; /* Full opacity on hover */
+  }
+
+  .scenario-builder-btn::after {
+    content: "optional";
+    position: absolute;
+    right: 12px;
+    font-size: 0.75em;
+    opacity: 0.6;
+    font-style: italic;
+  }
+
+  /* Legacy support for old selector class */
   .scenario-selector {
     margin-bottom: var(--space-5);
   }
