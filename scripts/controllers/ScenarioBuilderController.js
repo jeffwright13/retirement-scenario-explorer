@@ -34,6 +34,18 @@ export class ScenarioBuilderController {
       this.loadTemplate(templateName);
     });
 
+    this.eventBus.on('scenario-builder:copy-scenario', (scenarioId) => {
+      this.copyScenario(scenarioId);
+    });
+
+    this.eventBus.on('scenario-builder:request-scenarios-for-copy', () => {
+      this.requestScenariosForCopy();
+    });
+
+    this.eventBus.on('scenario-builder:scenario-loaded-for-copy', (scenario) => {
+      this.handleScenarioLoadedForCopy(scenario);
+    });
+
     // Form data events
     this.eventBus.on('scenario-builder:form-changed', (formData) => {
       this.handleFormChange(formData);
@@ -312,5 +324,84 @@ export class ScenarioBuilderController {
     this.currentFormData.income.splice(index, 1);
     this.eventBus.emit('scenario-builder:ui-load-form', this.currentFormData);
     this.validateCurrentForm();
+  }
+
+  /**
+   * Request available scenarios for copying
+   */
+  requestScenariosForCopy() {
+    console.log('📋 Requesting scenarios for copy');
+    
+    // Request both built-in and custom scenarios
+    this.eventBus.emit('content:get-all-scenarios-for-copy');
+  }
+
+  /**
+   * Copy an existing scenario
+   */
+  copyScenario(scenarioId) {
+    console.log('📋 Copy scenario requested:', scenarioId);
+    
+    // Forward to service for processing
+    this.eventBus.emit('scenario-builder:load-scenario-for-copy', scenarioId);
+  }
+
+  /**
+   * Handle scenarios loaded for copy dropdown
+   */
+  handleScenariosForCopy(scenarios) {
+    console.log('📋 Scenarios loaded for copy:', scenarios);
+    this.eventBus.emit('scenario-builder:ui-populate-copy-scenarios', scenarios);
+  }
+
+  /**
+   * Handle scenario loaded for copying
+   */
+  handleScenarioLoadedForCopy(scenario) {
+    console.log('📋 Scenario loaded for copying:', scenario);
+    
+    // Convert scenario to form data and load it
+    const formData = this.convertScenarioToFormData(scenario);
+    this.currentFormData = formData;
+    this.eventBus.emit('scenario-builder:ui-load-form', formData);
+    this.validateCurrentForm();
+  }
+
+  /**
+   * Convert scenario JSON to form data
+   */
+  convertScenarioToFormData(scenario) {
+    return {
+      title: `Copy of ${scenario.metadata?.title || scenario.title || 'Scenario'}`,
+      description: scenario.metadata?.description || scenario.description || '',
+      monthlyExpenses: scenario.plan?.monthly_expenses || 0,
+      durationYears: Math.round((scenario.plan?.duration_months || 360) / 12),
+      inflationRate: (scenario.plan?.inflation_rate || 0.03) * 100,
+      stopOnShortfall: scenario.plan?.stop_on_shortfall !== false,
+      
+      // Tax configuration
+      taxDeferredRate: (scenario.tax_config?.tax_deferred || 0.22) * 100,
+      taxableRate: (scenario.tax_config?.taxable || 0.15) * 100,
+      taxFreeRate: (scenario.tax_config?.tax_free || 0) * 100,
+      
+      // Assets
+      assets: (scenario.assets || []).map(asset => ({
+        name: asset.name || 'Asset',
+        type: asset.type || 'investment',
+        investmentType: asset.investment_type || 'growth',
+        balance: asset.balance || 0,
+        returnRate: (asset.return_rate || 0.07) * 100,
+        order: asset.order || 1,
+        marketDependent: asset.market_dependent !== false
+      })),
+      
+      // Income
+      income: (scenario.income || []).map(inc => ({
+        name: inc.name || 'Income',
+        amount: inc.amount || 0,
+        startMonth: inc.start_month || 1,
+        stopMonth: inc.stop_month || null
+      }))
+    };
   }
 }

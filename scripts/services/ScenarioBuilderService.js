@@ -29,6 +29,14 @@ export class ScenarioBuilderService {
       const template = this.getTemplate(templateName);
       this.eventBus.emit('scenario-builder:template-loaded', template);
     });
+
+    this.eventBus.on('scenario-builder:request-scenarios-for-copy', () => {
+      this.loadAvailableScenarios();
+    });
+
+    this.eventBus.on('scenario-builder:copy-scenario', (scenarioId) => {
+      this.copyScenario(scenarioId);
+    });
   }
 
   /**
@@ -440,5 +448,75 @@ export class ScenarioBuilderService {
     }
 
     return { ...defaults, ...partialFormData };
+  }
+
+  /**
+   * Load available scenarios for copying
+   */
+  loadAvailableScenarios() {
+    // Get built-in scenarios
+    this.eventBus.emit('content:get-builtin-scenarios');
+    
+    // Get custom scenarios
+    this.eventBus.emit('content:get-custom-scenarios');
+  }
+
+  /**
+   * Copy an existing scenario for editing
+   */
+  copyScenario(scenarioId) {
+    console.log('📋 Copying scenario:', scenarioId);
+    
+    const [type, key] = scenarioId.split(':');
+    
+    if (type === 'builtin') {
+      this.eventBus.emit('content:get-scenario', { key, type: 'builtin' });
+    } else if (type === 'custom') {
+      this.eventBus.emit('content:get-scenario', { key, type: 'custom' });
+    }
+  }
+
+  /**
+   * Convert scenario JSON to form data for editing
+   */
+  convertScenarioToFormData(scenario) {
+    console.log('🔄 Converting scenario to form data:', scenario);
+    
+    // Extract basic information
+    const formData = {
+      title: `Copy of ${scenario.metadata?.title || scenario.title || 'Scenario'}`,
+      description: scenario.metadata?.description || scenario.description || '',
+      monthlyExpenses: scenario.plan?.monthly_expenses || 0,
+      durationYears: Math.round((scenario.plan?.duration_months || 360) / 12),
+      inflationRate: (scenario.plan?.inflation_rate || 0.03) * 100,
+      stopOnShortfall: scenario.plan?.stop_on_shortfall !== false,
+      
+      // Tax configuration
+      taxDeferredRate: (scenario.tax_config?.tax_deferred || 0.22) * 100,
+      taxableRate: (scenario.tax_config?.taxable || 0.15) * 100,
+      taxFreeRate: (scenario.tax_config?.tax_free || 0) * 100,
+      
+      // Assets
+      assets: (scenario.assets || []).map(asset => ({
+        name: asset.name || 'Asset',
+        type: asset.type || 'investment',
+        investmentType: asset.investment_type || 'growth',
+        balance: asset.balance || 0,
+        returnRate: (asset.return_rate || 0.07) * 100,
+        order: asset.order || 1,
+        marketDependent: asset.market_dependent !== false
+      })),
+      
+      // Income
+      income: (scenario.income || []).map(inc => ({
+        name: inc.name || 'Income',
+        amount: inc.amount || 0,
+        startMonth: inc.start_month || 1,
+        stopMonth: inc.stop_month || null
+      }))
+    };
+    
+    console.log('✅ Converted form data:', formData);
+    this.eventBus.emit('scenario-builder:template-loaded', formData);
   }
 }

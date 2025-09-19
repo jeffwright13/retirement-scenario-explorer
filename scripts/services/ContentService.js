@@ -65,6 +65,38 @@ export class ContentService {
         this.eventBus.emit('content:user-scenario-error', { key: scenarioKey, error: error.message });
       }
     });
+
+    // Handle requests for scenarios for copying
+    this.eventBus.on('content:get-all-scenarios-for-copy', () => {
+      try {
+        const scenarios = this.getScenariosForCopy();
+        this.eventBus.emit('scenario-builder:ui-populate-copy-scenarios', scenarios);
+      } catch (error) {
+        console.error('Error getting scenarios for copy:', error);
+      }
+    });
+
+    // Handle requests for specific scenario for copying
+    this.eventBus.on('scenario-builder:load-scenario-for-copy', async (scenarioId) => {
+      try {
+        const [type, key] = scenarioId.split(':');
+        let scenario;
+        
+        if (type === 'builtin') {
+          scenario = await this.getScenario(key);
+        } else if (type === 'custom') {
+          scenario = this.getUserScenario(key);
+        }
+        
+        if (scenario) {
+          // Convert scenario to form data using the service
+          this.eventBus.emit('scenario-builder:scenario-loaded-for-copy', scenario);
+        }
+      } catch (error) {
+        console.error('Error loading scenario for copy:', error);
+        this.eventBus.emit('scenario-builder:ui-show-error', { error: error.message });
+      }
+    });
   }
 
   /**
@@ -641,6 +673,51 @@ export class ContentService {
         isStorageAvailable: false,
         error: error.message
       };
+    }
+  }
+
+  /**
+   * Get scenarios formatted for copy dropdown
+   * @returns {Object} Scenarios organized by type
+   */
+  getScenariosForCopy() {
+    const builtin = [];
+    const custom = [];
+
+    // Get built-in scenarios
+    for (const [key, scenario] of this.scenarios.entries()) {
+      builtin.push({
+        key,
+        title: scenario.metadata?.title || scenario.title || key,
+        name: scenario.metadata?.title || scenario.title || key
+      });
+    }
+
+    // Get custom scenarios
+    const userScenarios = this.getUserScenariosFromStorage();
+    for (const [key, scenario] of Object.entries(userScenarios)) {
+      custom.push({
+        key,
+        title: scenario.metadata?.title || scenario.title || key,
+        name: scenario.metadata?.title || scenario.title || key
+      });
+    }
+
+    return { builtin, custom };
+  }
+
+  /**
+   * Get a specific user scenario
+   * @param {string} key - Scenario key
+   * @returns {Object|null} User scenario or null if not found
+   */
+  getUserScenario(key) {
+    try {
+      const userScenarios = this.getUserScenariosFromStorage();
+      return userScenarios[key] || null;
+    } catch (error) {
+      console.error('Error getting user scenario:', error);
+      return null;
     }
   }
 }

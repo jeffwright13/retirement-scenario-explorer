@@ -39,6 +39,10 @@ export class ScenarioBuilderUI {
     this.eventBus.on('scenario-builder:ui-show-error', (error) => {
       this.showError(error.error);
     });
+
+    this.eventBus.on('scenario-builder:ui-populate-copy-scenarios', (scenarios) => {
+      this.populateCopyScenarioOptions(scenarios);
+    });
   }
 
   initializeElements() {
@@ -67,6 +71,27 @@ export class ScenarioBuilderUI {
             <div class="template-grid" id="template-grid">
               <!-- Templates will be populated here -->
             </div>
+          </div>
+
+          <!-- Copy an Existing Scenario -->
+          <div class="copy-scenario-section">
+            <h3>Copy an Existing Scenario</h3>
+            <div class="copy-scenario-controls">
+              <select id="copy-scenario-select" class="form-control">
+                <option value="">Select scenario to copy...</option>
+              </select>
+              <button type="button" class="btn btn-outline btn-small" id="copy-scenario-btn" disabled>
+                📋 Copy Selected
+              </button>
+            </div>
+            <div class="copy-scenario-help">
+              Copy any built-in or custom scenario as a starting point, then modify as needed.
+            </div>
+          </div>
+
+          <!-- Scenario Details -->
+          <div class="scenario-details-section">
+            <h3>Scenario Details</h3>
           </div>
 
           <!-- Form Sections -->
@@ -244,6 +269,51 @@ export class ScenarioBuilderUI {
     `).join('');
   }
 
+  populateCopyScenarios() {
+    const select = document.getElementById('copy-scenario-select');
+    if (!select) return;
+
+    // Clear existing options except the first one
+    select.innerHTML = '<option value="">Select scenario to copy...</option>';
+
+    // Request scenarios from the system
+    this.eventBus.emit('scenario-builder:request-scenarios-for-copy');
+  }
+
+  populateCopyScenarioOptions(scenarios) {
+    const select = document.getElementById('copy-scenario-select');
+    if (!select) return;
+
+    // Clear existing options except the first one
+    select.innerHTML = '<option value="">Select scenario to copy...</option>';
+
+    // Add built-in scenarios
+    if (scenarios.builtin && scenarios.builtin.length > 0) {
+      const builtinGroup = document.createElement('optgroup');
+      builtinGroup.label = '📚 Built-in Scenarios';
+      scenarios.builtin.forEach(scenario => {
+        const option = document.createElement('option');
+        option.value = `builtin:${scenario.key}`;
+        option.textContent = scenario.title || scenario.name || scenario.key;
+        builtinGroup.appendChild(option);
+      });
+      select.appendChild(builtinGroup);
+    }
+
+    // Add custom scenarios
+    if (scenarios.custom && scenarios.custom.length > 0) {
+      const customGroup = document.createElement('optgroup');
+      customGroup.label = '💾 Custom Scenarios';
+      scenarios.custom.forEach(scenario => {
+        const option = document.createElement('option');
+        option.value = `custom:${scenario.key}`;
+        option.textContent = scenario.title || scenario.name || scenario.key;
+        customGroup.appendChild(option);
+      });
+      select.appendChild(customGroup);
+    }
+  }
+
   setupFormEventListeners() {
     // Close button
     document.getElementById('scenario-builder-close').addEventListener('click', () => {
@@ -267,6 +337,27 @@ export class ScenarioBuilderUI {
           card.classList.remove('selected');
         });
         templateCard.classList.add('selected');
+      }
+    });
+
+    // Copy scenario dropdown change
+    document.getElementById('copy-scenario-select').addEventListener('change', (e) => {
+      const copyBtn = document.getElementById('copy-scenario-btn');
+      copyBtn.disabled = !e.target.value;
+    });
+
+    // Copy scenario button
+    document.getElementById('copy-scenario-btn').addEventListener('click', () => {
+      const select = document.getElementById('copy-scenario-select');
+      const selectedScenario = select.value;
+      if (selectedScenario) {
+        console.log('📋 Copy scenario button clicked:', selectedScenario);
+        this.eventBus.emit('scenario-builder:copy-scenario', selectedScenario);
+        
+        // Clear template selection when copying
+        document.querySelectorAll('.template-card').forEach(card => {
+          card.classList.remove('selected');
+        });
       }
     });
 
@@ -316,11 +407,40 @@ export class ScenarioBuilderUI {
   showBuilder() {
     this.modal.classList.remove('hidden');
     document.body.classList.add('modal-open');
+    this.populateTemplates();
+    this.populateCopyScenarios();
+    this.resetForm();
   }
 
   hideBuilder() {
     this.modal.classList.add('hidden');
     document.body.classList.remove('modal-open');
+  }
+
+  resetForm() {
+    const form = document.getElementById('scenario-builder-form');
+    if (form) {
+      form.reset();
+      
+      // Clear template selection
+      document.querySelectorAll('.template-card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      
+      // Reset copy scenario dropdown
+      const copySelect = document.getElementById('copy-scenario-select');
+      if (copySelect) {
+        copySelect.value = '';
+        document.getElementById('copy-scenario-btn').disabled = true;
+      }
+      
+      // Clear dynamic sections
+      document.getElementById('assets-container').innerHTML = '';
+      document.getElementById('income-container').innerHTML = '';
+      
+      // Clear validation
+      document.getElementById('validation-summary').innerHTML = '';
+    }
   }
 
   loadFormData(formData) {
@@ -470,7 +590,6 @@ export class ScenarioBuilderUI {
     
     const data = {
       title: formData.get('title'),
-      description: formData.get('description'),
       monthlyExpenses: parseFloat(formData.get('monthlyExpenses')) || 0,
       durationYears: parseInt(formData.get('durationYears')) || 30,
       inflationRate: parseFloat(formData.get('inflationRate')) || 3,

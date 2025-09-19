@@ -141,9 +141,72 @@
   line-height: 1.4;
 }
 
+/* Copy Scenario Section */
+.copy-scenario-section {
+  margin-bottom: 32px;
+}
+
+.copy-scenario-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.copy-scenario-controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.copy-scenario-controls select {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  background: white;
+}
+
+.copy-scenario-controls select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.copy-scenario-controls button {
+  padding: 8px 16px;
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.copy-scenario-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.copy-scenario-help {
+  font-size: 14px;
+  color: #6b7280;
+  line-height: 1.4;
+}
+
+/* Scenario Details Section */
+.scenario-details-section {
+  margin-bottom: 32px;
+}
+
+.scenario-details-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
 /* Form Styles */
 .scenario-form {
-  margin-top: 24px;
+  margin-top: 0;
 }
 
 .checkbox-label {
