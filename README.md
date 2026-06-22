@@ -1,7 +1,7 @@
 # 💰 Retirement Scenario Explorer
 
 📈 A lightweight, browser-based tool for modeling and visualizing **retirement financial scenarios**.  
-Built with plain HTML, CSS, and JavaScript — **no backend**, no installs, and no build tools required.
+Built with plain HTML, CSS, and JavaScript - **no backend**, no installs, and no build tools required.
 
 ⚠️ **Important:** To use this tool, you must run it via a local web server.  
 Modern browsers block `file://` access for local JS modules and `import`/`export` syntax.
@@ -22,7 +22,7 @@ python3 -m http.server
 - Dynamically computes retirement projections month-by-month
 - Renders interactive charts (cash flow, drawdowns, balances)
 - CSV export for deeper spreadsheet analysis
-- 100% client-side — works offline and respects your privacy
+- 100% client-side - works offline and respects your privacy
 - Modular, clean JavaScript codebase (no frameworks)
 
 ---
@@ -123,9 +123,9 @@ Everything else can be expressed through these primitives.
 ### 🧩 Key Insight
 
 > **Everything is an asset.**  
-> Windfalls, one-time expenses, future accounts, emergency reserves — they can all be expressed as time-aware `assets[]` with either positive or negative balances and flexible interest behavior.
+> Windfalls, one-time expenses, future accounts, emergency reserves - they can all be expressed as time-aware `assets[]` with either positive or negative balances and flexible interest behavior.
 
-This flexible design avoids the need for separate `events[]`, `liabilities[]`, or `shocks[]` sections — while remaining easy to understand, test, and extend.
+This flexible design avoids the need for separate `events[]`, `liabilities[]`, or `shocks[]` sections - while remaining easy to understand, test, and extend.
 
 ---
 
@@ -163,10 +163,10 @@ CSV output and charts are generated based on these monthly records.
 
 ## 📄 License
 
-[MIT](./LICENSE) — open source, no restrictions.
+[MIT](./LICENSE) - open source, no restrictions.
 
 ---
 
 ## 💡 Feedback / Contributions
 
-I welcome modeling suggestions and PRs — especially new sample scenarios! Open an issue or fork the repo.
+I welcome modeling suggestions and PRs - especially new sample scenarios! Open an issue or fork the repo.
