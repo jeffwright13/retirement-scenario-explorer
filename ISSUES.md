@@ -113,20 +113,100 @@ particular mismatch is currently silent rather than user-visible. Recommend one
 dedicated cleanup pass across all four files rather than fixing occurrences
 one-by-one as each is tripped over.
 
-### Issue 8 (informational — INTEGRATION_TEST_ISSUES.md is stale)
+### Issue 8 — RESOLVED: negative-balance asset "$4,000 discrepancy" (folded in from `INTEGRATION_TEST_ISSUES.md` Issue #1)
 
-Two of that doc's three "open bugs" were re-verified directly against current code
-and appear to already be fixed, just never confirmed/closed:
-- `assets[].start_month` activation **works correctly** today (re-ran the exact
-  failing scenario from Issue #2; it passes).
-- The "$4,000 negative-balance discrepancy" (Issue #1) isn't a real bug — the test
-  reads `balanceHistory[name][0]` as a pre-simulation total when it's actually the
-  end-of-month-1 balance, and doesn't account for the 15% capital-gains gross-up on
-  the withdrawal that month.
+**Original report:** for the scenario below, mathematical total is
+`200000 - 50000 - 25000 = 125000`, but the integration test computed `121000` from
+`balanceHistory`, an unexplained $4,000 gap.
 
-The third (Issue #3, missing `plan.duration_months`) is real and arguably worse than
-described: the scenario doesn't throw and doesn't get a default duration — it
-silently returns a fully-empty result (zero months simulated, no error).
-`INTEGRATION_TEST_ISSUES.md` itself is gitignored and not tracked in git; consider
-whether it should be updated, replaced by this file, or deleted now that its content
-is stale.
+```js
+const scenario = {
+  plan: { monthly_expenses: 4000, duration_months: 48 },
+  assets: [
+    { name: "Savings", balance: 200000, min_balance: 0 },
+    { name: "Future Home Purchase", balance: -50000, min_balance: 0 },
+    { name: "Future Car Purchase", balance: -25000, min_balance: 0 }
+  ],
+  order: [
+    { account: "Savings", order: 1 },
+    { account: "Future Home Purchase", order: 2 },
+    { account: "Future Car Purchase", order: 3 }
+  ]
+};
+```
+
+**Verified directly (SPEC.md §2.5) — not a bug.** The test's `initialTotal` reads
+`balanceHistory[name][0]`, which is each asset's balance **after month 1's**
+withdrawal and growth, not the pre-simulation starting balance — there's no point in
+the engine's return value that exposes a true pre-simulation total. The $4,000
+expense withdrawn from `Savings` (a taxable account) is grossed up by the default
+15% capital-gains rate to ~$4,706, which alone accounts for nearly all of the
+reported gap (re-running it today gives `120294.12`, not exactly the original
+`121000`, consistent with this being a withdrawal-timing artifact rather than a
+fixed, reproducible miscalculation). The negative-balance assets themselves are
+untouched and behave exactly as designed (§1.1/§2.5: inert markers, never withdrawn
+from, no month-specific effect). **No engine change needed.**
+
+### Issue 9 — RESOLVED: `assets[].start_month` delayed activation (folded in from `INTEGRATION_TEST_ISSUES.md` Issue #2)
+
+**Original report:** an asset with `start_month: 12` was expected to stay at 0
+balance through month 11 and become available at month 12, but reportedly stayed at
+0 forever — feature documented in the schema but apparently unimplemented.
+
+```js
+const scenario = {
+  plan: { monthly_expenses: 3000, duration_months: 24 },
+  assets: [
+    { name: 'Immediate', balance: 50000, min_balance: 0, start_month: 0 },
+    { name: 'Delayed', balance: 100000, min_balance: 0, start_month: 12 }
+  ],
+  order: [
+    { account: 'Immediate', order: 1 },
+    { account: 'Delayed', order: 2 }
+  ]
+};
+```
+
+**Verified directly (SPEC.md §2.3) — already fixed, just never confirmed.**
+Re-running this exact scenario today: `Delayed` activates precisely at month 12
+with its full $100,000 balance and behaves normally afterward. The corresponding
+test is still marked `skip` in `tests/integration/timeaware-engine-real.test.js`.
+**Action: re-enable that test rather than touching the engine.**
+
+### Issue 10 — OPEN (design decision): missing `plan.duration_months` fails silently rather than erroring or defaulting (folded in from `INTEGRATION_TEST_ISSUES.md` Issue #3)
+
+**Original report:** a scenario missing the required `duration_months` field was
+expected to throw, but the engine "uses graceful defaults" instead — framed as an
+open design choice between strict validation and graceful defaults.
+
+```js
+const incompleteScenario = {
+  plan: { monthly_expenses: 4000 }, // missing duration_months
+  assets: [{ name: 'Test', balance: 100000 }]
+};
+```
+
+**Verified directly (SPEC.md §2.6) — real, and worse than originally described.**
+The engine neither throws nor applies any default duration. `maxDuration` becomes
+`undefined`, the main loop's condition (`month < maxDuration`) is immediately
+false, and `simulateScenarioAdvanced()` returns a fully-formed but **completely
+empty** result — zero months, empty balance history, no error, no warning. This is
+a third outcome beyond the two originally considered, and arguably the worst of the
+three: a malformed scenario produces no feedback at all.
+
+**Design decision still genuinely open** — preserved from the original report since
+it's still unresolved:
+
+- **Option A — Strict validation.** Throw on missing required fields
+  (`plan.duration_months`, `assets`, etc.). Pros: clear errors, fail-fast, easier
+  debugging. Cons: less forgiving for quick experimentation with partial scenarios.
+- **Option B — Graceful defaults.** Fill in sensible defaults (e.g.
+  `duration_months: 120`) so partial scenarios still run. Pros: friendlier for
+  learning/prototyping. Cons: can mask real configuration mistakes; schema
+  compliance becomes optional in practice.
+- **Option C — Hybrid.** An opt-in `strict` flag on `simulateScenarioAdvanced(scenario, { strict })`:
+  throws when `true`, applies defaults when `false`/omitted.
+
+Whatever is chosen, the one outcome that should be ruled out is the current one —
+silent, empty, unexplained results — since it's strictly worse than either option on
+the table for both the strict- and forgiving-UX cases.
