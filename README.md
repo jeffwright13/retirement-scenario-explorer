@@ -35,6 +35,7 @@ For the project itself (not the modeling concepts), `docs/` also maintains:
 - **[BRIEF.md](docs/BRIEF.md)** - stable facts: what this is, who it's for, hard constraints. Rarely changes.
 - **[SPEC.md](docs/SPEC.md)** - living feature-by-feature spec describing actual current behavior, including known gaps. Organized by feature area, not by source file.
 - **[DECISIONS.md](docs/DECISIONS.md)** - append-only log of why non-obvious choices were made.
+- **[PLAN.md](docs/PLAN.md)** - versioned implementation roadmap: what ships next, in what order, and how we'll know it's done.
 - **[AUDIT.md](docs/AUDIT.md)** - a one-time architecture/test/UX audit snapshot; not kept up to date after the fact.
 
 ---
