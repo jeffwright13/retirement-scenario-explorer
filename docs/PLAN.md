@@ -34,40 +34,62 @@ moved to v1.0.3.
 
 ---
 
-## v1.0.3 — Bug fixes and dead-code removal (PATCH)
+## v1.0.3 — Income display missing stop_month (PATCH) — SHIPPED
+
+**Goal:** Fix `ISSUES.md` #2a in isolation — same per-fix cadence as v1.0.2. The
+remaining items originally batched into this version moved to v1.0.4.
+
+### Scope
+
+1. **Income display missing stop_month (`ISSUES.md` #2a).** Regression test added
+   first for each of the two live duplicate implementations
+   (`UIController.extractKeyAssumptions()`, used by the `scenario:data-changed`
+   path, and `ScenarioController.extractKeyAssumptions()`, used by the
+   `scenario:loaded` path — the `ScenarioController` test file didn't exist before
+   this fix), confirmed both red, then changed `income.end_month` →
+   `income.stop_month` in both.
+
+### Done criteria
+
+- [x] Regression test added before the fix, for both duplicate implementations
+      (red → green)
+- [x] `npm test` passes (41 suites, 0 failing)
+- [x] `ISSUES.md` #2a marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.3`)
+
+---
+
+## v1.0.4 — Bug fixes and dead-code removal (PATCH)
 
 **Goal:** Fix every remaining `ISSUES.md` item that has a mechanical,
 already-root-caused fix and no open design question, and delete the code already
 confirmed dead. No new behavior, no schema changes — pure correctness and cleanup.
-(Originally scoped as part of v1.0.2 alongside Issue 1; split out once Issue 1
+(Originally scoped as part of v1.0.2, then v1.0.3; split out again once Issue 2a
 shipped alone — see `DECISIONS.md`.)
 
 ### Scope
 
-1. **Income display missing stop_month (`ISSUES.md` #2a).** One-line fix in
-   `extractKeyAssumptions()`: `income.end_month` → `income.stop_month`. Add a test
-   asserting an income entry with a `stop_month` renders an "ends month N" detail.
-2. **Dead `TabController` and the export-button bug it causes (`ISSUES.md` #4, #5).**
+1. **Dead `TabController` and the export-button bug it causes (`ISSUES.md` #4, #5).**
    Delete `scripts/controllers/TabController.js` and its instantiation in `main.js`.
    In `ExportController.js`, remove the dead `.tab-button` document-click listener
    and the `currentTab` tracking it feeds; gate the "📊 Results" button on
    `this.simulationResults !== null` alone (matching the Monte Carlo buttons' already-
    correct gating). Add a test asserting the Results button becomes visible after
    `simulation:completed` fires, with no dependency on any tab state.
-3. **Other confirmed-dead code (`ISSUES.md` #6).** Remove `#export-config-btn` from
+2. **Other confirmed-dead code (`ISSUES.md` #6).** Remove `#export-config-btn` from
    `index.html` (zero JS binding). Delete `UIController.exportSingleResults()`,
    `main.js`'s `setupExportHandlers()`/`handleSingleScenarioExport()`/
    `exportSingleScenarioCSV()`/`exportSingleScenarioJSON()` (zero call sites,
    superseded by the now-fixed `ExportController` path). Remove
    `windfallUsedAtMonth: scenario._windfallUsedAtMonth` from
    `simulateScenarioAdvanced()`'s return value (never set).
-4. **Close out resolved engine issues (`ISSUES.md` #8, #9).** Re-enable the
+3. **Close out resolved engine issues (`ISSUES.md` #8, #9).** Re-enable the
    `start_month` test in `tests/integration/timeaware-engine-real.test.js` (confirm
    it passes against current code). For the negative-balance test, fix its assertion
    to read the true pre-simulation total (sum of `asset.balance` from the input
    scenario) rather than `balanceHistory[name][0]`, or remove the assertion if it no
    longer makes a meaningful claim — re-enable either way.
-5. **`EventBus` re-entrancy during `emit()` (`ISSUES.md` #11).** In `emit()`
+4. **`EventBus` re-entrancy during `emit()` (`ISSUES.md` #11).** In `emit()`
    (`EventBus.js:38`), iterate a snapshot instead of the live array —
    `[...this.events.get(event)].forEach(...)` — so a handler that unsubscribes
    during the same `emit()` call (as `once()` does to itself) can't skip a
@@ -82,23 +104,23 @@ versions and Backlog below.
 
 ### Done criteria
 
-- [ ] All 5 scope items above complete with a regression test added per item
+- [ ] All 4 scope items above complete with a regression test added per item
       before the fix (red → green)
 - [ ] `npm test` passes, suite count reflects new tests added, no skipped tests
       remain from items in this scope
 - [ ] `~300` lines removed (`TabController.js` + the dead export chain) with no
       replacement code — net negative diff
-- [ ] `ISSUES.md` updated: items 2a, 4, 5, 6, 8, 9, 11 marked resolved with the
+- [ ] `ISSUES.md` updated: items 4, 5, 6, 8, 9, 11 marked resolved with the
       commit/PR that fixed them
 - [ ] `DECISIONS.md` updated if any fix took a different approach than scoped above
-- [ ] Version bumped via `npm version patch` (→ `1.0.3`)
+- [ ] Version bumped via `npm version patch` (→ `1.0.4`)
 
 ---
 
-## v1.0.4 — Income-display correctness and schema-vocabulary cleanup (PATCH)
+## v1.0.5 — Income-display correctness and schema-vocabulary cleanup (PATCH)
 
 **Goal:** Fix the remaining display/calculation bugs that need a little more care
-than v1.0.2/v1.0.3's mechanical fixes, but still introduce no new behavior or schema
+than v1.0.2–v1.0.4's mechanical fixes, but still introduce no new behavior or schema
 changes.
 
 ### Scope
@@ -111,10 +133,12 @@ changes.
    with two non-overlapping income sources and assert the insight text does not
    claim a combined total that's never actually concurrent.
 2. **Orphaned pre-schema vocabulary, four files (`ISSUES.md` #7).** Remove
-   `retirement_age`, `life_expectancy`, `annual_growth_rate`, `initial_value`, and
-   `end_month` handling from `ValidationService.js`, `UIController.js`,
-   `ScenarioController.js`, and `SimulationService.js` — none of these fields exist
-   in `scenario-schema.json` or are read by the engine. In
+   `retirement_age`, `life_expectancy`, `annual_growth_rate`, and `initial_value`
+   handling from `ValidationService.js`, `UIController.js`, `ScenarioController.js`,
+   and `SimulationService.js` — none of these fields exist in `scenario-schema.json`
+   or are read by the engine. (`end_month` was the fifth orphaned field originally
+   scoped here; it's already gone from `UIController.js`/`ScenarioController.js` as
+   of v1.0.3's Issue 2a fix, which changed it to the real field, `stop_month`.) In
    `ValidationService.validateAsset()`, replace the `401k`/`ira`/`roth_ira`/...
    type-vocabulary check with the schema's real enum
    (`taxable`/`tax_deferred`/`tax_free`). Since this validation's output is
@@ -142,7 +166,7 @@ Issue 10 (new `strict` behavior — v1.1.0), Story Mode, `UIController` split.
 - [ ] README changes (items 3–4) reviewed for accuracy against current engine
       behavior, not just old assumptions
 - [ ] `ISSUES.md` items 2b, 3, and the two README notes marked resolved
-- [ ] Version bumped via `npm version patch` (→ `1.0.4`)
+- [ ] Version bumped via `npm version patch` (→ `1.0.5`)
 
 ---
 
