@@ -291,7 +291,19 @@ export class UIController {
       this.currentScenario = data.scenario;
       this.updateJsonPreview(data.scenario);
       this.showSuccess(`Scenario loaded: ${data.scenario.metadata?.title || data.key}`);
-      
+
+      // Keep the dropdown's own displayed selection in sync with whichever
+      // scenario is actually active — populateScenarioDropdown() rebuilds the
+      // option list (and resets the selection to the placeholder) any time the
+      // scenarios list refreshes, which happens whenever a scenario is saved.
+      // Without this, a scenario made via the Scenario Builder (or any path
+      // other than picking straight from this dropdown) leaves the dropdown
+      // showing "Choose Scenario" even though a scenario is genuinely selected.
+      const scenarioKey = data.key || data.scenarioKey;
+      if (this.scenarioDropdown && scenarioKey) {
+        this.scenarioDropdown.value = scenarioKey;
+      }
+
       // Show the scenario preview section
       const scenarioPreview = document.getElementById('scenario-preview');
       console.log('🔍 Scenario preview element:', scenarioPreview);

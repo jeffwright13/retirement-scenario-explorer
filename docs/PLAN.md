@@ -363,6 +363,38 @@ requirement). Relabeled to the accurate, general "Min Balance."
 
 ---
 
+## v1.0.13 — Scenario dropdown sync fix and "Run Scenario" rename (PATCH)
+
+**Goal:** Close `ISSUES.md` #18. Two related UI-consistency issues traced to one
+root cause: `UIController`'s scenario dropdown never had its own `.value` kept in
+sync with which scenario is actually active — it only looked correct when picked
+directly from the dropdown, because the browser sets that visually for free.
+Saving a scenario via the Builder resets the dropdown to its placeholder as a
+side effect of the options list rebuilding, with nothing to re-select it
+afterward, even though the real "scenario selected" state (and Tab 2's unlock)
+were already correct.
+
+### Scope
+
+1. **Sync the dropdown to the real active scenario.** In
+   `UIController.handleScenarioSelectedData()` (handles both `scenario:selected`
+   and `content:scenario-data`), set `this.scenarioDropdown.value = data.key ||
+   data.scenarioKey` — covers both payload shapes this handler receives. Added
+   regression tests for both before fixing.
+2. **Rename "Test Scenario" → "Run Scenario".** `index.html`'s step-2 title and
+   comment — the tab's job is running the simulation and viewing results, matching
+   the "🚀 Run Single Scenario" button already inside it.
+
+### Done criteria
+
+- [x] Regression tests added before the fix (red → green), covering both the
+      `key` and `scenarioKey` payload shapes
+- [x] `npm test` passes
+- [x] `ISSUES.md` #18 marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.13`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns
