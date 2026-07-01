@@ -36,10 +36,7 @@ class RetirementScenarioApp {
     
     // Initialize controllers (orchestration)
     this.initializeControllers();
-    
-    // Set up export handlers
-    this.setupExportHandlers();
-    
+
     // Start the application
     this.initialize();
   }
@@ -109,117 +106,6 @@ class RetirementScenarioApp {
     });
     
     this.modeController = new ModeController(this.eventBus);
-  }
-
-  /**
-   * Set up export handlers for single scenario results
-   */
-  setupExportHandlers() {
-    this.eventBus.on('ui:single-scenario-export-requested', (data) => {
-      this.handleSingleScenarioExport(data);
-    });
-  }
-
-  /**
-   * Handle single scenario export request
-   */
-  handleSingleScenarioExport(data) {
-    const format = data.format || 'csv';
-    
-    // Get current simulation results from UIController
-    const simulationResults = this.uiController.currentSimulationResults;
-    
-    if (!simulationResults || !simulationResults.results) {
-      console.warn('⚠️ No simulation results available for export');
-      return;
-    }
-
-    try {
-      if (format === 'csv') {
-        this.exportSingleScenarioCSV(simulationResults);
-      } else if (format === 'json') {
-        this.exportSingleScenarioJSON(simulationResults);
-      }
-    } catch (error) {
-      console.error('❌ Export failed:', error);
-    }
-  }
-
-  /**
-   * Export single scenario results as CSV
-   */
-  exportSingleScenarioCSV(simulationResults) {
-    const results = simulationResults.results.results || simulationResults.results;
-    const scenario = simulationResults.scenario || this.uiController.currentScenario;
-    
-    if (!Array.isArray(results)) {
-      console.error('❌ Results data is not in expected array format');
-      return;
-    }
-
-    // Generate CSV content
-    const headers = ['Month', 'Total_Assets', 'Monthly_Expenses', 'Net_Income', 'Withdrawal_Amount', 'Asset_Growth'];
-    let csvContent = headers.join(',') + '\n';
-    
-    results.forEach((monthData, index) => {
-      const month = index + 1;
-      const totalAssets = monthData.total_assets || 0;
-      const monthlyExpenses = monthData.monthly_expenses || 0;
-      const netIncome = monthData.net_income || 0;
-      const withdrawalAmount = monthData.withdrawal_amount || 0;
-      const assetGrowth = monthData.asset_growth || 0;
-      
-      csvContent += `${month},${totalAssets},${monthlyExpenses},${netIncome},${withdrawalAmount},${assetGrowth}\n`;
-    });
-
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    const scenarioName = scenario?.metadata?.title || 'single-scenario';
-    const timestamp = Date.now();
-    a.download = `${scenarioName.toLowerCase().replace(/\s+/g, '-')}-results-${timestamp}.csv`;
-    
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    console.log('📊 Single scenario results exported as CSV');
-  }
-
-  /**
-   * Export single scenario results as JSON
-   */
-  exportSingleScenarioJSON(simulationResults) {
-    const exportData = {
-      metadata: {
-        exportType: 'single-scenario-results',
-        timestamp: new Date().toISOString(),
-        scenario: simulationResults.scenario?.metadata || {}
-      },
-      scenario: simulationResults.scenario,
-      results: simulationResults.results
-    };
-
-    const jsonContent = JSON.stringify(exportData, null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    const scenarioName = simulationResults.scenario?.metadata?.title || 'single-scenario';
-    const timestamp = Date.now();
-    a.download = `${scenarioName.toLowerCase().replace(/\s+/g, '-')}-results-${timestamp}.json`;
-    
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    console.log('📊 Single scenario results exported as JSON');
   }
 
   /**

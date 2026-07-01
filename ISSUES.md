@@ -74,7 +74,7 @@ one-time windfalls as `income[]`.
 
 ## Found while writing docs/SPEC.md (2026-06-22) — not yet in any user-facing report
 
-### Issue 4 (high impact, PARTIALLY RESOLVED): No way to get a correct single-scenario CSV export today
+### Issue 4 (high impact) — RESOLVED: No way to get a correct single-scenario CSV export today
 
 **SPEC.md §6.** Two paths exist; both are broken, for unrelated reasons:
 - The toolbar's "📊 Results" button (`ExportController.exportScenarioResults()`) is
@@ -93,6 +93,19 @@ visible and works correctly once a simulation completes. The second half of this
 recommendation (deleting the broken inline `convertResultsToCSV()`/
 `populateCSVExport()` preview in favor of the now-working toolbar button) was not in
 scope for that fix and is still open.
+
+**Fully resolved in `chore/dead-export-code-cleanup` (v1.0.5).** Deleted
+`convertResultsToCSV()`/`populateCSVExport()` and the fallback call site in
+`displaySimulationResults()` that invoked them. Correction while removing this: the
+broken path was less "reachable" than originally described — `SimulationService`
+only ever calls `simulateScenarioAdvanced()`, which unconditionally returns a
+pre-generated `csvText` string, so the `if (data.results && data.results.csvText)`
+branch (using the correct `populateCSVFromText()`) wins in every normal run. The
+broken `else` branch was reachable only in the degenerate case of an empty
+simulation result (`csvText === ''`, falsy) — narrower than "reachable but wrong,"
+but still dead weight worth removing rather than fixing. The inline preview panel
+itself (`toggle-csv-btn`, `populateCSVFromText()`) is unaffected and continues to
+work correctly.
 
 ### Issue 5 (high impact, root cause of Issue 4) — RESOLVED: `TabController.js` is fully dead code, and it's silently breaking `ExportController` too
 
@@ -121,7 +134,7 @@ in `main.js`, removed `ExportController`'s dead `.tab-button` listener and
 `currentTab` tracking, and changed the Results button's visibility check to
 `this.simulationResults !== null` alone.
 
-### Issue 6 (low impact, dead code): Stray dead button and dead export chain
+### Issue 6 (low impact, dead code) — RESOLVED: Stray dead button and dead export chain
 
 **SPEC.md §6.3.**
 - `#export-config-btn` (index.html:293, "📄 Export Config") has zero JS binding —
@@ -135,6 +148,17 @@ in `main.js`, removed `ExportController`'s dead `.tab-button` listener and
   covers this correctly once fixed.
 - `simulateScenarioAdvanced()` returns `windfallUsedAtMonth:
   scenario._windfallUsedAtMonth`, a field that's never set anywhere. Vestigial.
+
+**Fixed in `chore/dead-export-code-cleanup` (v1.0.5).** Verified zero live call
+sites for each item before deleting (including in test files — `main.test.js` had
+its own mock reimplementation of the whole dead chain, tested only against itself,
+never against real `main.js`; that mock and its tests were removed too). Removed
+`#export-config-btn` from `index.html`; deleted `UIController.exportSingleResults()`;
+deleted `main.js`'s `setupExportHandlers()`/`handleSingleScenarioExport()`/
+`exportSingleScenarioCSV()`/`exportSingleScenarioJSON()` and the constructor call
+that wired it up; removed `windfallUsedAtMonth` from `simulateScenarioAdvanced()`'s
+return value. Full suite passed unchanged throughout (42 suites, 0 failing) —
+expected, since none of this code had any live callers.
 
 ### Issue 7 (medium impact, systemic): Orphaned pre-schema vocabulary across 4 files
 

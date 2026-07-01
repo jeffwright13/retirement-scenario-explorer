@@ -1221,12 +1221,10 @@ export class UIController {
       }
       
       console.log('📊 About to populate CSV export');
-      
-      // Populate CSV export - use CSV text if available, otherwise convert results
+
+      // Populate CSV export from the engine's pre-generated CSV text
       if (data.results && data.results.csvText) {
         this.populateCSVFromText(data.results.csvText);
-      } else {
-        this.populateCSVExport(resultsArray);
       }
 
       // Display tax summary and withdrawal details
@@ -1667,53 +1665,6 @@ export class UIController {
   }
 
   /**
-   * Populate CSV export with simulation results
-   */
-  populateCSVExport(results) {
-    const csvContainer = document.getElementById('csv-container');
-    if (!csvContainer || !results) {
-      console.warn('❌ CSV container or results not available');
-      return;
-    }
-
-    try {
-      // Convert results to CSV format
-      const csvData = this.convertResultsToCSV(results);
-      csvContainer.textContent = csvData;
-      console.log('📊 CSV export populated from results conversion');
-    } catch (error) {
-      console.error('❌ CSV export failed:', error);
-    }
-  }
-
-  /**
-   * Convert simulation results to CSV format
-   */
-  convertResultsToCSV(results) {
-    if (!Array.isArray(results) || results.length === 0) {
-      return 'No data available';
-    }
-
-    // Create CSV header
-    const headers = ['Month', 'Total Assets', 'Monthly Expenses', 'Net Change'];
-    let csv = headers.join(',') + '\n';
-
-    // Add data rows
-    results.forEach((month, index) => {
-      const totalAssets = month.assets ? 
-        month.assets.reduce((sum, asset) => sum + (asset.balance || 0), 0) : 0;
-      const expenses = month.expenses || 0;
-      const netChange = index > 0 ? 
-        totalAssets - (results[index - 1].assets ? 
-          results[index - 1].assets.reduce((sum, asset) => sum + (asset.balance || 0), 0) : 0) : 0;
-
-      csv += `${index},${totalAssets.toFixed(2)},${expenses.toFixed(2)},${netChange.toFixed(2)}\n`;
-    });
-
-    return csv;
-  }
-
-  /**
    * Set run button loading state
    */
   setRunButtonLoading(isLoading) {
@@ -1992,15 +1943,6 @@ export class UIController {
     } catch (error) {
       this.showError(`Failed to export configuration: ${error.message}`);
     }
-  }
-
-  /**
-   * Export single scenario results
-   */
-  exportSingleResults() {
-    // Request export from the system via event bus
-    this.eventBus.emit('ui:single-scenario-export-requested', { format: 'csv' });
-    console.log('📊 Single scenario export requested');
   }
 
   /**
