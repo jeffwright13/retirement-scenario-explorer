@@ -292,3 +292,9 @@ section with file changes and done criteria.
   the API now (cheap, small surface) or wait until a real short-lived subscriber
   needs it. The `once()`/`forEach` re-entrancy issue (`ISSUES.md` #11) is separate
   and mechanical — that one belongs in a PATCH version, not here.
+- **Fix the skipped rate-schedule test** (`ISSUES.md` #13, found 2026-07-02).
+  `tests/integration/timeaware-engine-real.test.js:262` fails if re-enabled as-is —
+  same `balanceHistory[name][0]` misunderstanding Issue 8 already fixed elsewhere in
+  this file. Needs a real invariant designed (e.g. computing the expected balance
+  from the known fixed rate) rather than a mechanical index fix, so it's not
+  scoped into a version yet.

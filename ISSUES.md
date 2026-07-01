@@ -333,3 +333,18 @@ but it's a leak trap the moment any subscriber becomes short-lived (recreated pe
 render, per modal open, etc.) — see the `docs/PLAN.md` Backlog entry for the
 design question of whether to add this now or wait until a component actually
 needs it.
+
+### Issue 13 (low impact, test-only): skipped rate-schedule test asserts the wrong invariant, same root cause as Issue 8
+
+**Found while analyzing skipped tests (2026-07-02).** The remaining `it.skip` at
+`tests/integration/timeaware-engine-real.test.js:262` ("should apply fixed rate
+schedules correctly") fails if re-enabled as-is: it asserts
+`investmentHistory[0] ≈ 100000` (the input balance), but `balanceHistory[name][0]`
+is the balance **after month 1's** withdrawal and growth — the exact same
+misunderstanding Issue 8 diagnosed and fixed elsewhere in this same file. Actual
+value today is `99317.65`, not `100000`. The test's own comments ("this test will
+reveal if rate schedules are being applied") show it was written as an exploratory
+probe rather than a real spec, so fixing it means designing a real invariant (e.g.
+computing the expected balance from the known 6% annual rate and comparing against
+that), not just correcting an index — more than a mechanical re-enable. Not folded
+into `v1.0.7` since it's unrelated to that version's scope; needs its own pass.
