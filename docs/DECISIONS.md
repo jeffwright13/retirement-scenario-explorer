@@ -12,6 +12,18 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-07-02 — v1.0.7 shipped as a single-issue patch; batched scope split into v1.0.8
+
+**Decision:** Same pattern as the earlier splits: `docs/PLAN.md`'s v1.0.7 batched
+four `ISSUES.md` items. Only Issue 2b (Monte Carlo expected-income timing) was
+fixed in this pass, so `1.0.7` shipped with just that fix, and the remaining three
+items (Issue 7's vocabulary cleanup, Issue 3 and the README example notes) moved
+into a new `v1.0.8`. `v1.1.0` (MINOR, strict validation) needed no renumbering,
+since MINOR bumps aren't tied to how many patches precede them.
+**Rationale:** Continues the per-fix bump cadence from the entries below.
+
+---
+
 ## 2026-07-01 — v1.0.6 shipped both remaining items together, no further split
 
 **Decision:** `docs/PLAN.md`'s v1.0.6 batched two `ISSUES.md` items (closing out
