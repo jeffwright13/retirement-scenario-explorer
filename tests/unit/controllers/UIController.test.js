@@ -227,4 +227,46 @@ describe('Testing Setup Verification', () => {
       expect(floorTrace.hovertemplate).not.toContain('Emergency Fund');
     });
   });
+
+  describe('scenario dropdown sync', () => {
+    test('should sync the dropdown selection to the newly active scenario (scenario:selected payload)', () => {
+      document.body.innerHTML = `
+        <select id="scenario-dropdown">
+          <option value="">Choose Scenario</option>
+          <option value="custom_my_scenario_123">My Scenario</option>
+        </select>
+        <div id="scenario-preview" class="hidden"></div>
+      `;
+
+      const uiController = new UIController(mockEventBus);
+      uiController.initializeUIElements();
+
+      uiController.handleScenarioSelectedData({
+        scenario: { metadata: { title: 'My Scenario' }, plan: {}, assets: [] },
+        key: 'custom_my_scenario_123'
+      });
+
+      expect(document.getElementById('scenario-dropdown').value).toBe('custom_my_scenario_123');
+    });
+
+    test('should also sync from the scenarioKey field used by content:scenario-data', () => {
+      document.body.innerHTML = `
+        <select id="scenario-dropdown">
+          <option value="">Choose Scenario</option>
+          <option value="simple-retirement">Simple Retirement</option>
+        </select>
+        <div id="scenario-preview" class="hidden"></div>
+      `;
+
+      const uiController = new UIController(mockEventBus);
+      uiController.initializeUIElements();
+
+      uiController.handleScenarioSelectedData({
+        scenario: { metadata: { title: 'Simple Retirement' }, plan: {}, assets: [] },
+        scenarioKey: 'simple-retirement'
+      });
+
+      expect(document.getElementById('scenario-dropdown').value).toBe('simple-retirement');
+    });
+  });
 });

@@ -529,3 +529,42 @@ what `min_balance` means at the boundary)?
 
 **Decision: leave current behavior as-is for now** (see `DECISIONS.md`). Not
 implementing a toggle at this time — revisit if it becomes a real need.
+
+### Issue 18 (user-reported) — RESOLVED: "Choose Scenario" dropdown doesn't reflect the active scenario when it wasn't picked from the dropdown itself, and "Test Scenario" tab should read "Run Scenario"
+
+**Reported 2026-07-02.** User noticed the "Choose Scenario" dropdown correctly
+shows the picked scenario's title when you select one *from the dropdown*, but
+stays on the placeholder text after creating a scenario via the Scenario Builder
+— even though "Scenario Details" populates correctly and Tab 2 unlocks either
+way. Looked like two different mechanisms tracking similar state differently.
+
+**Root cause, traced fully:** it's one mechanism, not two. `UIController`'s
+`populateScenarioDropdown()` rebuilds the `<select>`'s entire `<option>` list from
+scratch whenever the scenarios list refreshes (which happens on
+`scenarios:loaded`, fired whenever a scenario is saved) — and never marks any
+option `selected`. A `<select>` with nothing explicitly selected defaults to its
+first option, which is the `"Choose Scenario"` placeholder — so saving a scenario
+resets the dropdown as a side effect. Meanwhile, the real "is a scenario active"
+state (`ScenarioController.selectScenario()` → `scenario:selected`, which
+`WorkflowController` uses to unlock Tab 2 and `UIController` uses to populate
+"Scenario Details") is a completely separate signal that was never wired back to
+the dropdown's own `.value`. Picking a scenario *from* the dropdown only "worked"
+because the browser sets the visible text natively as part of that click — nothing
+was actually keeping it in sync.
+
+**Fix:** `ScenarioController.js` already emits the scenario's key in the
+`scenario:selected` payload (`data.key`); `UIController.handleScenarioSelectedData()`
+(which handles both `scenario:selected` and `content:scenario-data` — the latter
+names the field `scenarioKey` instead of `key`) now sets
+`this.scenarioDropdown.value = data.key || data.scenarioKey` whenever either
+fires. Since this now updates from the same event that unlocks Tab 2, the two
+should always appear in sync going forward.
+
+**Also fixed:** renamed the "Test Scenario" tab/step title to "Run Scenario" —
+the tab's actual job is executing the simulation and viewing results, which "Run"
+states plainly (and matches the "🚀 Run Single Scenario" button already inside
+it); "Test" read more like a QA/validation step.
+
+**Fixed in `fix/scenario-dropdown-sync-and-rename`.** Regression tests added
+first (`tests/unit/controllers/UIController.test.js`, covering both the `key` and
+`scenarioKey` payload shapes), confirmed red, then fixed.
