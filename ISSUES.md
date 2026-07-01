@@ -74,7 +74,7 @@ one-time windfalls as `income[]`.
 
 ## Found while writing docs/SPEC.md (2026-06-22) — not yet in any user-facing report
 
-### Issue 4 (high impact): No way to get a correct single-scenario CSV export today
+### Issue 4 (high impact, PARTIALLY RESOLVED): No way to get a correct single-scenario CSV export today
 
 **SPEC.md §6.** Two paths exist; both are broken, for unrelated reasons:
 - The toolbar's "📊 Results" button (`ExportController.exportScenarioResults()`) is
@@ -88,7 +88,13 @@ one-time windfalls as `income[]`.
 Recommend fixing Issue 5 to surface the correct toolbar button, and deleting
 `convertResultsToCSV()`/`populateCSVExport()` in favor of it.
 
-### Issue 5 (high impact, root cause of Issue 4): `TabController.js` is fully dead code, and it's silently breaking `ExportController` too
+**Partial update (2026-07-01):** Issue 5 is fixed — the toolbar button now becomes
+visible and works correctly once a simulation completes. The second half of this
+recommendation (deleting the broken inline `convertResultsToCSV()`/
+`populateCSVExport()` preview in favor of the now-working toolbar button) was not in
+scope for that fix and is still open.
+
+### Issue 5 (high impact, root cause of Issue 4) — RESOLVED: `TabController.js` is fully dead code, and it's silently breaking `ExportController` too
 
 **SPEC.md §7.3.** `TabController.js` (306 lines, 0% test coverage) queries
 `.tab-button` / `.tab-panel` / `[data-tab="..."]` — none of these exist anywhere in
@@ -106,6 +112,14 @@ simulation has run.
 dead `.tab-button` listener and gate the Results button on
 `this.simulationResults !== null` only (matching how the Monte Carlo buttons are
 already gated, correctly).
+
+**Fixed in `fix/tab-controller-dead-code` (v1.0.4).** Regression test added first
+(`tests/unit/controllers/export-controller-results-visibility.test.js`, asserting
+the Results button becomes visible after `simulation:completed` with no tab
+dependency), confirmed red, then deleted `TabController.js` and its instantiation
+in `main.js`, removed `ExportController`'s dead `.tab-button` listener and
+`currentTab` tracking, and changed the Results button's visibility check to
+`this.simulationResults !== null` alone.
 
 ### Issue 6 (low impact, dead code): Stray dead button and dead export chain
 

@@ -6,7 +6,6 @@
 export class ExportController {
   constructor(eventBus) {
     this.eventBus = eventBus;
-    this.currentTab = 'configure';
     this.currentScenarioData = null;
     this.simulationResults = null;
     this.monteCarloResults = null;
@@ -62,14 +61,6 @@ export class ExportController {
     this.monteCarloReturnsBtn?.addEventListener('click', () => {
       this.exportMonteCarloReturns();
     });
-
-    // Listen for tab changes to update toolbar visibility
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('tab-button')) {
-        this.currentTab = e.target.dataset.tab;
-        this.updateToolbarVisibility();
-      }
-    });
   }
 
   /**
@@ -119,8 +110,8 @@ export class ExportController {
     const hasScenario = this.currentScenarioData !== null;
     this.toggleButton(this.scenarioConfigBtn, hasScenario);
 
-    // Results button - visible on simulation tab when results exist
-    const showResultsBtn = this.currentTab === 'single-analysis' && this.simulationResults !== null;
+    // Results button - visible once a simulation has completed
+    const showResultsBtn = this.simulationResults !== null;
     this.toggleButton(this.scenarioResultsBtn, showResultsBtn);
 
     // Monte Carlo buttons - visible when results exist (regardless of tab)

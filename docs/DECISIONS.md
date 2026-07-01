@@ -12,6 +12,20 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-07-01 — v1.0.4 shipped as a single-issue patch; batched scope split into v1.0.5
+
+**Decision:** Same pattern again: `docs/PLAN.md`'s v1.0.4 (after the previous split)
+batched four `ISSUES.md` items. Only Issues 4 (partially)/5 (fully) — the dead
+`TabController` and the export-button visibility bug it caused — were fixed in this
+pass, so `1.0.4` shipped with just that fix. The remaining three items moved into a
+new `v1.0.5` (renumbering the old `v1.0.5` — income-display/vocabulary cleanup — to
+`v1.0.6`), and Issue 4's still-open half (deleting the broken inline CSV preview)
+was folded into `v1.0.5`'s dead-code item alongside Issue 6, since both are the same
+kind of confirmed-dead-code removal.
+**Rationale:** Continues the per-fix bump cadence from the two entries below.
+
+---
+
 ## 2026-07-01 — v1.0.3 shipped as a single-issue patch; batched scope split into v1.0.4
 
 **Decision:** Same pattern as the v1.0.2 split below: `docs/PLAN.md`'s v1.0.3
