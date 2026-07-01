@@ -242,6 +242,38 @@ Issue 10 (new `strict` behavior — v1.1.0), Story Mode, `UIController` split.
 
 ---
 
+## v1.0.9 — Add min_balance to the Scenario Builder's Add Asset form (PATCH)
+
+**Goal:** Close `ISSUES.md` #14 — a genuinely missing UI field for an
+already-schema-supported capability (`assets[].min_balance`), reported directly by
+the project owner while building a real money-market scenario. No schema change;
+`ScenarioBuilderService`'s form↔JSON conversion already supports `minBalance`
+correctly.
+
+### Scope
+
+1. **Add a `min_balance` input to the Add Asset form.** In
+   `ScenarioBuilderUI.renderAssets()`, add a labeled input (with help text framed
+   like the existing emergency-fund-style suggestion in `ValidationService`) and
+   read it in `collectFormData()` into `asset.minBalance`.
+2. **Fix the copy-scenario mapping gap.** `ScenarioBuilderController.convertScenarioToFormData()`
+   doesn't map `min_balance` at all — add `minBalance: asset.min_balance || 0`.
+3. **Fix a second bug found in the same function:** it reads `asset.return_rate`
+   (doesn't exist in the schema) instead of `asset.interest_rate` (the real field,
+   already used correctly by `ScenarioBuilderService`) — copying a scenario with a
+   real, non-default `interest_rate` silently reset it to the 7% default.
+
+### Done criteria
+
+- [x] Regression tests added before each fix (red → green): `renderAssets()`
+      renders `minBalance`, `collectFormData()` reads it, `convertScenarioToFormData()`
+      maps both `minBalance` and the corrected `interest_rate`
+- [x] `npm test` passes (44 suites, 0 failing)
+- [x] `ISSUES.md` #14 marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.9`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns

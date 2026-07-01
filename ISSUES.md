@@ -391,3 +391,46 @@ probe rather than a real spec, so fixing it means designing a real invariant (e.
 computing the expected balance from the known 6% annual rate and comparing against
 that), not just correcting an index — more than a mechanical re-enable. Not folded
 into `v1.0.7` since it's unrelated to that version's scope; needs its own pass.
+
+### Issue 14 (user-reported) — RESOLVED: No `min_balance` input in Scenario Builder's Add Asset form, plus a related copy-scenario mapping gap
+
+**Reported 2026-07-02**, user building a real scenario with a money-market asset
+that charges a fee below a $10,000 balance. `scripts/ui/ScenarioBuilderUI.js`'s
+`renderAssets()` form template has inputs for name, account type, investment type,
+balance, return rate, withdrawal order, and market-dependent — but no `min_balance`
+input at all, and `collectFormData()` correspondingly never reads one. The layer
+underneath is already fully wired for it — `ScenarioBuilderService.convertFormToJson()`/
+`convertJsonToForm()` already convert `minBalance` ↔ `min_balance` correctly — so
+this is purely a missing form field, not a schema or engine gap.
+
+**Related gap found while investigating:** `ScenarioBuilderController.convertScenarioToFormData()`
+(the function used when copying an existing scenario into the builder — see Issue 1,
+the same duplicate-implementation pattern) also doesn't map `min_balance` at all, so
+copying a scenario that already has a real `min_balance` set would silently drop it.
+
+**Second bug found in the same function:** that same `convertScenarioToFormData()`
+reads `asset.return_rate` for the form's return-rate field — that field doesn't
+exist in `scenario-schema.json`; the real field is `interest_rate` (confirmed:
+`ScenarioBuilderService`'s `convertFormToJson()`/`convertJsonToForm()` both correctly
+use `interest_rate`). Copying a scenario with a real, non-default `interest_rate`
+(e.g. a money-market asset at 4%) would silently reset it to the 7% default.
+
+**Fix:** add a `min_balance` input to the Add Asset form and read it in
+`collectFormData()`; add `minBalance: asset.min_balance || 0` to
+`convertScenarioToFormData()`'s asset mapping; fix `asset.return_rate` →
+`asset.interest_rate` in that same mapping.
+
+**Fixed in `feature/asset-min-balance-ui` (v1.0.9).** Regression tests added first
+(`ScenarioBuilderUI.test.js`: renders and collects `minBalance`;
+`ScenarioBuilderController.test.js`: copy-scenario mapping preserves both
+`minBalance` and the corrected `interest_rate`), confirmed red, then implemented.
+Found while fixing: the existing `ScenarioBuilderController.test.js` test for this
+function used `return_rate: 0.08` in its fixture — the *wrong* field name — and
+only "passed" because the buggy code happened to read that same wrong name; fixed
+the fixture to `interest_rate` once the real bug was corrected. A separate
+integration test fixture used `return_rate: 0.07`, which coincidentally matched the
+fallback default and wasn't asserted on, so it was harmless but updated for
+consistency anyway. Verified the served file contains the new markup via a quick
+local static server (Playwright/`chromium-cli` weren't available, and installing
+Playwright for this would cut against this project's own stated preference to avoid
+it for simple browser-only apps).
