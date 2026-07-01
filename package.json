@@ -1,6 +1,6 @@
 {
   "name": "retirement-scenario-explorer",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "📈 A lightweight, browser-based tool for modeling and visualizing **retirement financial scenarios**.   Built with plain HTML, CSS, and JavaScript — **no backend**, no installs, and no build tools required.",
   "main": "index.js",
   "directories": {
