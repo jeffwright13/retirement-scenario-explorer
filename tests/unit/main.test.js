@@ -53,7 +53,6 @@ const mockStoryController = {
   })
 };
 
-const mockTabController = { initialize: jest.fn() };
 const mockModeController = { initialize: jest.fn() };
 const mockWorkflowController = { initialize: jest.fn() };
 const mockMonteCarloController = { initialize: jest.fn() };
@@ -82,7 +81,6 @@ class MockRetirementScenarioApp {
     this.uiController = mockUIController;
     this.scenarioController = mockScenarioController;
     this.storyController = mockStoryController;
-    this.tabController = mockTabController;
     this.modeController = mockModeController;
     this.workflowController = mockWorkflowController;
     this.monteCarloController = mockMonteCarloController;

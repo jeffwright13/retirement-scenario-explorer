@@ -15,7 +15,6 @@ import { ScenarioBuilderService } from './services/ScenarioBuilderService.js';
 import { UIController } from './controllers/UIController.js';
 import { ScenarioController } from './controllers/ScenarioController.js';
 import { StoryController } from './controllers/StoryController.js';
-import { TabController } from './controllers/TabController.js';
 import { ModeController } from './controllers/ModeController.js';
 import { WorkflowController } from './controllers/WorkflowController.js';
 import { MonteCarloController } from './controllers/MonteCarloController.js';
@@ -110,7 +109,6 @@ class RetirementScenarioApp {
     });
     
     this.modeController = new ModeController(this.eventBus);
-    this.tabController = new TabController(this.eventBus);
   }
 
   /**
@@ -235,7 +233,6 @@ class RetirementScenarioApp {
     this.exportController.initialize();
     this.scenarioController.initialize();
     this.storyController.initialize();
-    this.tabController.initialize();
     this.modeController.initialize();
     this.workflowController.initialize();
     this.monteCarloController.initialize();
