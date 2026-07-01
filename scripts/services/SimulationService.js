@@ -272,7 +272,7 @@ export class SimulationService {
 
     // Enhanced Asset and Cash Flow Analysis
     if (scenarioData.assets && scenarioData.assets.length > 0) {
-      const totalAssets = scenarioData.assets.reduce((sum, asset) => sum + (asset.balance || asset.initial_value || 0), 0);
+      const totalAssets = scenarioData.assets.reduce((sum, asset) => sum + (asset.balance || 0), 0);
       insights.push({
         type: 'info',
         message: `💰 Starting with $${totalAssets.toLocaleString()} in assets`,
@@ -346,7 +346,7 @@ export class SimulationService {
     if (finalResult && finalResult.balances) {
       scenarioData.assets.forEach(asset => {
         const finalBalance = finalResult.balances[asset.name] || 0;
-        const initialBalance = asset.balance || asset.initial_value || 0;
+        const initialBalance = asset.balance || 0;
         
         // Consider asset depleted if less than 5% of original value
         if (finalBalance < (initialBalance * 0.05)) {
@@ -620,8 +620,8 @@ export class SimulationService {
 
     // Asset metrics
     if (scenarioData.assets) {
-      metrics.totalInitialAssets = scenarioData.assets.reduce((sum, asset) => 
-        sum + (asset.initial_value || 0), 0
+      metrics.totalInitialAssets = scenarioData.assets.reduce((sum, asset) =>
+        sum + (asset.balance || 0), 0
       );
       metrics.assetCount = scenarioData.assets.length;
     }

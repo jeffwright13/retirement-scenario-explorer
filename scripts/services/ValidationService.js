@@ -100,26 +100,6 @@ export class ValidationService {
         }
       }
     }
-
-    // Retirement age validation
-    if ('retirement_age' in plan) {
-      const age = plan.retirement_age;
-      if (typeof age !== 'number') {
-        result.warnings.push('Retirement age should be a number');
-      } else if (age < 50 || age > 80) {
-        result.warnings.push('Retirement age seems unusual (should be 50-80)');
-      }
-    }
-
-    // Life expectancy validation
-    if ('life_expectancy' in plan) {
-      const lifeExp = plan.life_expectancy;
-      if (typeof lifeExp !== 'number') {
-        result.warnings.push('Life expectancy should be a number');
-      } else if (lifeExp < 70 || lifeExp > 110) {
-        result.warnings.push('Life expectancy seems unusual (should be 70-110)');
-      }
-    }
   }
 
   /**
@@ -143,8 +123,8 @@ export class ValidationService {
     });
 
     // Check for reasonable total asset value
-    const totalValue = assets.reduce((sum, asset) => 
-      sum + (asset.initial_value ?? asset.balance ?? 0), 0
+    const totalValue = assets.reduce((sum, asset) =>
+      sum + (asset.balance ?? 0), 0
     );
 
     if (totalValue === 0) {
@@ -168,39 +148,27 @@ export class ValidationService {
       return;
     }
 
-    // Value validation - support both 'initial_value' and 'balance' properties
-    const assetValue = asset.initial_value ?? asset.balance;
+    // Value validation
+    const assetValue = asset.balance;
     if (assetValue === undefined || assetValue === null) {
-      result.errors.push(`${assetPrefix}: Missing asset value (expected "initial_value" or "balance")`);
+      result.errors.push(`${assetPrefix}: Missing asset value (expected "balance")`);
     } else {
       const value = assetValue;
       if (typeof value !== 'number') {
-        result.errors.push(`${assetPrefix}: Initial value must be a number`);
+        result.errors.push(`${assetPrefix}: Asset value must be a number`);
       } else if (value < 0) {
-        result.errors.push(`${assetPrefix}: Initial value cannot be negative`);
+        result.errors.push(`${assetPrefix}: Asset value cannot be negative`);
       }
     }
 
     // Asset type validation
     if ('type' in asset) {
-      const validTypes = ['401k', 'ira', 'roth_ira', 'savings', 'investment', 'pension', 'social_security'];
+      const validTypes = ['taxable', 'tax_deferred', 'tax_free'];
       if (!validTypes.includes(asset.type)) {
         result.warnings.push(`${assetPrefix}: Unknown asset type "${asset.type}"`);
       }
     } else {
       result.suggestions.push(`${assetPrefix}: Consider adding an asset type for better categorization`);
-    }
-
-    // Growth rate validation
-    if ('annual_growth_rate' in asset) {
-      const rate = asset.annual_growth_rate;
-      if (typeof rate !== 'number') {
-        result.warnings.push(`${assetPrefix}: Growth rate should be a number`);
-      } else {
-        if (rate < -0.5 || rate > 0.5) {
-          result.warnings.push(`${assetPrefix}: Growth rate seems extreme (${(rate * 100).toFixed(1)}%)`);
-        }
-      }
     }
 
     // Min balance validation (emergency fund)
@@ -211,7 +179,7 @@ export class ValidationService {
       } else if (minBalance < 0) {
         result.errors.push(`${assetPrefix}: min_balance cannot be negative`);
       } else {
-        const assetValue = asset.initial_value ?? asset.balance ?? 0;
+        const assetValue = asset.balance ?? 0;
         if (minBalance > assetValue) {
           result.errors.push(`${assetPrefix}: min_balance ($${minBalance.toLocaleString()}) cannot exceed asset balance ($${assetValue.toLocaleString()})`);
         } else if (minBalance > 0) {
@@ -238,29 +206,19 @@ export class ValidationService {
     if (!plan || !assets) return; // Already handled in structure validation
 
     // Check if assets can support expenses
-    const totalAssets = assets.reduce((sum, asset) => sum + (asset.initial_value ?? asset.balance ?? 0), 0);
+    const totalAssets = assets.reduce((sum, asset) => sum + (asset.balance ?? 0), 0);
     const monthlyExpenses = plan.monthly_expenses || 0;
     const annualExpenses = monthlyExpenses * 12;
 
     if (totalAssets > 0 && annualExpenses > 0) {
       const yearsOfExpenses = totalAssets / annualExpenses;
-      
+
       if (yearsOfExpenses < 1) {
         result.errors.push('Assets insufficient to cover even one year of expenses');
       } else if (yearsOfExpenses < 5) {
         result.warnings.push(`Assets may only last ${yearsOfExpenses.toFixed(1)} years without growth`);
       } else if (yearsOfExpenses > 100) {
         result.suggestions.push('Assets seem very high relative to expenses - consider higher expense estimates');
-      }
-    }
-
-    // Retirement timeline validation
-    if (plan.retirement_age && plan.life_expectancy) {
-      const retirementYears = plan.life_expectancy - plan.retirement_age;
-      if (retirementYears <= 0) {
-        result.errors.push('Life expectancy must be greater than retirement age');
-      } else if (retirementYears < 10) {
-        result.warnings.push('Very short retirement period - consider adjusting ages');
       }
     }
   }

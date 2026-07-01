@@ -38,16 +38,13 @@ describe('ValidationService', () => {
           title: 'Test Scenario',
           description: 'A test scenario',
           plan: {
-            monthly_expenses: 5000,
-            retirement_age: 65,
-            life_expectancy: 85
+            monthly_expenses: 5000
           },
           assets: [
             {
               name: 'Savings Account',
-              initial_value: 100000,
-              type: 'savings',
-              annual_growth_rate: 0.03
+              balance: 100000,
+              type: 'taxable'
             }
           ]
         };
@@ -126,9 +123,7 @@ describe('ValidationService', () => {
       test('should validate valid plan', () => {
         const result = { errors: [], warnings: [] };
         const plan = {
-          monthly_expenses: 5000,
-          retirement_age: 65,
-          life_expectancy: 85
+          monthly_expenses: 5000
         };
 
         validationService.validatePlan(plan, result);
@@ -172,52 +167,14 @@ describe('ValidationService', () => {
         validationService.validatePlan({ monthly_expenses: 60000 }, result);
         expect(result.warnings).toContain('Monthly expenses seem unusually high (> $50,000)');
       });
-
-      test('should validate retirement age', () => {
-        const result = { errors: [], warnings: [] };
-
-        // Invalid type
-        validationService.validatePlan({ 
-          monthly_expenses: 5000,
-          retirement_age: 'invalid' 
-        }, result);
-        expect(result.warnings).toContain('Retirement age should be a number');
-
-        // Unusual age
-        result.warnings = [];
-        validationService.validatePlan({ 
-          monthly_expenses: 5000,
-          retirement_age: 30 
-        }, result);
-        expect(result.warnings).toContain('Retirement age seems unusual (should be 50-80)');
-      });
-
-      test('should validate life expectancy', () => {
-        const result = { errors: [], warnings: [] };
-
-        // Invalid type
-        validationService.validatePlan({ 
-          monthly_expenses: 5000,
-          life_expectancy: 'invalid' 
-        }, result);
-        expect(result.warnings).toContain('Life expectancy should be a number');
-
-        // Unusual expectancy
-        result.warnings = [];
-        validationService.validatePlan({ 
-          monthly_expenses: 5000,
-          life_expectancy: 50 
-        }, result);
-        expect(result.warnings).toContain('Life expectancy seems unusual (should be 70-110)');
-      });
     });
 
     describe('validateAssets', () => {
       test('should validate valid assets array', () => {
         const result = { errors: [], warnings: [], suggestions: [] };
         const assets = [
-          { name: 'Savings', initial_value: 50000, type: 'savings' },
-          { name: 'Investment', balance: 100000, type: 'investment' }
+          { name: 'Savings', balance: 50000, type: 'taxable' },
+          { name: 'Investment', balance: 100000, type: 'tax_deferred' }
         ];
 
         validationService.validateAssets(assets, result);
@@ -246,13 +203,13 @@ describe('ValidationService', () => {
       test('should warn about low total asset value', () => {
         const scenarioData = {
           assets: [
-            { name: 'Small Asset', initial_value: 100, type: 'savings' }
+            { name: 'Small Asset', balance: 100, type: 'taxable' }
           ],
           plan: { monthly_expenses: 5000 }
         };
-        
+
         const result = validationService.validateScenario(scenarioData);
-        
+
         // With $100 assets and $5000/month expenses, this should generate an error about insufficient assets
         expect(result.errors.length).toBeGreaterThan(0);
         expect(result.errors.some(e => e.includes('insufficient'))).toBe(true);
@@ -264,9 +221,8 @@ describe('ValidationService', () => {
         const result = { errors: [], warnings: [], suggestions: [] };
         const asset = {
           name: 'Test Asset',
-          initial_value: 50000,
-          type: 'savings',
-          annual_growth_rate: 0.03,
+          balance: 50000,
+          type: 'taxable',
           min_balance: 5000
         };
 
@@ -288,101 +244,82 @@ describe('ValidationService', () => {
 
         // Missing value
         validationService.validateAsset({}, 0, result);
-        expect(result.errors).toContain('Asset 1: Missing asset value (expected "initial_value" or "balance")');
+        expect(result.errors).toContain('Asset 1: Missing asset value (expected "balance")');
 
         // Invalid type
         result.errors = [];
-        validationService.validateAsset({ initial_value: 'invalid' }, 0, result);
-        expect(result.errors).toContain('Asset 1: Initial value must be a number');
+        validationService.validateAsset({ balance: 'invalid' }, 0, result);
+        expect(result.errors).toContain('Asset 1: Asset value must be a number');
 
         // Negative value
         result.errors = [];
-        validationService.validateAsset({ initial_value: -1000 }, 0, result);
-        expect(result.errors).toContain('Asset 1: Initial value cannot be negative');
+        validationService.validateAsset({ balance: -1000 }, 0, result);
+        expect(result.errors).toContain('Asset 1: Asset value cannot be negative');
 
-        // Test balance property as alternative
+        // Valid balance
         result.errors = [];
         validationService.validateAsset({ balance: 50000 }, 0, result);
         expect(result.errors).toHaveLength(0);
       });
 
-      test('should validate asset type', () => {
+      test('should validate asset type against the real schema enum', () => {
         const result = { errors: [], warnings: [], suggestions: [] };
 
         // Valid type
-        validationService.validateAsset({ 
-          initial_value: 50000, 
-          type: 'savings' 
+        validationService.validateAsset({
+          balance: 50000,
+          type: 'taxable'
         }, 0, result);
         expect(result.warnings).toHaveLength(0);
 
         // Invalid type
         result.warnings = [];
-        validationService.validateAsset({ 
-          initial_value: 50000, 
-          type: 'unknown' 
+        validationService.validateAsset({
+          balance: 50000,
+          type: 'unknown'
         }, 0, result);
         expect(result.warnings).toContain('Asset 1: Unknown asset type "unknown"');
 
         // Missing type
         result.suggestions = [];
-        validationService.validateAsset({ 
-          initial_value: 50000 
+        validationService.validateAsset({
+          balance: 50000
         }, 0, result);
         expect(result.suggestions).toContain('Asset 1: Consider adding an asset type for better categorization');
-      });
-
-      test('should validate growth rate', () => {
-        const result = { errors: [], warnings: [], suggestions: [] };
-
-        // Invalid type
-        validationService.validateAsset({ 
-          initial_value: 50000,
-          annual_growth_rate: 'invalid' 
-        }, 0, result);
-        expect(result.warnings).toContain('Asset 1: Growth rate should be a number');
-
-        // Extreme rate
-        result.warnings = [];
-        validationService.validateAsset({ 
-          initial_value: 50000,
-          annual_growth_rate: 0.8 
-        }, 0, result);
-        expect(result.warnings).toContain('Asset 1: Growth rate seems extreme (80.0%)');
       });
 
       test('should validate min_balance', () => {
         const result = { errors: [], warnings: [], suggestions: [] };
 
         // Invalid type
-        validationService.validateAsset({ 
-          initial_value: 50000,
-          min_balance: 'invalid' 
+        validationService.validateAsset({
+          balance: 50000,
+          min_balance: 'invalid'
         }, 0, result);
         expect(result.errors).toContain('Asset 1: min_balance must be a number');
 
         // Negative min_balance
         result.errors = [];
-        validationService.validateAsset({ 
-          initial_value: 50000,
-          min_balance: -1000 
+        validationService.validateAsset({
+          balance: 50000,
+          min_balance: -1000
         }, 0, result);
         expect(result.errors).toContain('Asset 1: min_balance cannot be negative');
 
         // Min balance exceeds asset value
         result.errors = [];
-        validationService.validateAsset({ 
-          initial_value: 50000,
-          min_balance: 60000 
+        validationService.validateAsset({
+          balance: 50000,
+          min_balance: 60000
         }, 0, result);
         expect(result.errors).toContain('Asset 1: min_balance ($60,000) cannot exceed asset balance ($50,000)');
 
         // Valid min_balance with suggestion
         result.errors = [];
         result.suggestions = [];
-        validationService.validateAsset({ 
-          initial_value: 50000,
-          min_balance: 10000 
+        validationService.validateAsset({
+          balance: 50000,
+          min_balance: 10000
         }, 0, result);
         expect(result.suggestions).toContain('Asset 1: Emergency fund of $10,000 reserved, $40,000 available for withdrawal');
       });
@@ -390,11 +327,26 @@ describe('ValidationService', () => {
       test('should suggest adding asset name', () => {
         const result = { errors: [], warnings: [], suggestions: [] };
 
-        validationService.validateAsset({ 
-          initial_value: 50000 
+        validationService.validateAsset({
+          balance: 50000
         }, 0, result);
 
         expect(result.suggestions).toContain('Asset 1: Consider adding a name for better identification');
+      });
+
+      test('should produce zero warnings for a real scenario using actual schema vocabulary (ISSUES.md #7)', () => {
+        const result = { errors: [], warnings: [], suggestions: [] };
+
+        ['taxable', 'tax_deferred', 'tax_free'].forEach(type => {
+          validationService.validateAsset({
+            name: `${type} account`,
+            balance: 100000,
+            type,
+            min_balance: 0
+          }, 0, result);
+        });
+
+        expect(result.warnings).toHaveLength(0);
       });
     });
 
@@ -403,7 +355,7 @@ describe('ValidationService', () => {
         const result = { errors: [], warnings: [], suggestions: [] };
         const scenarioData = {
           plan: { monthly_expenses: 5000 },
-          assets: [{ initial_value: 50000 }] // Less than 1 year
+          assets: [{ balance: 50000 }] // Less than 1 year
         };
 
         validationService.validateBusinessLogic(scenarioData, result);
@@ -413,7 +365,7 @@ describe('ValidationService', () => {
         // Test warning for low years
         result.errors = [];
         result.warnings = [];
-        scenarioData.assets = [{ initial_value: 200000 }]; // ~3.3 years
+        scenarioData.assets = [{ balance: 200000 }]; // ~3.3 years
         validationService.validateBusinessLogic(scenarioData, result);
 
         expect(result.warnings).toContain('Assets may only last 3.3 years without growth');
@@ -421,34 +373,10 @@ describe('ValidationService', () => {
         // Test suggestion for very high assets
         result.warnings = [];
         result.suggestions = [];
-        scenarioData.assets = [{ initial_value: 10000000 }]; // 166+ years
+        scenarioData.assets = [{ balance: 10000000 }]; // 166+ years
         validationService.validateBusinessLogic(scenarioData, result);
 
         expect(result.suggestions).toContain('Assets seem very high relative to expenses - consider higher expense estimates');
-      });
-
-      test('should validate retirement timeline', () => {
-        const result = { errors: [], warnings: [] };
-        const scenarioData = {
-          plan: { 
-            monthly_expenses: 5000,
-            retirement_age: 70,
-            life_expectancy: 65 // Invalid: life expectancy before retirement
-          },
-          assets: [{ initial_value: 100000 }]
-        };
-
-        validationService.validateBusinessLogic(scenarioData, result);
-
-        expect(result.errors).toContain('Life expectancy must be greater than retirement age');
-
-        // Test warning for short retirement
-        result.errors = [];
-        result.warnings = [];
-        scenarioData.plan.life_expectancy = 75; // Only 5 years
-        validationService.validateBusinessLogic(scenarioData, result);
-
-        expect(result.warnings).toContain('Very short retirement period - consider adjusting ages');
       });
 
       test('should handle missing plan or assets gracefully', () => {
@@ -609,7 +537,7 @@ describe('ValidationService', () => {
       test('should return true for valid scenario', () => {
         const validScenario = {
           plan: { monthly_expenses: 5000 },
-          assets: [{ initial_value: 100000 }]
+          assets: [{ balance: 100000 }]
         };
 
         const result = validationService.isValid(validScenario, 'scenario');
@@ -651,7 +579,7 @@ describe('ValidationService', () => {
       test('should default to scenario validation', () => {
         const validScenario = {
           plan: { monthly_expenses: 5000 },
-          assets: [{ initial_value: 100000 }]
+          assets: [{ balance: 100000 }]
         };
 
         const result = validationService.isValid(validScenario);
@@ -662,23 +590,11 @@ describe('ValidationService', () => {
   });
 
   describe('Edge Cases and Error Handling', () => {
-    test('should handle assets with both initial_value and balance', () => {
-      const result = { errors: [], warnings: [], suggestions: [] };
-      const asset = {
-        initial_value: 50000,
-        balance: 60000 // Should prefer initial_value
-      };
-
-      validationService.validateAsset(asset, 0, result);
-
-      expect(result.errors).toHaveLength(0);
-    });
-
     test('should handle zero values appropriately', () => {
       const result = { errors: [], warnings: [], suggestions: [] };
       const scenarioData = {
         plan: { monthly_expenses: 5000 },
-        assets: [{ initial_value: 1000 }] // Small but non-zero amount
+        assets: [{ balance: 1000 }] // Small but non-zero amount
       };
 
       validationService.validateBusinessLogic(scenarioData, result);
@@ -690,7 +606,7 @@ describe('ValidationService', () => {
     test('should handle missing optional properties gracefully', () => {
       const minimalScenario = {
         plan: { monthly_expenses: 5000 },
-        assets: [{ initial_value: 100000 }]
+        assets: [{ balance: 100000 }]
       };
 
       const result = validationService.validateScenario(minimalScenario);
@@ -703,9 +619,8 @@ describe('ValidationService', () => {
       const result = { errors: [], warnings: [], suggestions: [] };
       const complexAsset = {
         name: 'Complex Asset',
-        initial_value: 100000,
-        type: 'investment',
-        annual_growth_rate: 0.07,
+        balance: 100000,
+        type: 'taxable',
         min_balance: 10000
       };
 
