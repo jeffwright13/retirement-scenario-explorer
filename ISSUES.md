@@ -434,3 +434,29 @@ consistency anyway. Verified the served file contains the new markup via a quick
 local static server (Playwright/`chromium-cli` weren't available, and installing
 Playwright for this would cut against this project's own stated preference to avoid
 it for simple browser-only apps).
+
+### Issue 15 (user-reported) — RESOLVED: No version indicator anywhere in the deployed (GitHub Pages) UI
+
+**Reported 2026-07-02.** The user's GitHub Pages deployment shows no version
+number anywhere in the UI, and nothing in the browser console confirms which
+version actually loaded — makes it hard to tell whether a deploy picked up the
+latest code. `~/coding/krashen` (a sibling project following the same global
+`CLAUDE.md` conventions) already solves this: a `<span id="app-version">` next to
+the app title, updated at runtime from `fetch('./package.json')`, plus a
+`console.log` on load. This project had neither.
+
+**Fix:** port the same pattern — add the version span next to the `<h1>` title,
+fetch `package.json` at runtime (no build step in this project, so this is the only
+way to get the version into client-side JS without hardcoding it and letting it
+drift), and log it to the console in this project's existing emoji-prefixed log
+style.
+
+**Fixed in `feature/version-display` (v1.0.10).** Added `#app-version` span in
+`index.html` next to the `<h1>`, a `.app-version` CSS rule in `styles/base.css`,
+and a `fetch('./package.json')` block at the bottom of `scripts/main.js` that
+updates the span and logs `💰 Retirement Scenario Explorer v${version} loaded` —
+mirroring `krashen/js/app.js`'s pattern exactly. Not unit-tested: this is a
+trivial, display-only fetch-and-log with no branching logic, consistent with how
+this same file's existing `debugContent()`/`debugEvents()` console helpers are
+untested, and matches krashen's own (untested) implementation of the same
+pattern.

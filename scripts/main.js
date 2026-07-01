@@ -312,3 +312,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   };
 });
+
+// ── Version display ─────────────────────────────────────────────────────────
+
+fetch('./package.json')
+  .then(r => r.json())
+  .then(pkg => {
+    const el = document.getElementById('app-version');
+    if (el && pkg.version) el.textContent = `v${pkg.version}`;
+    console.log(`💰 Retirement Scenario Explorer v${pkg.version} loaded`);
+  })
+  .catch(() => {});
