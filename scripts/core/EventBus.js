@@ -35,7 +35,10 @@ export class EventBus {
     }
 
     if (this.events.has(event)) {
-      this.events.get(event).forEach(callback => {
+      // Snapshot before iterating: a handler unsubscribing itself (or another
+      // handler) mid-emit — as once() does — must not cause forEach to skip
+      // a sibling handler when the live array shifts underneath it.
+      [...this.events.get(event)].forEach(callback => {
         try {
           callback(data);
         } catch (error) {

@@ -12,6 +12,27 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-07-01 — v1.0.6 shipped both remaining items together, no further split
+
+**Decision:** `docs/PLAN.md`'s v1.0.6 batched two `ISSUES.md` items (closing out
+Issues 8/9's resolved-engine tests, and the `EventBus` re-entrancy fix for Issue
+11). Unlike the four prior versions, both were completed and shipped together as
+`1.0.6` — no further split was needed, since neither item was left over.
+**Rationale:** The per-fix cadence established in the entries below was never a
+rule against shipping more than one item per release — it was specifically about
+not holding a release hostage to unfinished work. When all scoped items in a
+version are actually done in one pass, shipping them together is the same
+principle, not an exception to it.
+
+**Also recorded here:** while fixing Issue 11, found that its own original
+write-up in `ISSUES.md` mischaracterized severity — it called the bug "harmless"
+in one sentence while describing the actual failure (a skipped sibling handler) in
+the next. A regression test confirmed the second `once()` listener on the same
+event was silently dropped every time, not an edge case. Corrected in `ISSUES.md`
+rather than left standing.
+
+---
+
 ## 2026-07-01 — v1.0.5 shipped as a single-issue patch; batched scope split into v1.0.6
 
 **Decision:** Same pattern again: `docs/PLAN.md`'s v1.0.5 (after the previous split)

@@ -395,27 +395,24 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
       expect(finalResult.shortfall).toBeGreaterThan(0);
     });
 
-    it.skip('should handle negative balance assets (planned expenses)', () => {
+    it('should treat negative balance assets as inert markers, never withdrawn from (ISSUES.md #8)', () => {
       const scenario = comprehensiveScenarios.negativeBalanceAssets;
-      
+
       const result = simulateScenarioAdvanced(scenario);
-      
+
       expect(result.results).toBeDefined();
-      
-      // This will reveal how the real engine handles negative balance assets
-      // Calculate total from balance history instead
-      const assetNames = Object.keys(result.balanceHistory);
-      const initialTotal = assetNames.reduce((sum, name) => {
-        return sum + (result.balanceHistory[name][0] || 0);
-      }, 0);
-      expect(typeof initialTotal).toBe('number');
-      
-      // Should match the sum of all asset balances
-      const expectedTotal = scenario.assets.reduce((sum, a) => sum + a.balance, 0);
-      expect(initialTotal).toBeCloseTo(expectedTotal, -2); // Within $100
+
+      // Negative-balance assets (planned future expenses) are markers, not
+      // real withdrawable accounts — their balance should never change over
+      // the whole simulation, no matter how many months of expenses run.
+      const negativeAssets = scenario.assets.filter(a => a.balance < 0);
+      negativeAssets.forEach(asset => {
+        const history = result.balanceHistory[asset.name];
+        expect(history.every(balance => balance === asset.balance)).toBe(true);
+      });
     });
 
-    it.skip('should handle assets with start_month delays', () => {
+    it('should handle assets with start_month delays', () => {
       const scenario = {
         plan: { monthly_expenses: 3000, duration_months: 24 },
         assets: [
