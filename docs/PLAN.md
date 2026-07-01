@@ -339,6 +339,30 @@ site get their own version rather than editing those closed sections.
 
 ---
 
+## v1.0.12 — Chart min_balance trace mislabeled "Emergency Fund" (PATCH)
+
+**Goal:** Close `ISSUES.md` #16. `UIController.prepareChartData()` unconditionally
+labeled any asset's `min_balance` floor-line trace as "Emergency Fund," regardless
+of what the reserve actually represents (e.g. a money-market minimum-balance
+requirement). Relabeled to the accurate, general "Min Balance."
+
+### Scope
+
+1. **Relabel the trace.** Change `${assetName} (Emergency Fund)` → `${assetName}
+   (Min Balance)` (trace `name`) and the matching `hovertemplate` string. Added a
+   regression test calling `prepareChartData()` directly (a pure function, no
+   `Plotly`/DOM dependency — unlike `renderChart()`, which had no prior test
+   coverage at all).
+
+### Done criteria
+
+- [x] Regression test added before the fix (red → green)
+- [x] `npm test` passes
+- [x] `ISSUES.md` #16 marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.12`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns
