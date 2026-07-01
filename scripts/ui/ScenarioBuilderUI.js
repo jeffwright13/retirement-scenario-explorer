@@ -521,6 +521,16 @@ export class ScenarioBuilderUI {
         </div>
         <div class="form-row">
           <div class="form-group">
+            <label>Minimum Balance (Optional)</label>
+            <div class="input-with-prefix">
+              <span class="prefix">$</span>
+              <input type="number" name="assets[${index}].minBalance" value="${asset.minBalance || ''}" min="0" step="1000">
+            </div>
+            <small class="help-text">Reserve amount that won't be drawn below — e.g. a money-market minimum-balance requirement, or an emergency fund. Leave blank for no minimum.</small>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
             <label class="checkbox-label">
               <input type="checkbox" name="assets[${index}].marketDependent" ${asset.marketDependent !== false ? 'checked' : ''}>
               Subject to market volatility (Monte Carlo analysis)
@@ -612,6 +622,7 @@ export class ScenarioBuilderUI {
         balance: parseFloat(assetForm.querySelector(`input[name="assets[${index}].balance"]`).value) || 0,
         returnRate: parseFloat(assetForm.querySelector(`input[name="assets[${index}].returnRate"]`).value) || 7,
         order: parseInt(assetForm.querySelector(`input[name="assets[${index}].order"]`).value) || index + 1,
+        minBalance: parseFloat(assetForm.querySelector(`input[name="assets[${index}].minBalance"]`).value) || 0,
         marketDependent: assetForm.querySelector(`input[name="assets[${index}].marketDependent"]`).checked
       };
       data.assets.push(asset);

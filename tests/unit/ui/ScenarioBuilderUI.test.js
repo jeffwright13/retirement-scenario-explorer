@@ -264,6 +264,20 @@ describe('ScenarioBuilderUI', () => {
       expect(firstAsset.querySelector('input[name="assets[0].marketDependent"]').checked).toBe(true);
     });
 
+    test('should render a min_balance input reflecting the asset value (ISSUES.md #14)', () => {
+      const assets = [
+        { name: 'Money Market', type: 'taxable', balance: 50000, minBalance: 10000 }
+      ];
+
+      scenarioBuilderUI.renderAssets(assets);
+
+      const container = document.getElementById('assets-container');
+      const minBalanceInput = container.querySelector('input[name="assets[0].minBalance"]');
+
+      expect(minBalanceInput).not.toBeNull();
+      expect(minBalanceInput.value).toBe('10000');
+    });
+
     test('should handle empty assets array', () => {
       scenarioBuilderUI.renderAssets([]);
 
@@ -579,6 +593,7 @@ describe('ScenarioBuilderUI', () => {
           <input name="assets[0].balance" value="">
           <input name="assets[0].returnRate" value="">
           <input name="assets[0].order" value="">
+          <input name="assets[0].minBalance" value="">
           <input name="assets[0].marketDependent" type="checkbox">
         </div>
       `;
@@ -589,6 +604,27 @@ describe('ScenarioBuilderUI', () => {
       expect(scenarioBuilderUI.currentFormData.assets[0].balance).toBe(0);
       expect(scenarioBuilderUI.currentFormData.assets[0].returnRate).toBe(7);
       expect(scenarioBuilderUI.currentFormData.assets[0].order).toBe(1);
+      expect(scenarioBuilderUI.currentFormData.assets[0].minBalance).toBe(0);
+    });
+
+    test('should collect min_balance from the asset form (ISSUES.md #14)', () => {
+      const container = document.getElementById('assets-container');
+      container.innerHTML = `
+        <div class="asset-form" data-index="0">
+          <input name="assets[0].name" value="Money Market">
+          <select name="assets[0].type"><option value="taxable" selected></option></select>
+          <select name="assets[0].investmentType"><option value="money_market" selected></option></select>
+          <input name="assets[0].balance" value="50000">
+          <input name="assets[0].returnRate" value="4">
+          <input name="assets[0].order" value="1">
+          <input name="assets[0].minBalance" value="10000">
+          <input name="assets[0].marketDependent" type="checkbox">
+        </div>
+      `;
+
+      scenarioBuilderUI.collectFormData();
+
+      expect(scenarioBuilderUI.currentFormData.assets[0].minBalance).toBe(10000);
     });
 
     test('should filter out invalid income entries', () => {

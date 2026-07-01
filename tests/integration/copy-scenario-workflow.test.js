@@ -103,7 +103,7 @@ describe('Copy Scenario Workflow Integration', () => {
         type: 'investment',
         investment_type: 'growth',
         balance: 500000,
-        return_rate: 0.07,
+        interest_rate: 0.07,
         order: 1,
         market_dependent: true
       }],

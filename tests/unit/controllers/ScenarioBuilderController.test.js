@@ -137,7 +137,7 @@ describe('ScenarioBuilderController', () => {
         assets: [{
           name: 'Test Asset',
           balance: 100000,
-          return_rate: 0.08
+          interest_rate: 0.08
         }],
         income: [{
           name: 'Test Income',
@@ -188,6 +188,23 @@ describe('ScenarioBuilderController', () => {
       expect(formData.assets.find(a => a.name === 'Taxable').order).toBe(1);
       expect(formData.assets.find(a => a.name === '401k').order).toBe(2);
       expect(formData.assets.find(a => a.name === 'Roth IRA').order).toBe(3);
+    });
+
+    test('should preserve min_balance and interest_rate when copying a scenario (ISSUES.md #14)', () => {
+      const scenario = {
+        metadata: { title: 'Test Scenario' },
+        plan: { monthly_expenses: 5000 },
+        assets: [
+          { name: 'Money Market', balance: 50000, min_balance: 10000, interest_rate: 0.04 }
+        ]
+      };
+
+      const formData = scenarioBuilderController.convertScenarioToFormData(scenario);
+
+      const asset = formData.assets.find(a => a.name === 'Money Market');
+      expect(asset.minBalance).toBe(10000);
+      // interest_rate is a fraction (0.04 = 4%); the form field is a percentage.
+      expect(asset.returnRate).toBe(4);
     });
   });
 

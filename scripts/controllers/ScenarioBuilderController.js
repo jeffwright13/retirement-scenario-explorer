@@ -399,9 +399,10 @@ export class ScenarioBuilderController {
             type: asset.type || 'investment',
             investmentType: asset.investment_type || 'growth',
             balance: asset.balance || 0,
-            returnRate: (asset.return_rate || 0.07) * 100,
+            returnRate: (asset.interest_rate || 0.07) * 100,
             order: orderInfo.order,
             weight: orderInfo.weight,
+            minBalance: asset.min_balance || 0,
             marketDependent: asset.market_dependent !== false
           };
         });
