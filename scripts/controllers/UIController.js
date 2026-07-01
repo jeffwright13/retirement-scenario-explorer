@@ -1464,9 +1464,9 @@ export class UIController {
               y: emergencyFundLine,
               type: 'scatter',
               mode: 'lines',
-              name: `${assetName} (Emergency Fund)`,
-              line: { 
-                color: assetColors[assetName] || '#6b7280', 
+              name: `${assetName} (Min Balance)`,
+              line: {
+                color: assetColors[assetName] || '#6b7280',
                 width: 1,
                 dash: 'dash'
               },
@@ -1474,7 +1474,7 @@ export class UIController {
               fill: 'tozeroy',
               fillcolor: `rgba(${this.hexToRgb(assetColors[assetName] || '#6b7280')}, 0.1)`,
               showlegend: false, // Don't clutter legend
-              hovertemplate: `${assetName} Emergency Fund<br>%{y:$,.0f}<extra></extra>`
+              hovertemplate: `${assetName} Min Balance<br>%{y:$,.0f}<extra></extra>`
             });
           }
           

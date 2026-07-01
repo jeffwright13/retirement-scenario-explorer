@@ -489,3 +489,26 @@ mode debuggable instead of silently swallowed: `.catch(() => {})` → `.catch(er
 resolution regardless of caching/base-URL edge cases. Also reduced `.app-version`
 from `0.9rem`/`opacity: 0.7` to `0.6rem`/`opacity: 0.4` per the user's explicit
 preference for something less in-your-face.
+
+### Issue 16 (user-reported) — RESOLVED: Chart labels a `min_balance` reserve trace "Emergency Fund" even when it isn't one
+
+**Reported 2026-07-02.** `UIController.prepareChartData()` labels the dashed
+floor-line trace for any asset with `min_balance` set as `"${assetName} (Emergency
+Fund)"` (trace `name`) and `"${assetName} Emergency Fund"` (hover text) —
+unconditionally, regardless of what the reserve actually represents. A
+money-market minimum-balance requirement isn't an emergency fund; the wording
+assumed one specific use case for a general-purpose field.
+
+**Fix:** relabel to `"${assetName} (Min Balance)"` / `"${assetName} Min Balance"`
+— accurate for any reason an asset might have a floor (money-market minimum,
+early-withdrawal-penalty threshold, or an actual emergency fund). Considered
+making the label user-definable (a name/purpose field per asset) but that adds a
+form field for a cosmetic label on a trace that isn't even in the chart legend
+(`showlegend: false` — it only surfaces in hover tooltips), so not worth the extra
+UI surface for now.
+
+**Fixed in `fix/min-balance-chart-label`.** Regression test added first
+(`tests/unit/controllers/UIController.test.js`, calling `prepareChartData()`
+directly — it's a pure function returning the trace array, no `Plotly`/DOM
+dependency, unlike `renderChart()` which calls it), confirmed red, then fixed
+both the trace `name` and `hovertemplate` strings.

@@ -207,4 +207,24 @@ describe('Testing Setup Verification', () => {
       expect(synopsis.income[0]).toContain('ends month 12');
     });
   });
+
+  describe('prepareChartData min_balance labeling', () => {
+    test('should label the min_balance floor trace "Min Balance", not "Emergency Fund" (not always an emergency fund)', () => {
+      const uiController = new UIController(mockEventBus);
+      const results = [{ month: 1 }, { month: 2 }];
+      const balanceHistory = { 'MM1': [11028, 11030] };
+      const scenario = {
+        assets: [{ name: 'MM1', min_balance: 11000 }]
+      };
+
+      const traces = uiController.prepareChartData(results, balanceHistory, scenario);
+      const floorTrace = traces.find(t => t.name !== 'MM1' && t.name !== 'Total Assets');
+
+      expect(floorTrace).toBeDefined();
+      expect(floorTrace.name).toBe('MM1 (Min Balance)');
+      expect(floorTrace.hovertemplate).toContain('MM1 Min Balance');
+      expect(floorTrace.name).not.toContain('Emergency Fund');
+      expect(floorTrace.hovertemplate).not.toContain('Emergency Fund');
+    });
+  });
 });
