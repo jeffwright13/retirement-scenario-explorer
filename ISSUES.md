@@ -48,13 +48,24 @@ fix), confirmed both red, then changed `income.end_month` → `income.stop_month
 both files. The `retirement_age`/`life_expectancy` orphaned-vocabulary note is
 unrelated and still open — see Issue 7.
 
-### Issue 2b: In RiskAnalysis...Key Scenario Insights, "Expected income" doesn't break down incomes that have a start/end time
+### Issue 2b — RESOLVED: In RiskAnalysis...Key Scenario Insights, "Expected income" doesn't break down incomes that have a start/end time
 
 **Root cause (SPEC.md §5.2):** `MonteCarloController.js:617` sums every income
 source's `amount` with no regard for `start_month`/`stop_month`. Two non-overlapping
 income sources (e.g. part-time work ending month 12, Social Security starting month
 84) get added together into a total that's never actually true at any point in the
 simulation. Needs timing-aware logic, not a flat sum.
+
+**Fixed in `fix/montecarlo-expected-income-timing` (v1.0.7).** Regression test
+added first (`tests/unit/controllers/monte-carlo-expected-income-timing.test.js`),
+confirmed red, then rewrote `generateScenarioInsights()`'s income block to sample
+concurrent income at every month where a source starts or stops, using
+`utils.js`'s `getMonthlyIncome()` — the same function the real engine uses — rather
+than reimplementing the active/inactive logic. Reports a flat `$X/month` total when
+every sample matches (the common case), or `ranges from $X to $Y/month` otherwise.
+This correctly surfaces real gaps too: two sources with a dead zone between them
+(e.g. part-time work ending month 12, Social Security starting month 84) now
+report a `$0` floor for the gap rather than hiding it.
 
 ### Issue 3: When adding a one-time inheritance income (400k/1-month) to an existing scenario, and then re-running it, the resulting graph does NOT show a 400k "bump" like you'd expect it to.
 
@@ -333,3 +344,18 @@ but it's a leak trap the moment any subscriber becomes short-lived (recreated pe
 render, per modal open, etc.) — see the `docs/PLAN.md` Backlog entry for the
 design question of whether to add this now or wait until a component actually
 needs it.
+
+### Issue 13 (low impact, test-only): skipped rate-schedule test asserts the wrong invariant, same root cause as Issue 8
+
+**Found while analyzing skipped tests (2026-07-02).** The remaining `it.skip` at
+`tests/integration/timeaware-engine-real.test.js:262` ("should apply fixed rate
+schedules correctly") fails if re-enabled as-is: it asserts
+`investmentHistory[0] ≈ 100000` (the input balance), but `balanceHistory[name][0]`
+is the balance **after month 1's** withdrawal and growth — the exact same
+misunderstanding Issue 8 diagnosed and fixed elsewhere in this same file. Actual
+value today is `99317.65`, not `100000`. The test's own comments ("this test will
+reveal if rate schedules are being applied") show it was written as an exploratory
+probe rather than a real spec, so fixing it means designing a real invariant (e.g.
+computing the expected balance from the known 6% annual rate and comparing against
+that), not just correcting an index — more than a mechanical re-enable. Not folded
+into `v1.0.7` since it's unrelated to that version's scope; needs its own pass.

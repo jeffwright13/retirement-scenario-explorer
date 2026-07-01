@@ -164,22 +164,42 @@ versions and Backlog below.
 
 ---
 
-## v1.0.7 — Income-display correctness and schema-vocabulary cleanup (PATCH)
+## v1.0.7 — Monte Carlo expected-income timing fix (PATCH) — SHIPPED
 
-**Goal:** Fix the remaining display/calculation bugs that need a little more care
-than v1.0.2–v1.0.6's mechanical fixes, but still introduce no new behavior or schema
-changes.
+**Goal:** Fix `ISSUES.md` #2b in isolation — same per-fix cadence as v1.0.2–v1.0.6.
+The remaining items originally batched into this version moved to v1.0.8.
 
 ### Scope
 
-1. **Monte Carlo "Expected income" ignores timing (`ISSUES.md` #2b).** Replace the
-   naive `reduce((sum, inc) => sum + inc.amount, 0)` in `MonteCarloController.js`
-   with logic that reports income honestly given it varies over time — e.g. "income
-   ranges from $X to $Y/month across the simulation" or "$X/month initially,
-   changing at month N" rather than a single static total. Write the test first
-   with two non-overlapping income sources and assert the insight text does not
-   claim a combined total that's never actually concurrent.
-2. **Orphaned pre-schema vocabulary, four files (`ISSUES.md` #7).** Remove
+1. **Monte Carlo "Expected income" ignores timing (`ISSUES.md` #2b).** Regression
+   test added first (`tests/unit/controllers/monte-carlo-expected-income-timing.test.js`),
+   confirmed red, then rewrote `MonteCarloController.generateScenarioInsights()`'s
+   income block to sample concurrent income at every month a source starts or
+   stops, using `utils.js`'s `getMonthlyIncome()` (the same function the real
+   engine uses) rather than reimplementing the active/inactive logic. Reports a
+   flat `$X/month` total when every sample matches, or `ranges from $X to
+   $Y/month` otherwise — including surfacing real `$0` gaps between
+   non-overlapping sources rather than hiding them.
+
+### Done criteria
+
+- [x] Regression test added before the fix (red → green)
+- [x] `npm test` passes (44 suites, 0 failing)
+- [x] `ISSUES.md` #2b marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.7`)
+
+---
+
+## v1.0.8 — Schema-vocabulary cleanup and README accuracy (PATCH)
+
+**Goal:** Fix the remaining display/calculation bugs and documentation gaps that
+need a little more care than v1.0.2–v1.0.7's mechanical fixes, but still introduce
+no new behavior or schema changes. (Originally scoped as part of v1.0.7; split out
+once Issue 2b shipped alone — see `DECISIONS.md`.)
+
+### Scope
+
+1. **Orphaned pre-schema vocabulary, four files (`ISSUES.md` #7).** Remove
    `retirement_age`, `life_expectancy`, `annual_growth_rate`, and `initial_value`
    handling from `ValidationService.js`, `UIController.js`, `ScenarioController.js`,
    and `SimulationService.js` — none of these fields exist in `scenario-schema.json`
@@ -192,12 +212,12 @@ changes.
    currently unrendered (§ SPEC.md §1.8), this is safe to fix without any UI risk —
    but add a test confirming a real scenario (using the actual schema vocabulary)
    produces zero warnings, so the next person doesn't reintroduce the mismatch.
-3. **Windfall-income documentation gap (`ISSUES.md` #3).** No code change — update
+2. **Windfall-income documentation gap (`ISSUES.md` #3).** No code change — update
    the README's "Common Scenarios" section to explicitly warn that one-time income
    exceeding that month's expenses is discarded, not banked, and reinforce that a
    one-time windfall belongs in `assets[]` (as the existing "Inheritance or Lump Sum
    Windfall" example already correctly shows), not `income[]`.
-4. **README example issues** (from `ISSUES.md`'s original notes): annotate each
+3. **README example issues** (from `ISSUES.md`'s original notes): annotate each
    "Common Scenarios" example with whether it's an asset or income entry, and add
    an end date/duration note to the "Inheritance or Lump Sum Windfall" example where
    relevant.
@@ -208,12 +228,12 @@ Issue 10 (new `strict` behavior — v1.1.0), Story Mode, `UIController` split.
 
 ### Done criteria
 
-- [ ] Scope items 1–2 each have a test written before the fix
+- [ ] Scope item 1 has a test written before the fix
 - [ ] `npm test` passes
-- [ ] README changes (items 3–4) reviewed for accuracy against current engine
+- [ ] README changes (items 2–3) reviewed for accuracy against current engine
       behavior, not just old assumptions
-- [ ] `ISSUES.md` items 2b, 3, and the two README notes marked resolved
-- [ ] Version bumped via `npm version patch` (→ `1.0.7`)
+- [ ] `ISSUES.md` items 3, 7, and the README note marked resolved
+- [ ] Version bumped via `npm version patch` (→ `1.0.8`)
 
 ---
 
@@ -292,3 +312,9 @@ section with file changes and done criteria.
   the API now (cheap, small surface) or wait until a real short-lived subscriber
   needs it. The `once()`/`forEach` re-entrancy issue (`ISSUES.md` #11) is separate
   and mechanical — that one belongs in a PATCH version, not here.
+- **Fix the skipped rate-schedule test** (`ISSUES.md` #13, found 2026-07-02).
+  `tests/integration/timeaware-engine-real.test.js:262` fails if re-enabled as-is —
+  same `balanceHistory[name][0]` misunderstanding Issue 8 already fixed elsewhere in
+  this file. Needs a real invariant designed (e.g. computing the expected balance
+  from the known fixed rate) rather than a mechanical index fix, so it's not
+  scoped into a version yet.
