@@ -512,3 +512,20 @@ UI surface for now.
 directly — it's a pure function returning the trace array, no `Plotly`/DOM
 dependency, unlike `renderChart()` which calls it), confirmed red, then fixed
 both the trace `name` and `hovertemplate` strings.
+
+### Issue 17 (user-reported, design question) — CONSIDERED, DECLINED FOR NOW: should the shortfall auto-stop draw down `min_balance` reserves as a last resort?
+
+**Reported 2026-07-02.** User noticed a scenario terminates (auto-stop on
+shortfall) while assets still have real money sitting in their `min_balance`
+reserves, untouched. Confirmed in `timeaware-engine.js`:
+`withdrawFromSingleAsset()` treats `min_balance` as a hard floor withdrawals can
+never cross ("Asset is protected by min_balance — cannot withdraw"), and the
+auto-stop condition fires when there's a shortfall and no assets have any balance
+available *above* their floors — regardless of how much sits below those floors.
+User's framing: at that point the user is "at the end of their rope" and would
+realistically spend that money too, so should the engine draw it down as a final
+resort before stopping (possibly behind an opt-in toggle, since it would change
+what `min_balance` means at the boundary)?
+
+**Decision: leave current behavior as-is for now** (see `DECISIONS.md`). Not
+implementing a toggle at this time — revisit if it becomes a real need.

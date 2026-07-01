@@ -444,3 +444,8 @@ section with file changes and done criteria.
   this file. Needs a real invariant designed (e.g. computing the expected balance
   from the known fixed rate) rather than a mechanical index fix, so it's not
   scoped into a version yet.
+- **`min_balance` last-resort drawdown at shortfall auto-stop** (`ISSUES.md` #17,
+  `DECISIONS.md` 2026-07-02). Considered and declined for now — see the decision
+  entry for the full rationale. Revisit only if this becomes a real need rather
+  than a hypothetical; if so, the shape discussed was an opt-in toggle (e.g.
+  `plan.deplete_reserves_at_end`) rather than changing default behavior.

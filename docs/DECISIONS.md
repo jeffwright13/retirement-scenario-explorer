@@ -12,6 +12,26 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-07-02 — `min_balance` stays a hard floor even at shortfall auto-stop; no last-resort drawdown
+
+**Decision:** When a scenario auto-stops due to shortfall (`ISSUES.md` #17), assets
+still holding balance below their `min_balance` reserve are left untouched — the
+engine does not draw down into those reserves as a last resort before stopping,
+even though at that point the user would realistically be spending that money
+too. Considered adding an opt-in toggle (e.g. `plan.deplete_reserves_at_end`) that
+would allow the auto-stop path specifically to ignore the floor, but declined for
+now.
+**Rationale:** `min_balance` is a single field used for genuinely different
+purposes — a money-market minimum-balance requirement, an early-withdrawal-penalty
+threshold, or an actual emergency fund — and a toggle that changes what the floor
+means specifically at the moment the simulation is about to end would make the
+field's meaning conditional on how the scenario plays out, which is more
+complexity than the current, clear "it's a floor, full stop" semantics justify
+until there's a concrete need for it. Revisit if this becomes a real blocker
+rather than a hypothetical.
+
+---
+
 ## 2026-07-02 — v1.0.8 shipped all three remaining items together, no further split
 
 **Decision:** Like `v1.0.6`, all three items batched into `v1.0.8` (orphaned
