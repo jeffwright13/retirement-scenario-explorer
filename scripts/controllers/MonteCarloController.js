@@ -2,6 +2,8 @@
  * Monte Carlo Controller - Orchestrates Monte Carlo analysis operations
  * Follows event bus architecture and manages UI state for Monte Carlo features
  */
+import { getMonthlyIncome } from '../utils.js';
+
 export class MonteCarloController {
   constructor(eventBus) {
     this.eventBus = eventBus;
@@ -613,12 +615,36 @@ export class MonteCarloController {
       });
     }
     
-    // Income insight
+    // Income insight - income sources can start/stop at different months, so a
+    // flat sum of every source's amount can claim a combined total that's never
+    // actually concurrent. Sample at each point where a source starts or stops
+    // to find the true range of concurrent income over the simulation.
     if (scenario.income && scenario.income.length > 0) {
-      const totalMonthlyIncome = scenario.income.reduce((sum, inc) => sum + (inc.amount || 0), 0);
+      const durationMonths = scenario.plan?.duration_months || 360;
+
+      const breakpoints = new Set([1]);
+      scenario.income.forEach(inc => {
+        const start = Number.isFinite(inc.start_month) ? inc.start_month : 1;
+        breakpoints.add(Math.max(1, start));
+        if (Number.isFinite(inc.stop_month)) {
+          breakpoints.add(Math.min(durationMonths, inc.stop_month + 1));
+        }
+      });
+
+      const monthlyTotals = [...breakpoints]
+        .filter(month => month >= 1 && month <= durationMonths)
+        .map(month => getMonthlyIncome(scenario.income, month));
+
+      const minIncome = Math.min(...monthlyTotals);
+      const maxIncome = Math.max(...monthlyTotals);
+
+      const incomeText = minIncome === maxIncome
+        ? `Expected income: $${maxIncome.toLocaleString()}/month from ${scenario.income.length} source(s)`
+        : `Expected income: ranges from $${minIncome.toLocaleString()} to $${maxIncome.toLocaleString()}/month across the simulation (${scenario.income.length} source(s))`;
+
       insights.push({
         icon: '💵',
-        text: `Expected income: $${totalMonthlyIncome.toLocaleString()}/month from ${scenario.income.length} source(s)`
+        text: incomeText
       });
     }
     

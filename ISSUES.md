@@ -48,13 +48,24 @@ fix), confirmed both red, then changed `income.end_month` → `income.stop_month
 both files. The `retirement_age`/`life_expectancy` orphaned-vocabulary note is
 unrelated and still open — see Issue 7.
 
-### Issue 2b: In RiskAnalysis...Key Scenario Insights, "Expected income" doesn't break down incomes that have a start/end time
+### Issue 2b — RESOLVED: In RiskAnalysis...Key Scenario Insights, "Expected income" doesn't break down incomes that have a start/end time
 
 **Root cause (SPEC.md §5.2):** `MonteCarloController.js:617` sums every income
 source's `amount` with no regard for `start_month`/`stop_month`. Two non-overlapping
 income sources (e.g. part-time work ending month 12, Social Security starting month
 84) get added together into a total that's never actually true at any point in the
 simulation. Needs timing-aware logic, not a flat sum.
+
+**Fixed in `fix/montecarlo-expected-income-timing` (v1.0.7).** Regression test
+added first (`tests/unit/controllers/monte-carlo-expected-income-timing.test.js`),
+confirmed red, then rewrote `generateScenarioInsights()`'s income block to sample
+concurrent income at every month where a source starts or stops, using
+`utils.js`'s `getMonthlyIncome()` — the same function the real engine uses — rather
+than reimplementing the active/inactive logic. Reports a flat `$X/month` total when
+every sample matches (the common case), or `ranges from $X to $Y/month` otherwise.
+This correctly surfaces real gaps too: two sources with a dead zone between them
+(e.g. part-time work ending month 12, Social Security starting month 84) now
+report a `$0` floor for the gap rather than hiding it.
 
 ### Issue 3: When adding a one-time inheritance income (400k/1-month) to an existing scenario, and then re-running it, the resulting graph does NOT show a 400k "bump" like you'd expect it to.
 
