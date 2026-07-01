@@ -12,6 +12,28 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-07-01 — v1.0.5 shipped as a single-issue patch; batched scope split into v1.0.6
+
+**Decision:** Same pattern again: `docs/PLAN.md`'s v1.0.5 (after the previous split)
+batched three `ISSUES.md` items. Only Issues 4 (fully now)/6 — the remaining dead
+export code (`#export-config-btn`, `UIController.exportSingleResults()`, the
+`main.js` export chain, the vestigial `windfallUsedAtMonth` field, and the broken
+inline `convertResultsToCSV()`/`populateCSVExport()` preview) — were removed in this
+pass, so `1.0.5` shipped with just that cleanup. The remaining two items (closing
+out Issues 8/9, the `EventBus` re-entrancy fix for Issue 11) moved into a new
+`v1.0.6`, renumbering the old `v1.0.6` — income-display/vocabulary cleanup — to
+`v1.0.7`.
+**Rationale:** Continues the per-fix bump cadence from the entries below. Also
+worth recording: while removing the dead CSV preview, found that `ISSUES.md` #4's
+original description overstated how "reachable" the broken code path was —
+`simulateScenarioAdvanced()` always returns a pre-generated `csvText`, so the
+correct `populateCSVFromText()` branch wins in every normal run; the broken
+fallback was only live in the degenerate empty-result case. Corrected in
+`ISSUES.md` rather than left standing, since the next person reading it would
+otherwise overestimate the original bug's real-world impact.
+
+---
+
 ## 2026-07-01 — v1.0.4 shipped as a single-issue patch; batched scope split into v1.0.5
 
 **Decision:** Same pattern again: `docs/PLAN.md`'s v1.0.4 (after the previous split)

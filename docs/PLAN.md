@@ -87,33 +87,57 @@ The remaining items originally batched into this version moved to v1.0.5.
 
 ---
 
-## v1.0.5 — Bug fixes and dead-code removal (PATCH)
+## v1.0.5 — Remaining dead export code removed (PATCH) — SHIPPED
 
-**Goal:** Fix every remaining `ISSUES.md` item that has a mechanical,
-already-root-caused fix and no open design question, and delete the code already
-confirmed dead. No new behavior, no schema changes — pure correctness and cleanup.
-(Originally scoped as part of v1.0.2, then v1.0.3, then v1.0.4; split out again
-once Issue 4/5 shipped alone — see `DECISIONS.md`.)
+**Goal:** Fix `ISSUES.md` #6 (plus the rest of #4) in isolation — same per-fix
+cadence as v1.0.2–v1.0.4. The remaining items originally batched into this version
+moved to v1.0.6.
 
 ### Scope
 
-1. **Other confirmed-dead code (`ISSUES.md` #6), plus the rest of Issue 4.** Remove
-   `#export-config-btn` from `index.html` (zero JS binding). Delete
-   `UIController.exportSingleResults()`, `main.js`'s `setupExportHandlers()`/
-   `handleSingleScenarioExport()`/`exportSingleScenarioCSV()`/
-   `exportSingleScenarioJSON()` (zero call sites, superseded by the now-fixed
-   `ExportController` path). Remove `windfallUsedAtMonth:
-   scenario._windfallUsedAtMonth` from `simulateScenarioAdvanced()`'s return value
-   (never set). Also delete `UIController.convertResultsToCSV()`/
-   `populateCSVExport()` (Issue 4's remaining broken inline CSV preview,
-   superseded by the now-fixed toolbar button from v1.0.4).
-2. **Close out resolved engine issues (`ISSUES.md` #8, #9).** Re-enable the
+1. **Other confirmed-dead code (`ISSUES.md` #6), plus the rest of Issue 4.**
+   Verified zero live call sites for each item first (including in test files —
+   `main.test.js` had its own mock reimplementation of the dead export chain,
+   tested only against itself; removed alongside the real code). Removed
+   `#export-config-btn` from `index.html`; deleted
+   `UIController.exportSingleResults()`; deleted `main.js`'s
+   `setupExportHandlers()`/`handleSingleScenarioExport()`/
+   `exportSingleScenarioCSV()`/`exportSingleScenarioJSON()`; removed
+   `windfallUsedAtMonth` from `simulateScenarioAdvanced()`'s return value; deleted
+   `UIController.convertResultsToCSV()`/`populateCSVExport()` and their fallback
+   call site. Found while removing the last item: the "broken but reachable" inline
+   CSV path was actually only reachable in the degenerate empty-result case, since
+   `simulateScenarioAdvanced()` always returns a pre-generated `csvText` that the
+   working `populateCSVFromText()` branch prefers — corrected in `ISSUES.md` #4.
+
+### Done criteria
+
+- [x] Zero live call sites confirmed for each deleted item before removal
+- [x] `npm test` passes (42 suites, 0 failing; 6 dead-code-only tests removed
+      alongside the code they tested)
+- [x] Net negative diff (dead code removed, no replacement code)
+- [x] `ISSUES.md` #4 (fully) and #6 marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.5`)
+
+---
+
+## v1.0.6 — Bug fixes and dead-code removal (PATCH)
+
+**Goal:** Fix every remaining `ISSUES.md` item that has a mechanical,
+already-root-caused fix and no open design question. No new behavior, no schema
+changes — pure correctness and cleanup. (Originally scoped as part of v1.0.2, then
+v1.0.3, v1.0.4, v1.0.5; split out again once Issue 4/6 shipped alone — see
+`DECISIONS.md`.)
+
+### Scope
+
+1. **Close out resolved engine issues (`ISSUES.md` #8, #9).** Re-enable the
    `start_month` test in `tests/integration/timeaware-engine-real.test.js` (confirm
    it passes against current code). For the negative-balance test, fix its assertion
    to read the true pre-simulation total (sum of `asset.balance` from the input
    scenario) rather than `balanceHistory[name][0]`, or remove the assertion if it no
    longer makes a meaningful claim — re-enable either way.
-3. **`EventBus` re-entrancy during `emit()` (`ISSUES.md` #11).** In `emit()`
+2. **`EventBus` re-entrancy during `emit()` (`ISSUES.md` #11).** In `emit()`
    (`EventBus.js:38`), iterate a snapshot instead of the live array —
    `[...this.events.get(event)].forEach(...)` — so a handler that unsubscribes
    during the same `emit()` call (as `once()` does to itself) can't skip a
@@ -128,22 +152,21 @@ versions and Backlog below.
 
 ### Done criteria
 
-- [ ] All 3 scope items above complete with a regression test added per item
+- [ ] All 2 scope items above complete with a regression test added per item
       before the fix (red → green)
 - [ ] `npm test` passes, suite count reflects new tests added, no skipped tests
       remain from items in this scope
-- [ ] Net negative diff (dead code removed, no replacement code)
-- [ ] `ISSUES.md` updated: items 4 (fully), 6, 8, 9, 11 marked resolved with the
-      commit/PR that fixed them
+- [ ] `ISSUES.md` updated: items 8, 9, 11 marked resolved with the commit/PR that
+      fixed them
 - [ ] `DECISIONS.md` updated if any fix took a different approach than scoped above
-- [ ] Version bumped via `npm version patch` (→ `1.0.5`)
+- [ ] Version bumped via `npm version patch` (→ `1.0.6`)
 
 ---
 
-## v1.0.6 — Income-display correctness and schema-vocabulary cleanup (PATCH)
+## v1.0.7 — Income-display correctness and schema-vocabulary cleanup (PATCH)
 
 **Goal:** Fix the remaining display/calculation bugs that need a little more care
-than v1.0.2–v1.0.5's mechanical fixes, but still introduce no new behavior or schema
+than v1.0.2–v1.0.6's mechanical fixes, but still introduce no new behavior or schema
 changes.
 
 ### Scope
@@ -189,7 +212,7 @@ Issue 10 (new `strict` behavior — v1.1.0), Story Mode, `UIController` split.
 - [ ] README changes (items 3–4) reviewed for accuracy against current engine
       behavior, not just old assumptions
 - [ ] `ISSUES.md` items 2b, 3, and the two README notes marked resolved
-- [ ] Version bumped via `npm version patch` (→ `1.0.6`)
+- [ ] Version bumped via `npm version patch` (→ `1.0.7`)
 
 ---
 
