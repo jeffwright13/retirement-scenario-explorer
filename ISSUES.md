@@ -216,6 +216,15 @@ fixed, reproducible miscalculation). The negative-balance assets themselves are
 untouched and behave exactly as designed (§1.1/§2.5: inert markers, never withdrawn
 from, no month-specific effect). **No engine change needed.**
 
+**Closed out in `chore/reenable-resolved-engine-tests` (v1.0.6).** The skipped test
+in `tests/integration/timeaware-engine-real.test.js` was fixed rather than just
+re-enabled, since its original assertion (comparing a post-withdrawal total to the
+pre-simulation total) was the actual flaw described above — re-enabling it as-is
+would still fail. Confirmed empirically that the two negative-balance assets never
+change value across the full 48-month simulation (each stays at exactly its input
+balance), then rewrote the test to assert that real invariant directly instead of
+the flawed total comparison.
+
 ### Issue 9 — RESOLVED: `assets[].start_month` delayed activation (folded in from `INTEGRATION_TEST_ISSUES.md` Issue #2)
 
 **Original report:** an asset with `start_month: 12` was expected to stay at 0
@@ -241,6 +250,9 @@ Re-running this exact scenario today: `Delayed` activates precisely at month 12
 with its full $100,000 balance and behaves normally afterward. The corresponding
 test is still marked `skip` in `tests/integration/timeaware-engine-real.test.js`.
 **Action: re-enable that test rather than touching the engine.**
+
+**Closed out in `chore/reenable-resolved-engine-tests` (v1.0.6).** Removed `.skip` —
+the test passed unmodified, confirming the engine behavior described above.
 
 ### Issue 10 — OPEN (design decision): missing `plan.duration_months` fails silently rather than erroring or defaulting (folded in from `INTEGRATION_TEST_ISSUES.md` Issue #3)
 
@@ -284,7 +296,7 @@ the table for both the strict- and forgiving-UX cases.
 
 ## Found by direct code reading of `scripts/core/EventBus.js` (2026-07-01) — not yet in any user-facing report
 
-### Issue 11 (low impact, latent): `once()`'s self-unsubscribe mutates the same array `emit()` is iterating
+### Issue 11 — RESOLVED: `once()`'s self-unsubscribe mutates the same array `emit()` is iterating
 
 **Root cause:** `emit()` (`EventBus.js:38`) calls `this.events.get(event).forEach(...)`
 directly against the live array stored in the `Map`. `once()` (`EventBus.js:59-64`)
@@ -298,6 +310,15 @@ not a designed guarantee, and any handler that calls `off()` for a different,
 earlier-registered callback during the same emit has the identical exposure.
 **Fix is mechanical:** snapshot before iterating —
 `[...this.events.get(event)].forEach(...)` in `emit()`.
+
+**Correction found while fixing (2026-07-01, v1.0.6):** the original write-up above
+called this "harmless" but its own next sentence describes the actual bug —
+"skipping whichever handler comes immediately after." A regression test confirmed
+it directly: two `once()` listeners registered on the same event, only the first
+ever fires; the second is silently dropped every time, not just in some edge case.
+**Fixed** in `tests/unit/core/EventBus.test.js` (new file — `EventBus` had no test
+coverage before this) and `EventBus.js:38`, exactly via the snapshot fix described
+above.
 
 ### Issue 12 (low impact, design question): no way to unsubscribe all listeners a single component registered
 
