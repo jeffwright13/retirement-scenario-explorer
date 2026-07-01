@@ -12,6 +12,18 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-07-01 — v1.0.3 shipped as a single-issue patch; batched scope split into v1.0.4
+
+**Decision:** Same pattern as the v1.0.2 split below: `docs/PLAN.md`'s v1.0.3
+(after the previous split) batched five `ISSUES.md` items. Only Issue 2a (income
+display missing `stop_month`) was fixed in this pass, so `1.0.3` shipped with just
+that fix, and the remaining four items moved into a new `v1.0.4` (renumbering the
+old `v1.0.4` — income-display/vocabulary cleanup — to `v1.0.5`).
+**Rationale:** Confirms the per-fix bump cadence established in the entry below is
+the ongoing convention for this project, not a one-time exception.
+
+---
+
 ## 2026-07-01 — v1.0.2 shipped as a single-issue patch; batched scope split into v1.0.3
 
 **Decision:** `docs/PLAN.md`'s original v1.0.2 batched six `ISSUES.md` items

@@ -28,13 +28,25 @@ its now-orphaned `scenario-builder:copy-scenario` listener (the Controller alrea
 listens for the same event on the real path), along with the Service-side unit
 tests that only existed to cover that dead code.
 
-### Issue 2a: In Test Scenario...<scenario>...Key Assumptions, a new income entry will simply state the start month, not the stop month if it exists
+### Issue 2a — RESOLVED: In Test Scenario...<scenario>...Key Assumptions, a new income entry will simply state the start month, not the stop month if it exists
 
 **Root cause (SPEC.md §4.2):** `extractKeyAssumptions()` (`UIController.js:831`)
 checks `income.end_month` — the schema field is `stop_month`. `end_month` doesn't
 exist anywhere in the data model, so the condition is always false. **One-line fix.**
 Same function also reads `scenario.plan?.retirement_age`/`life_expectancy`, neither
 of which exists in the schema either — see the cross-file note below.
+
+**Fixed in `fix/income-stop-month-display` (v1.0.3).** The docstring on
+`UIController.extractKeyAssumptions()` says "Same logic as
+`ScenarioController.extractKeyAssumptions`" — that turned out to be true of the bug
+too: `ScenarioController.js:307` had the identical `income.end_month` check, and
+both are live (different event paths: `scenario:loaded` uses `ScenarioController`'s
+copy, `scenario:data-changed` uses `UIController`'s own). Added a regression test for
+each (`tests/unit/controllers/UIController.test.js` and the new
+`tests/unit/controllers/ScenarioController.test.js`, which didn't exist before this
+fix), confirmed both red, then changed `income.end_month` → `income.stop_month` in
+both files. The `retirement_age`/`life_expectancy` orphaned-vocabulary note is
+unrelated and still open — see Issue 7.
 
 ### Issue 2b: In RiskAnalysis...Key Scenario Insights, "Expected income" doesn't break down incomes that have a start/end time
 
@@ -123,6 +135,14 @@ since its output (`warnings`/`suggestions`) is never rendered anywhere, this
 particular mismatch is currently silent rather than user-visible. Recommend one
 dedicated cleanup pass across all four files rather than fixing occurrences
 one-by-one as each is tripped over.
+
+**Partial update (2026-07-01):** the `end_month` occurrences in `UIController.js`
+and `ScenarioController.js` are gone as a side effect of fixing Issue 2a (both were
+changed to the real field, `income.stop_month`, not just deleted). The remaining
+work — `retirement_age`/`life_expectancy` in those same two files,
+`annual_growth_rate`/`initial_value` in `ValidationService.js`/`SimulationService.js`,
+and the `ValidationService.validateAsset()` type-vocabulary mismatch — is still
+open and still scoped as one cleanup pass in `docs/PLAN.md` v1.0.5.
 
 ### Issue 8 — RESOLVED: negative-balance asset "$4,000 discrepancy" (folded in from `INTEGRATION_TEST_ISSUES.md` Issue #1)
 

@@ -304,7 +304,7 @@ export class ScenarioController {
         const details = [];
         details.push(`$${(income.amount || 0).toLocaleString()}/month`);
         if (income.start_month) details.push(`starts month ${income.start_month}`);
-        if (income.end_month) details.push(`ends month ${income.end_month}`);
+        if (income.stop_month) details.push(`ends month ${income.stop_month}`);
         if (income.inflation_schedule) details.push(`${income.inflation_schedule} inflation`);
         synopsis.income.push(`${income.name}: ${details.join(', ')}`);
       });
