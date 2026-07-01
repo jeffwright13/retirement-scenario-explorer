@@ -841,13 +841,7 @@ export class UIController {
     if (scenario.plan?.monthly_expenses) {
       synopsis.plan.push(`Monthly expenses: $${scenario.plan.monthly_expenses.toLocaleString()}`);
     }
-    if (scenario.plan?.retirement_age) {
-      synopsis.plan.push(`Retirement age: ${scenario.plan.retirement_age}`);
-    }
-    if (scenario.plan?.life_expectancy) {
-      synopsis.plan.push(`Life expectancy: ${scenario.plan.life_expectancy}`);
-    }
-    
+
     // Assets Overview
     if (scenario.assets && scenario.assets.length > 0) {
       const totalAssets = scenario.assets.reduce((sum, asset) => sum + (asset.balance || 0), 0);

@@ -239,13 +239,11 @@ export class ScenarioController {
     if (scenario.plan) {
       metrics.monthlyExpenses = scenario.plan.monthly_expenses || 0;
       metrics.annualExpenses = metrics.monthlyExpenses * 12;
-      metrics.retirementAge = scenario.plan.retirement_age;
-      metrics.lifeExpectancy = scenario.plan.life_expectancy;
     }
-    
+
     if (scenario.assets) {
-      metrics.totalAssets = scenario.assets.reduce((sum, asset) => 
-        sum + (asset.initial_value || 0), 0
+      metrics.totalAssets = scenario.assets.reduce((sum, asset) =>
+        sum + (asset.balance || 0), 0
       );
       metrics.assetCount = scenario.assets.length;
     }
@@ -276,18 +274,12 @@ export class ScenarioController {
     if (scenario.plan?.monthly_expenses) {
       synopsis.plan.push(`Monthly expenses: $${scenario.plan.monthly_expenses.toLocaleString()}`);
     }
-    if (scenario.plan?.retirement_age) {
-      synopsis.plan.push(`Retirement age: ${scenario.plan.retirement_age}`);
-    }
-    if (scenario.plan?.life_expectancy) {
-      synopsis.plan.push(`Life expectancy: ${scenario.plan.life_expectancy}`);
-    }
-    
+
     // Assets Overview
     if (scenario.assets && scenario.assets.length > 0) {
       const totalAssets = scenario.assets.reduce((sum, asset) => sum + (asset.balance || 0), 0);
       synopsis.assets.push(`Total assets: $${totalAssets.toLocaleString()}`);
-      
+
       scenario.assets.forEach(asset => {
         const details = [];
         details.push(`$${(asset.balance || 0).toLocaleString()}`);
@@ -341,7 +333,7 @@ export class ScenarioController {
   generateAssetSummary(assets) {
     const summary = {
       total: assets.length,
-      totalValue: assets.reduce((sum, asset) => sum + (asset.initial_value || 0), 0),
+      totalValue: assets.reduce((sum, asset) => sum + (asset.balance || 0), 0),
       byType: {}
     };
     
@@ -357,7 +349,7 @@ export class ScenarioController {
       }
       
       summary.byType[type].count++;
-      summary.byType[type].totalValue += asset.initial_value || 0;
+      summary.byType[type].totalValue += asset.balance || 0;
       summary.byType[type].assets.push(asset);
     });
     

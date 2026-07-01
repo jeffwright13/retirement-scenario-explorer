@@ -54,7 +54,16 @@ Everything else can be expressed through these primitives.
 
 ### ✅ Common Scenarios and How to Model Them
 
-#### 📦 Inheritance or Lump Sum Windfall
+Each example below is labeled **asset** or **income** — they go in different top-level
+arrays (`assets[]` vs `income[]`) and behave very differently. This matters more than
+it might look: a one-time windfall modeled as `income[]` will only ever offset that
+month's `monthly_expenses` — any amount beyond that is silently discarded, not
+banked. **Model one-time windfalls, deposits, and expenses as `assets[]`** (with a
+`start_month` and a positive or negative `balance`), not as `income[]`. Recurring
+amounts over time (a paycheck, Social Security, part-time work) are what `income[]`
+is for.
+
+#### 📦 Inheritance or Lump Sum Windfall — **asset**
 ```json
 {
   "name": "Inherited Trust",
@@ -64,8 +73,12 @@ Everything else can be expressed through these primitives.
   "interest_rate": 0.04
 }
 ```
+Note there's no end date here, and there can't be — `assets[]` entries don't have a
+`stop_month` field. Once a windfall like this becomes active at `start_month`, it
+stays part of the portfolio indefinitely (growing at `interest_rate`, available for
+withdrawal), which is exactly the intended behavior for a lump sum you've received.
 
-#### 🏠 Home Sale (one-time deposit)
+#### 🏠 Home Sale (one-time deposit) — **asset**
 ```json
 {
   "name": "Home Sale Proceeds",
@@ -75,7 +88,7 @@ Everything else can be expressed through these primitives.
 }
 ```
 
-#### 🔧 Roof Replacement (one-time expense)
+#### 🔧 Roof Replacement (one-time expense) — **asset**
 ```json
 {
   "name": "Roof Replacement",
@@ -85,7 +98,7 @@ Everything else can be expressed through these primitives.
 }
 ```
 
-#### 🆘 Emergency Fund (fallback source)
+#### 🆘 Emergency Fund (fallback source) — **asset**
 ```json
 {
   "name": "Emergency Fund",
@@ -95,7 +108,7 @@ Everything else can be expressed through these primitives.
 }
 ```
 
-#### 🧑‍💼 Variable or Phased Income (multiple entries)
+#### 🧑‍💼 Variable or Phased Income (multiple entries) — **income**
 ```json
 [
   {
@@ -113,7 +126,7 @@ Everything else can be expressed through these primitives.
 ]
 ```
 
-#### 🐶 Getting a Dog (startup and recurring cost)
+#### 🐶 Getting a Dog (startup and recurring cost) — **asset**
 ```json
 {
   "name": "Dog Setup",

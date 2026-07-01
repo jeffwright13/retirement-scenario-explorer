@@ -67,7 +67,7 @@ This correctly surfaces real gaps too: two sources with a dead zone between them
 (e.g. part-time work ending month 12, Social Security starting month 84) now
 report a `$0` floor for the gap rather than hiding it.
 
-### Issue 3: When adding a one-time inheritance income (400k/1-month) to an existing scenario, and then re-running it, the resulting graph does NOT show a 400k "bump" like you'd expect it to.
+### Issue 3 — RESOLVED: When adding a one-time inheritance income (400k/1-month) to an existing scenario, and then re-running it, the resulting graph does NOT show a 400k "bump" like you'd expect it to.
 
 **Root cause (SPEC.md §4.4), verified by direct simulation:** `income[]` can only
 ever offset `monthly_expenses` for the month it's active; any surplus beyond that
@@ -77,9 +77,21 @@ example already models this correctly as an **asset** with a `start_month`, not 
 income. This is a documentation/discoverability gap: steer users away from modeling
 one-time windfalls as `income[]`.
 
-## README has some Common Scenarios that need review.
+**Fixed in `chore/orphaned-vocabulary-cleanup` (v1.0.8).** Added an explicit warning
+to the README's "Common Scenarios" intro: a one-time windfall modeled as `income[]`
+only offsets that month's `monthly_expenses` and silently discards the rest, so
+one-time windfalls/deposits/expenses belong in `assets[]` instead.
+
+## README has some Common Scenarios that need review. — RESOLVED (v1.0.8)
 ### examples do not show if json is asset or income type
+Fixed: each "Common Scenarios" example now has an explicit **asset**/**income**
+label in its heading.
 ### example for "Inheritance or Lump Sum Windfall" should have an end date in the json?
+Settled by checking the schema directly: `assets[]` entries have no `stop_month`
+field at all (`start_month` only) — there's no "end date" concept for assets to add.
+This is correct as-is: once a windfall becomes active, it should remain part of the
+portfolio indefinitely. Added a note in the README explaining this explicitly rather
+than leaving the absence unexplained.
 
 ---
 
@@ -171,7 +183,7 @@ that wired it up; removed `windfallUsedAtMonth` from `simulateScenarioAdvanced()
 return value. Full suite passed unchanged throughout (42 suites, 0 failing) —
 expected, since none of this code had any live callers.
 
-### Issue 7 (medium impact, systemic): Orphaned pre-schema vocabulary across 4 files
+### Issue 7 (medium impact, systemic) — RESOLVED: Orphaned pre-schema vocabulary across 4 files
 
 **SPEC.md §1.8, §4.2.** Five fields appear in display/validation code but exist in
 neither `scenario-schema.json` nor anything the simulation engine reads:
@@ -192,6 +204,26 @@ work — `retirement_age`/`life_expectancy` in those same two files,
 `annual_growth_rate`/`initial_value` in `ValidationService.js`/`SimulationService.js`,
 and the `ValidationService.validateAsset()` type-vocabulary mismatch — is still
 open and still scoped as one cleanup pass in `docs/PLAN.md` v1.0.5.
+
+**Fully resolved in `chore/orphaned-vocabulary-cleanup` (v1.0.8, after further
+splits moved this from v1.0.5).** Removed `retirement_age`/`life_expectancy` from
+`ValidationService.validatePlan()`/`validateBusinessLogic()` and from
+`UIController.js`/`ScenarioController.js`'s `extractKeyAssumptions()` (both were
+always-`undefined` dead reads). Removed `annual_growth_rate` handling from
+`ValidationService.validateAsset()` (no replacement — no growth-rate validation was
+asked for, just removal of the wrong-field check). Replaced every
+`asset.initial_value ?? asset.balance` fallback with `asset.balance` directly across
+all four files — found along the way that `SimulationService.js`'s
+`metrics.totalInitialAssets` had no `.balance` fallback at all, meaning it was
+silently always `0` in every real run (this fed into `ScenarioController.js`'s
+`generateRecommendations()`, whose output turned out to have zero listeners
+anywhere — unrendered, like `ValidationService`'s output, so not user-visible
+today, but fixed anyway since it's the same file already in scope). Replaced
+`ValidationService.validateAsset()`'s `401k`/`ira`/`roth_ira`/... vocabulary with
+the schema's real enum (`taxable`/`tax_deferred`/`tax_free`). Added a regression
+test asserting all three real schema types produce zero warnings. Updated the
+existing `ValidationService.test.js` suite's fixtures throughout (was built almost
+entirely around `initial_value` and the old type vocabulary).
 
 ### Issue 8 — RESOLVED: negative-balance asset "$4,000 discrepancy" (folded in from `INTEGRATION_TEST_ISSUES.md` Issue #1)
 
