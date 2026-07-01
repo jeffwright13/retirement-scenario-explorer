@@ -34,10 +34,10 @@
   }
 
   .app-version {
-    font-size: 0.9rem;
+    font-size: 0.6rem;
     font-weight: normal;
     color: var(--color-white);
-    opacity: 0.7;
+    opacity: 0.4;
     margin-left: var(--space-2);
     vertical-align: middle;
   }

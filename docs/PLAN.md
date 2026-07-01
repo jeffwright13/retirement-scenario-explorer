@@ -305,6 +305,40 @@ slot already reserved below for Issue 10.
 
 ---
 
+## v1.0.11 — Fixes to v1.0.9/v1.0.10 found in live testing (PATCH)
+
+**Goal:** `v1.0.9` and `v1.0.10` are already shipped/closed sections, so per this
+file's own rule ("update in place while in progress... once shipped, leave the
+section closed"), the two bugs the user found while actually using the deployed
+site get their own version rather than editing those closed sections.
+
+### Scope
+
+1. **Min-balance field spans the full modal width (`ISSUES.md` #14 follow-up).**
+   `.form-row` is a CSS grid (`repeat(auto-fit, minmax(250px, 1fr))`) that splits
+   its width across however many `.form-group` children share the row — giving
+   min-balance its own dedicated row meant its one column stretched to fill
+   everything. Moved it into the same row as the "Subject to market volatility"
+   checkbox so the grid divides the width between two fields, same as the other
+   rows.
+2. **Version indicator not updating, too prominent (`ISSUES.md` #15 follow-up).**
+   Server-side, `package.json`/`index.html`/`main.js` were all verified consistent
+   on the live site — most likely a stale cached `main.js` from an earlier deploy
+   that day (before the fetch logic existed) paired with a freshly-cached
+   `index.html` whose static placeholder never got updated. Made the failure mode
+   debuggable (`console.warn` on fetch failure instead of silently swallowing) and
+   switched to `new URL('package.json', document.baseURI)` for unambiguous
+   resolution. Reduced `.app-version` from `0.9rem`/`opacity: 0.7` to
+   `0.6rem`/`opacity: 0.4` per explicit user preference for less prominence.
+
+### Done criteria
+
+- [x] `npm test` passes
+- [x] `ISSUES.md` #14 and #15 follow-up notes added
+- [x] Version bumped via `npm version patch` (→ `1.0.11`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns
