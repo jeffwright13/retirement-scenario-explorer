@@ -315,11 +315,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ── Version display ─────────────────────────────────────────────────────────
 
-fetch('./package.json')
+fetch(new URL('package.json', document.baseURI))
   .then(r => r.json())
   .then(pkg => {
     const el = document.getElementById('app-version');
     if (el && pkg.version) el.textContent = `v${pkg.version}`;
     console.log(`💰 Retirement Scenario Explorer v${pkg.version} loaded`);
   })
-  .catch(() => {});
+  .catch(error => console.warn('⚠️ Could not load version info:', error));

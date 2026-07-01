@@ -528,8 +528,6 @@ export class ScenarioBuilderUI {
             </div>
             <small class="help-text">Reserve amount that won't be drawn below — e.g. a money-market minimum-balance requirement, or an emergency fund. Leave blank for no minimum.</small>
           </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label class="checkbox-label">
               <input type="checkbox" name="assets[${index}].marketDependent" ${asset.marketDependent !== false ? 'checked' : ''}>

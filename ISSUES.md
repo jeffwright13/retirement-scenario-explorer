@@ -435,6 +435,17 @@ local static server (Playwright/`chromium-cli` weren't available, and installing
 Playwright for this would cut against this project's own stated preference to avoid
 it for simple browser-only apps).
 
+**Follow-up (2026-07-02, v1.0.11):** user reported the "Minimum Balance" field
+spanned the full width of the modal instead of being bounded like the other
+fields. Root cause: `.form-row` uses CSS grid
+(`grid-template-columns: repeat(auto-fit, minmax(250px, 1fr))`), which divides a
+row's width across however many `.form-group` children it has — the min-balance
+field was given its own dedicated `.form-row` with only one child, so that single
+grid column stretched to fill the entire row. Fixed by moving it into the same
+row as the "Subject to market volatility" checkbox instead of giving it a
+dedicated row, so the grid splits the width between the two the same way it does
+for the balance/return-rate/order row above it.
+
 ### Issue 15 (user-reported) — RESOLVED: No version indicator anywhere in the deployed (GitHub Pages) UI
 
 **Reported 2026-07-02.** The user's GitHub Pages deployment shows no version
@@ -460,3 +471,21 @@ trivial, display-only fetch-and-log with no branching logic, consistent with how
 this same file's existing `debugContent()`/`debugEvents()` console helpers are
 untested, and matches krashen's own (untested) implementation of the same
 pattern.
+
+**Follow-up (2026-07-02, v1.0.11):** user reported the deployed page showed the
+literal static placeholder `v?.?.?` instead of a real version, and asked for the
+indicator to be less prominent. Server-side, every artifact checked out fine —
+`package.json`, `index.html`, and `main.js` were all consistent on the live site
+with matching timestamps, and manually re-fetching each returned exactly what was
+expected — so the fetch failing in the browser is most likely explained by a
+stale cached copy of `main.js` (from one of several deploys earlier that day,
+before this feature existed) being served alongside a freshly-cached `index.html`
+that already had the static placeholder baked in — nothing would ever update it in
+that scenario. Since this couldn't be reproduced/confirmed directly (no
+Playwright/`chromium-cli` available to drive a real browser), made the failure
+mode debuggable instead of silently swallowed: `.catch(() => {})` → `.catch(error
+=> console.warn(...))`, and switched the fetch target from the bare string
+`'./package.json'` to `new URL('package.json', document.baseURI)` for unambiguous
+resolution regardless of caching/base-URL edge cases. Also reduced `.app-version`
+from `0.9rem`/`opacity: 0.7` to `0.6rem`/`opacity: 0.4` per the user's explicit
+preference for something less in-your-face.
