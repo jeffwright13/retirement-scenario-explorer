@@ -624,7 +624,6 @@ export function simulateScenarioAdvanced(scenario) {
     results,
     balanceHistory,
     csvText,
-    windfallUsedAtMonth: scenario._windfallUsedAtMonth,
     actualDuration,
     rateManager // For debugging/inspection
   };

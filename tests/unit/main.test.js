@@ -98,7 +98,6 @@ class MockRetirementScenarioApp {
   }
   
   setupEventListeners() {
-    this.eventBus.on('ui:single-scenario-export-requested', this.handleSingleScenarioExport.bind(this));
     this.eventBus.on('mode:switch-to-story', () => {
       console.warn('Story Mode is currently disabled');
     });
@@ -141,74 +140,6 @@ class MockRetirementScenarioApp {
     this.storyUI.initialize();
     this.scenarioBuilderController.initialize();
     this.scenarioBuilderUI.initialize();
-  }
-  
-  handleSingleScenarioExport(data) {
-    try {
-      if (!this.uiController.currentSimulationResults) {
-        console.warn('⚠️ No simulation results available for export');
-        return;
-      }
-      
-      if (data.format === 'csv') {
-        this.exportSingleScenarioCSV(this.uiController.currentSimulationResults);
-      } else if (data.format === 'json') {
-        this.exportSingleScenarioJSON(this.uiController.currentSimulationResults);
-      }
-    } catch (error) {
-      console.error('❌ Export failed:', error);
-    }
-  }
-  
-  exportSingleScenarioCSV(simulationResults) {
-    const headers = ['Month', 'Total_Assets', 'Monthly_Expenses', 'Net_Income', 'Withdrawal_Amount', 'Asset_Growth'];
-    const csvContent = [headers.join(',')];
-    
-    simulationResults.results.forEach((result, index) => {
-      const row = [
-        index + 1,
-        result.total_assets || 0,
-        result.monthly_expenses || 0,
-        result.net_income || 0,
-        result.withdrawal_amount || 0,
-        result.asset_growth || 0
-      ];
-      csvContent.push(row.join(','));
-    });
-    
-    const blob = new Blob([csvContent.join('\n')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${simulationResults.scenario.metadata.title.toLowerCase().replace(/\s+/g, '-')}-results-${Date.now()}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }
-  
-  exportSingleScenarioJSON(simulationResults) {
-    const exportData = {
-      metadata: {
-        exportType: 'single-scenario-results',
-        exportDate: new Date().toISOString(),
-        version: '1.0'
-      },
-      scenario: simulationResults.scenario,
-      results: simulationResults.results
-    };
-    
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${simulationResults.scenario.metadata.title.toLowerCase().replace(/\s+/g, '-')}-results-${Date.now()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
   }
   
   // Public API methods
@@ -360,15 +291,6 @@ describe('RetirementScenarioApp', () => {
       consoleSpy.mockRestore();
     });
 
-    test('should set up export handlers', () => {
-      app = new RetirementScenarioApp();
-      
-      expect(mockEventBus.on).toHaveBeenCalledWith(
-        'ui:single-scenario-export-requested',
-        expect.any(Function)
-      );
-    });
-
     test('should set up story mode prevention', () => {
       app = new RetirementScenarioApp();
       
@@ -405,105 +327,6 @@ describe('RetirementScenarioApp', () => {
       
       expect(mockContentService.loadAllContent).toHaveBeenCalled();
       expect(mockExamplesService.loadCatalog).toHaveBeenCalled();
-    });
-  });
-
-  describe('Export Functionality', () => {
-    beforeEach(() => {
-      app = new RetirementScenarioApp();
-      mockUIController.currentSimulationResults = {
-        results: [
-          { total_assets: 100000, monthly_expenses: 5000, net_income: 3000, withdrawal_amount: 2000, asset_growth: 500 },
-          { total_assets: 98500, monthly_expenses: 5000, net_income: 3000, withdrawal_amount: 2000, asset_growth: 492 }
-        ],
-        scenario: { metadata: { title: 'Test Scenario' } }
-      };
-    });
-
-    test('should handle single scenario export request', () => {
-      const exportData = { format: 'csv' };
-      
-      app.handleSingleScenarioExport(exportData);
-      
-      expect(global.Blob).toHaveBeenCalled();
-      expect(global.URL.createObjectURL).toHaveBeenCalled();
-    });
-
-    test('should export CSV with correct format', () => {
-      const simulationResults = {
-        results: [
-          { total_assets: 100000, monthly_expenses: 5000, net_income: 3000, withdrawal_amount: 2000, asset_growth: 500 }
-        ],
-        scenario: { metadata: { title: 'Test Scenario' } }
-      };
-      
-      // Mock DOM elements
-      const mockAnchor = {
-        href: '',
-        download: '',
-        click: jest.fn()
-      };
-      jest.spyOn(document, 'createElement').mockReturnValue(mockAnchor);
-      jest.spyOn(document.body, 'appendChild').mockImplementation();
-      jest.spyOn(document.body, 'removeChild').mockImplementation();
-      
-      app.exportSingleScenarioCSV(simulationResults);
-      
-      expect(global.Blob).toHaveBeenCalledWith(
-        [expect.stringContaining('Month,Total_Assets,Monthly_Expenses,Net_Income,Withdrawal_Amount,Asset_Growth')],
-        { type: 'text/csv' }
-      );
-      expect(mockAnchor.click).toHaveBeenCalled();
-      expect(mockAnchor.download).toContain('test-scenario-results-');
-    });
-
-    test('should export JSON with correct format', () => {
-      const simulationResults = {
-        results: [{ total_assets: 100000 }],
-        scenario: { metadata: { title: 'Test Scenario' } }
-      };
-      
-      // Mock DOM elements
-      const mockAnchor = {
-        href: '',
-        download: '',
-        click: jest.fn()
-      };
-      jest.spyOn(document, 'createElement').mockReturnValue(mockAnchor);
-      jest.spyOn(document.body, 'appendChild').mockImplementation();
-      jest.spyOn(document.body, 'removeChild').mockImplementation();
-      
-      app.exportSingleScenarioJSON(simulationResults);
-      
-      const blobCall = global.Blob.mock.calls[0];
-      const jsonContent = JSON.parse(blobCall[0][0]);
-      
-      expect(jsonContent.metadata.exportType).toBe('single-scenario-results');
-      expect(jsonContent.scenario).toEqual(simulationResults.scenario);
-      expect(jsonContent.results).toEqual(simulationResults.results);
-      expect(mockAnchor.click).toHaveBeenCalled();
-    });
-
-    test('should handle missing simulation results gracefully', () => {
-      mockUIController.currentSimulationResults = null;
-      
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
-      
-      app.handleSingleScenarioExport({ format: 'csv' });
-      
-      expect(consoleSpy).toHaveBeenCalledWith('⚠️ No simulation results available for export');
-      consoleSpy.mockRestore();
-    });
-
-    test('should handle export errors gracefully', () => {
-      mockUIController.currentSimulationResults = { results: 'invalid' };
-      
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
-      
-      app.handleSingleScenarioExport({ format: 'csv' });
-      
-      expect(consoleSpy).toHaveBeenCalledWith('❌ Export failed:', expect.any(Error));
-      consoleSpy.mockRestore();
     });
   });
 
