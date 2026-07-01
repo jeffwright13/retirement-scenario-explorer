@@ -4,7 +4,7 @@ _Root causes below were identified while writing `docs/SPEC.md` (2026-06-22) by
 tracing each symptom directly against the running code. See the cited SPEC.md
 section for full detail._
 
-### Issue 1: In Choose Your Scenario...Scenario Builder...Copy an Existing Scenario, when you copy a scenario to a new one, all Withdrawal Order values revert to 1
+### Issue 1 — RESOLVED: In Choose Your Scenario...Scenario Builder...Copy an Existing Scenario, when you copy a scenario to a new one, all Withdrawal Order values revert to 1
 
 **Root cause (SPEC.md §3.3):** Two duplicate implementations of the copy feature
 exist (`ScenarioBuilderService.convertScenarioToFormData()` and
@@ -16,6 +16,17 @@ separate top-level `order[]` array keyed by asset name. The correct lookup patte
 `convertJsonToForm()`, and just needs to be reused instead of reimplemented.
 **Fix is mechanical**: delete the dead Service-side duplicate; have the Controller's
 `convertScenarioToFormData()` use the existing `orderMap` pattern.
+
+**Fixed in `fix/copy-scenario-withdrawal-order` (v1.0.2).** Regression test added
+first (`tests/unit/controllers/ScenarioBuilderController.test.js`, "should preserve
+real withdrawal order from the top-level order[] array"), confirmed red, then
+`ScenarioBuilderController.convertScenarioToFormData()` was updated to build an
+`orderMap` from `scenario.order[]` (same pattern as
+`ScenarioBuilderService.convertJsonToForm()`). Deleted the dead
+`ScenarioBuilderService.copyScenario()`/`convertScenarioToFormData()` duplicate and
+its now-orphaned `scenario-builder:copy-scenario` listener (the Controller already
+listens for the same event on the real path), along with the Service-side unit
+tests that only existed to cover that dead code.
 
 ### Issue 2a: In Test Scenario...<scenario>...Key Assumptions, a new income entry will simply state the start month, not the stop month if it exists
 

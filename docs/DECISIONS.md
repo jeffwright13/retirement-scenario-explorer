@@ -12,6 +12,24 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-07-01 — v1.0.2 shipped as a single-issue patch; batched scope split into v1.0.3
+
+**Decision:** `docs/PLAN.md`'s original v1.0.2 batched six `ISSUES.md` items
+(1, 2a, 4, 5, 6, 8, 9, 11) into one patch release. Only Issue 1 (copy-scenario
+withdrawal order bug) was actually fixed in this pass; rather than hold the release
+until all six landed, `1.0.2` shipped with just that one fix, and the remaining five
+items were moved into a new `v1.0.3` section (renumbering the old `v1.0.3` —
+income-display/vocabulary cleanup — to `v1.0.4`; `v1.1.0` is unaffected since MINOR
+bumps aren't tied to how many patches precede them).
+**Rationale:** The global `~/coding/CLAUDE.md` preference is "frequent small bumps
+over rare large ones," which cuts against `PLAN.md`'s batching-by-default habit for
+mechanical fixes. Asked directly, the project owner chose to bump per-fix going
+forward rather than wait for a full batch — this entry records that the batching
+in `PLAN.md`'s version sections is a planning convenience, not a release-cadence
+rule.
+
+---
+
 ## 2026-06-22 — Documentation baseline established: AUDIT.md, BRIEF.md, SPEC.md, ISSUES.md consolidation
 
 **Decision:** Adopted the same documentation methodology used in `~/coding/krashen`
