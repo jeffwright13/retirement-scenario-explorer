@@ -3,6 +3,8 @@
  * Tests the UI controller methods in isolation
  */
 
+import { UIController } from '../../../scripts/controllers/UIController.js';
+
 // Since your original files use ES6 modules, we'll need to mock the import
 // For now, let's create a simple test that doesn't require the actual UIController
 // This demonstrates the testing setup and patterns
@@ -184,6 +186,25 @@ describe('Testing Setup Verification', () => {
       scenarioDropdown.dispatchEvent(new Event('change'));
       
       expect(changeSpy).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('extractKeyAssumptions', () => {
+    test('should render an "ends month N" detail for income with a stop_month (ISSUES.md #2a)', () => {
+      const uiController = new UIController(mockEventBus);
+      const scenario = {
+        plan: { monthly_expenses: 4000 },
+        income: [{
+          name: 'Part-time work',
+          amount: 2000,
+          start_month: 1,
+          stop_month: 12
+        }]
+      };
+
+      const synopsis = uiController.extractKeyAssumptions(scenario);
+
+      expect(synopsis.income[0]).toContain('ends month 12');
     });
   });
 });
