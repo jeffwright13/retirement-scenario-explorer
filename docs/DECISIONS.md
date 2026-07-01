@@ -12,6 +12,28 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-07-02 — v1.0.8 shipped all three remaining items together, no further split
+
+**Decision:** Like `v1.0.6`, all three items batched into `v1.0.8` (orphaned
+vocabulary cleanup, the windfall documentation gap, and the README example labels)
+were completed in this pass, so they shipped together rather than being split
+further.
+**Rationale:** Confirms the v1.0.6 entry's point wasn't a one-off: shipping
+everything scoped in a version together is fine when it's actually all done: the
+per-fix cadence is about not holding a release on unfinished work, not a ceiling on
+how much can go into one release.
+
+Also recorded here: while removing `asset.initial_value` fallbacks, found that
+`SimulationService.js`'s `metrics.totalInitialAssets` had no `.balance` fallback at
+all (only `initial_value`), meaning it silently evaluated to `0` in every real run.
+Traced its only consumer, `ScenarioController.generateRecommendations()`, and found
+its output event has zero listeners anywhere in the codebase — unrendered, so this
+was never user-visible, unlike Issue 5's `TabController` finding which did have a
+live, visible effect. Fixed anyway since the file was already in scope, but not
+worth its own `ISSUES.md` entry given no observable impact.
+
+---
+
 ## 2026-07-02 — v1.0.7 shipped as a single-issue patch; batched scope split into v1.0.8
 
 **Decision:** Same pattern as the earlier splits: `docs/PLAN.md`'s v1.0.7 batched

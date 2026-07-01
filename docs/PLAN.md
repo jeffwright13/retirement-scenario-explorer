@@ -190,37 +190,42 @@ The remaining items originally batched into this version moved to v1.0.8.
 
 ---
 
-## v1.0.8 — Schema-vocabulary cleanup and README accuracy (PATCH)
+## v1.0.8 — Schema-vocabulary cleanup and README accuracy (PATCH) — SHIPPED
 
 **Goal:** Fix the remaining display/calculation bugs and documentation gaps that
 need a little more care than v1.0.2–v1.0.7's mechanical fixes, but still introduce
 no new behavior or schema changes. (Originally scoped as part of v1.0.7; split out
-once Issue 2b shipped alone — see `DECISIONS.md`.)
+once Issue 2b shipped alone — see `DECISIONS.md`.) All three items completed
+together in this pass — like v1.0.6, no further split was needed.
 
 ### Scope
 
-1. **Orphaned pre-schema vocabulary, four files (`ISSUES.md` #7).** Remove
-   `retirement_age`, `life_expectancy`, `annual_growth_rate`, and `initial_value`
-   handling from `ValidationService.js`, `UIController.js`, `ScenarioController.js`,
-   and `SimulationService.js` — none of these fields exist in `scenario-schema.json`
-   or are read by the engine. (`end_month` was the fifth orphaned field originally
-   scoped here; it's already gone from `UIController.js`/`ScenarioController.js` as
-   of v1.0.3's Issue 2a fix, which changed it to the real field, `stop_month`.) In
-   `ValidationService.validateAsset()`, replace the `401k`/`ira`/`roth_ira`/...
-   type-vocabulary check with the schema's real enum
-   (`taxable`/`tax_deferred`/`tax_free`). Since this validation's output is
-   currently unrendered (§ SPEC.md §1.8), this is safe to fix without any UI risk —
-   but add a test confirming a real scenario (using the actual schema vocabulary)
-   produces zero warnings, so the next person doesn't reintroduce the mismatch.
-2. **Windfall-income documentation gap (`ISSUES.md` #3).** No code change — update
-   the README's "Common Scenarios" section to explicitly warn that one-time income
-   exceeding that month's expenses is discarded, not banked, and reinforce that a
-   one-time windfall belongs in `assets[]` (as the existing "Inheritance or Lump Sum
-   Windfall" example already correctly shows), not `income[]`.
-3. **README example issues** (from `ISSUES.md`'s original notes): annotate each
-   "Common Scenarios" example with whether it's an asset or income entry, and add
-   an end date/duration note to the "Inheritance or Lump Sum Windfall" example where
-   relevant.
+1. **Orphaned pre-schema vocabulary, four files (`ISSUES.md` #7).** Removed
+   `retirement_age`/`life_expectancy` from `ValidationService.js`'s
+   `validatePlan()`/`validateBusinessLogic()` and from
+   `UIController.js`/`ScenarioController.js`'s `extractKeyAssumptions()` (all were
+   always-`undefined` dead reads). Removed `annual_growth_rate` from
+   `ValidationService.validateAsset()` with no replacement (not asked for). Replaced
+   every `asset.initial_value ?? asset.balance` fallback with `asset.balance`
+   directly across all four files — found along the way that
+   `SimulationService.js`'s `metrics.totalInitialAssets` had no `.balance` fallback
+   at all, so it was silently always `0` (feeds `ScenarioController`'s
+   `generateRecommendations()`, itself unrendered — zero listeners on its output
+   event — so not user-visible today, fixed anyway since the file was already in
+   scope). Replaced the `401k`/`ira`/`roth_ira`/... type-vocabulary check with the
+   schema's real enum (`taxable`/`tax_deferred`/`tax_free`). Added a regression test
+   confirming all three real schema types produce zero warnings, and rewrote the
+   existing `ValidationService.test.js` suite's fixtures (built almost entirely
+   around `initial_value` and the old vocabulary).
+2. **Windfall-income documentation gap (`ISSUES.md` #3).** Added an explicit
+   warning to the README's "Common Scenarios" intro: a one-time windfall modeled as
+   `income[]` only offsets that month's expenses and discards the rest, so
+   one-time windfalls/deposits/expenses belong in `assets[]`.
+3. **README example issues.** Labeled each "Common Scenarios" example **asset** or
+   **income** in its heading. Settled the "should the windfall example have an end
+   date?" question by checking the schema directly — `assets[]` has no `stop_month`
+   field at all, so there's nothing to add; documented that explicitly instead of
+   leaving the absence unexplained.
 
 ### Out of scope
 
@@ -228,12 +233,12 @@ Issue 10 (new `strict` behavior — v1.1.0), Story Mode, `UIController` split.
 
 ### Done criteria
 
-- [ ] Scope item 1 has a test written before the fix
-- [ ] `npm test` passes
-- [ ] README changes (items 2–3) reviewed for accuracy against current engine
-      behavior, not just old assumptions
-- [ ] `ISSUES.md` items 3, 7, and the README note marked resolved
-- [ ] Version bumped via `npm version patch` (→ `1.0.8`)
+- [x] Scope item 1 has a test written before the fix
+- [x] `npm test` passes (44 suites, 0 failing)
+- [x] README changes (items 2–3) reviewed for accuracy against current engine
+      behavior (schema checked directly, not assumed)
+- [x] `ISSUES.md` items 3, 7, and the README notes marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.8`)
 
 ---
 
