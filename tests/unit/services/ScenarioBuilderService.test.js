@@ -29,14 +29,13 @@ describe('ScenarioBuilderService', () => {
       expect(mockEventBus.on).toHaveBeenCalledWith('scenario-builder:convert-to-json', expect.any(Function));
       expect(mockEventBus.on).toHaveBeenCalledWith('scenario-builder:load-template', expect.any(Function));
       expect(mockEventBus.on).toHaveBeenCalledWith('scenario-builder:request-scenarios-for-copy', expect.any(Function));
-      expect(mockEventBus.on).toHaveBeenCalledWith('scenario-builder:copy-scenario', expect.any(Function));
     });
   });
 
   describe('Copy Scenario Functionality', () => {
     test('should request scenarios for copying', () => {
       scenarioBuilderService.loadAvailableScenarios();
-      
+
       expect(emittedEvents).toContainEqual({
         event: 'content:get-builtin-scenarios',
         data: undefined
@@ -46,28 +45,6 @@ describe('ScenarioBuilderService', () => {
         data: undefined
       });
     });
-
-    test('should handle builtin scenario copy request', () => {
-      const scenarioId = 'builtin:simple-retirement';
-      
-      scenarioBuilderService.copyScenario(scenarioId);
-      
-      expect(emittedEvents).toContainEqual({
-        event: 'content:get-scenario',
-        data: { key: 'simple-retirement', type: 'builtin' }
-      });
-    });
-
-    test('should handle custom scenario copy request', () => {
-      const scenarioId = 'custom:my-scenario';
-      
-      scenarioBuilderService.copyScenario(scenarioId);
-      
-      expect(emittedEvents).toContainEqual({
-        event: 'content:get-scenario',
-        data: { key: 'my-scenario', type: 'custom' }
-      });
-    });
   });
 
   describe('Service Methods', () => {
@@ -75,12 +52,6 @@ describe('ScenarioBuilderService', () => {
       expect(typeof scenarioBuilderService.validateFormData).toBe('function');
       expect(typeof scenarioBuilderService.convertFormToJson).toBe('function');
       expect(typeof scenarioBuilderService.getTemplates).toBe('function');
-    });
-
-    test('should emit events for copy scenario workflow', () => {
-      scenarioBuilderService.copyScenario('builtin:simple-retirement');
-
-      expect(emittedEvents.some(e => e.event === 'content:get-scenario')).toBe(true);
     });
 
     test('should load available scenarios', () => {

@@ -164,6 +164,31 @@ describe('ScenarioBuilderController', () => {
       expect(formData.income[0].name).toBe('Test Income');
       expect(formData.income[0].amount).toBe(3000);
     });
+
+    test('should preserve real withdrawal order from the top-level order[] array (ISSUES.md #1)', () => {
+      // Withdrawal order lives in a separate top-level order[] array keyed by
+      // asset name, not on the asset objects themselves.
+      const scenario = {
+        metadata: { title: 'Test Scenario' },
+        plan: { monthly_expenses: 5000 },
+        assets: [
+          { name: 'Taxable', balance: 100000 },
+          { name: 'Roth IRA', balance: 50000 },
+          { name: '401k', balance: 200000 }
+        ],
+        order: [
+          { account: 'Taxable', order: 1 },
+          { account: 'Roth IRA', order: 3 },
+          { account: '401k', order: 2 }
+        ]
+      };
+
+      const formData = scenarioBuilderController.convertScenarioToFormData(scenario);
+
+      expect(formData.assets.find(a => a.name === 'Taxable').order).toBe(1);
+      expect(formData.assets.find(a => a.name === '401k').order).toBe(2);
+      expect(formData.assets.find(a => a.name === 'Roth IRA').order).toBe(3);
+    });
   });
 
   describe('Form Data Management', () => {

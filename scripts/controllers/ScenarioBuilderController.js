@@ -384,16 +384,28 @@ export class ScenarioBuilderController {
       taxableRate: (scenario.tax_config?.taxable || 0.15) * 100,
       taxFreeRate: (scenario.tax_config?.tax_free || 0) * 100,
       
-      // Assets
-      assets: (scenario.assets || []).map(asset => ({
-        name: asset.name || 'Asset',
-        type: asset.type || 'investment',
-        investmentType: asset.investment_type || 'growth',
-        balance: asset.balance || 0,
-        returnRate: (asset.return_rate || 0.07) * 100,
-        order: asset.order || 1,
-        marketDependent: asset.market_dependent !== false
-      })),
+      // Assets — withdrawal order lives in the top-level order[] array keyed
+      // by asset name, not on the asset objects themselves.
+      assets: (() => {
+        const orderMap = new Map();
+        (scenario.order || []).forEach(entry => {
+          orderMap.set(entry.account, { order: entry.order, weight: entry.weight });
+        });
+
+        return (scenario.assets || []).map((asset, index) => {
+          const orderInfo = orderMap.get(asset.name) || { order: index + 1 };
+          return {
+            name: asset.name || 'Asset',
+            type: asset.type || 'investment',
+            investmentType: asset.investment_type || 'growth',
+            balance: asset.balance || 0,
+            returnRate: (asset.return_rate || 0.07) * 100,
+            order: orderInfo.order,
+            weight: orderInfo.weight,
+            marketDependent: asset.market_dependent !== false
+          };
+        });
+      })(),
       
       // Income
       income: (scenario.income || []).map(inc => ({
