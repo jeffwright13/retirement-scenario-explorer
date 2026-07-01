@@ -121,28 +121,30 @@ moved to v1.0.6.
 
 ---
 
-## v1.0.6 — Bug fixes and dead-code removal (PATCH)
+## v1.0.6 — Engine test cleanup and EventBus re-entrancy fix (PATCH) — SHIPPED
 
 **Goal:** Fix every remaining `ISSUES.md` item that has a mechanical,
 already-root-caused fix and no open design question. No new behavior, no schema
 changes — pure correctness and cleanup. (Originally scoped as part of v1.0.2, then
 v1.0.3, v1.0.4, v1.0.5; split out again once Issue 4/6 shipped alone — see
-`DECISIONS.md`.)
+`DECISIONS.md`.) Unlike the previous four splits, both remaining items shipped
+together in this pass — no further split was needed.
 
 ### Scope
 
-1. **Close out resolved engine issues (`ISSUES.md` #8, #9).** Re-enable the
-   `start_month` test in `tests/integration/timeaware-engine-real.test.js` (confirm
-   it passes against current code). For the negative-balance test, fix its assertion
-   to read the true pre-simulation total (sum of `asset.balance` from the input
-   scenario) rather than `balanceHistory[name][0]`, or remove the assertion if it no
-   longer makes a meaningful claim — re-enable either way.
-2. **`EventBus` re-entrancy during `emit()` (`ISSUES.md` #11).** In `emit()`
-   (`EventBus.js:38`), iterate a snapshot instead of the live array —
-   `[...this.events.get(event)].forEach(...)` — so a handler that unsubscribes
-   during the same `emit()` call (as `once()` does to itself) can't skip a
-   sibling handler. Add a regression test: subscribe two `once()` listeners to the
-   same event, emit it, assert both fired.
+1. **Close out resolved engine issues (`ISSUES.md` #8, #9).** Re-enabled the
+   `start_month` test in `tests/integration/timeaware-engine-real.test.js` unmodified
+   — it passed as-is, confirming Issue 9. The negative-balance test's original
+   assertion (comparing a post-withdrawal total to the pre-simulation total) was
+   itself the flaw Issue 8 diagnosed, so re-enabling it as-is would still fail —
+   rewrote it to assert the real invariant instead (confirmed empirically first):
+   negative-balance assets never change value across the whole simulation.
+2. **`EventBus` re-entrancy during `emit()` (`ISSUES.md` #11).** Added
+   `tests/unit/core/EventBus.test.js` (new file — no prior coverage), confirmed red
+   (two `once()` listeners on the same event: only the first fired, the second was
+   silently dropped — worse than the original write-up's "harmless" characterization,
+   corrected in `ISSUES.md`), then fixed by snapshotting the array before iterating
+   in `emit()`.
 
 ### Out of scope
 
@@ -152,14 +154,13 @@ versions and Backlog below.
 
 ### Done criteria
 
-- [ ] All 2 scope items above complete with a regression test added per item
-      before the fix (red → green)
-- [ ] `npm test` passes, suite count reflects new tests added, no skipped tests
-      remain from items in this scope
-- [ ] `ISSUES.md` updated: items 8, 9, 11 marked resolved with the commit/PR that
+- [x] Both scope items complete with a regression test added per item (red → green)
+- [x] `npm test` passes (43 suites, 0 failing; skipped count 4 → 2, the remaining
+      two correctly out of scope — rate schedules and Issue 10's deferred design
+      question)
+- [x] `ISSUES.md` updated: items 8, 9, 11 marked resolved with the commit/PR that
       fixed them
-- [ ] `DECISIONS.md` updated if any fix took a different approach than scoped above
-- [ ] Version bumped via `npm version patch` (→ `1.0.6`)
+- [x] Version bumped via `npm version patch` (→ `1.0.6`)
 
 ---
 
