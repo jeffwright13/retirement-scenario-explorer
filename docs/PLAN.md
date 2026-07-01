@@ -274,6 +274,37 @@ correctly.
 
 ---
 
+## v1.0.10 — Version display in UI and console (PATCH)
+
+**Goal:** Close `ISSUES.md` #15 — the deployed GitHub Pages instance shows no
+version anywhere, making it hard to confirm a deploy picked up the latest code.
+Ports the pattern already used in `~/coding/krashen` (same global `CLAUDE.md`
+conventions). Treated as PATCH rather than MINOR since it's tooling/observability,
+not a new scenario-modeling capability — also avoids colliding with the `v1.1.0`
+slot already reserved below for Issue 10.
+
+### Scope
+
+1. **Version span in the UI.** Add `<span id="app-version">` next to the `<h1>`
+   title in `index.html`, styled via a new `.app-version` rule in
+   `styles/base.css`.
+2. **Runtime fetch + console log.** At the bottom of `scripts/main.js`, `fetch
+   ('./package.json')` (no build step in this project, so this is the only way to
+   get the version into client-side JS without hardcoding it) and update the span
+   plus log `💰 Retirement Scenario Explorer v${version} loaded` to the console,
+   mirroring `krashen/js/app.js`'s pattern.
+
+### Done criteria
+
+- [x] `npm test` passes (44 suites, 0 failing; no regressions — this feature itself
+      isn't unit-tested, consistent with this file's existing untested
+      `debugContent()`/`debugEvents()` console helpers and with krashen's own
+      untested implementation of the same pattern)
+- [x] `ISSUES.md` #15 marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.10`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns
