@@ -47,6 +47,12 @@ behavior, no schema changes — pure correctness and cleanup.
    to read the true pre-simulation total (sum of `asset.balance` from the input
    scenario) rather than `balanceHistory[name][0]`, or remove the assertion if it no
    longer makes a meaningful claim — re-enable either way.
+6. **`EventBus` re-entrancy during `emit()` (`ISSUES.md` #11).** In `emit()`
+   (`EventBus.js:38`), iterate a snapshot instead of the live array —
+   `[...this.events.get(event)].forEach(...)` — so a handler that unsubscribes
+   during the same `emit()` call (as `once()` does to itself) can't skip a
+   sibling handler. Add a regression test: subscribe two `once()` listeners to the
+   same event, emit it, assert both fired.
 
 ### Out of scope
 
@@ -56,13 +62,13 @@ versions and Backlog below.
 
 ### Done criteria
 
-- [ ] All 5 scope items above complete with a regression test added per item
+- [ ] All 6 scope items above complete with a regression test added per item
       before the fix (red → green)
 - [ ] `npm test` passes, suite count reflects new tests added, no skipped tests
       remain from items 1–5 in this scope
 - [ ] `~300` lines removed (`TabController.js` + the dead export chain) with no
       replacement code — net negative diff
-- [ ] `ISSUES.md` updated: items 1, 2a, 4, 5, 6, 8, 9 marked resolved with the
+- [ ] `ISSUES.md` updated: items 1, 2a, 4, 5, 6, 8, 9, 11 marked resolved with the
       commit/PR that fixed them
 - [ ] `DECISIONS.md` updated if any fix took a different approach than scoped above
 - [ ] Version bumped via `npm version patch` (→ `1.0.2`)
@@ -186,3 +192,12 @@ section with file changes and done criteria.
   coverage in 2025-09-17 rather than set as a target to grow into
   (`DECISIONS.md`). Needs a decision on whether to set a ratchet (thresholds only
   ever move up, enforced in CI) and what the near-term target should be.
+- **`EventBus` robustness gaps** (`ISSUES.md` #12, found 2026-07-01). No
+  `offAll(callback)`/per-owner unsubscribe — only exact `(event, callback)` pairs
+  via `off()`, or clearing an entire event for every subscriber via
+  `removeAllListeners()`. Not causing a bug today since all 19 current subscribers
+  are long-lived singletons wired up once in `main.js`, but it's a leak trap the
+  first time a subscriber becomes short-lived. Needs a decision on whether to add
+  the API now (cheap, small surface) or wait until a real short-lived subscriber
+  needs it. The `once()`/`forEach` re-entrancy issue (`ISSUES.md` #11) is separate
+  and mechanical — that one belongs in a PATCH version, not here.

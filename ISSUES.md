@@ -210,3 +210,36 @@ it's still unresolved:
 Whatever is chosen, the one outcome that should be ruled out is the current one —
 silent, empty, unexplained results — since it's strictly worse than either option on
 the table for both the strict- and forgiving-UX cases.
+
+---
+
+## Found by direct code reading of `scripts/core/EventBus.js` (2026-07-01) — not yet in any user-facing report
+
+### Issue 11 (low impact, latent): `once()`'s self-unsubscribe mutates the same array `emit()` is iterating
+
+**Root cause:** `emit()` (`EventBus.js:38`) calls `this.events.get(event).forEach(...)`
+directly against the live array stored in the `Map`. `once()` (`EventBus.js:59-64`)
+implements auto-unsubscribe by having its wrapper call `this.off(event, onceWrapper)`
+from inside that same handler, which `splice`s that same array while `forEach` is
+mid-iteration over it. Today this happens to be harmless — `splice` removing the
+current index only risks skipping whichever handler comes immediately after a
+`once()` listener in subscription order for that same `emit()` call, it doesn't
+throw. But it's an accidental correctness property of `Array.prototype.forEach`,
+not a designed guarantee, and any handler that calls `off()` for a different,
+earlier-registered callback during the same emit has the identical exposure.
+**Fix is mechanical:** snapshot before iterating —
+`[...this.events.get(event)].forEach(...)` in `emit()`.
+
+### Issue 12 (low impact, design question): no way to unsubscribe all listeners a single component registered
+
+**Root cause:** `off()` (`EventBus.js:76`) requires the exact `(event, callback)`
+pair, and `removeAllListeners()` (`EventBus.js:93`) clears every listener for an
+event, including other components'. There is no `offAll(callback)` or per-owner
+handle. Every one of the 19 files holding an `eventBus` reference (`main.js`,
+controllers, services, UI components) subscribes to several events in its
+constructor; none of them currently need to unsubscribe because they're
+long-lived singletons wired up once in `main.js`. This is not causing a bug today,
+but it's a leak trap the moment any subscriber becomes short-lived (recreated per
+render, per modal open, etc.) — see the `docs/PLAN.md` Backlog entry for the
+design question of whether to add this now or wait until a component actually
+needs it.
