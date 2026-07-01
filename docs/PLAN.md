@@ -8,46 +8,66 @@ yet assigned to a version._
 
 ---
 
-## v1.0.2 — Bug fixes and dead-code removal (PATCH)
+## v1.0.2 — Copy-scenario withdrawal order bug (PATCH) — SHIPPED
 
-**Goal:** Fix every `ISSUES.md` item that has a mechanical, already-root-caused fix
-and no open design question, and delete the code already confirmed dead. No new
-behavior, no schema changes — pure correctness and cleanup.
+**Goal:** Fix `ISSUES.md` #1 in isolation rather than batched with the rest of the
+originally-scoped v1.0.2 (see below) — shipped alone per a frequent-small-bumps
+preference over batching mechanical fixes. The remaining originally-scoped items
+moved to v1.0.3.
 
 ### Scope
 
-1. **Copy-scenario withdrawal order bug (`ISSUES.md` #1).** Write a regression test
-   first — `copyScenario()` on a scenario with non-trivial `order[]` (not all `1`s)
-   should produce form data whose assets retain their real order/weight — watch it
-   fail, then fix it. Delete `ScenarioBuilderService.copyScenario()`/
-   `convertScenarioToFormData()` (the dead duplicate). In
-   `ScenarioBuilderController.convertScenarioToFormData()`, replace
-   `order: asset.order || 1` with the existing `orderMap`-based lookup already used
-   by `ScenarioBuilderService.convertJsonToForm()`.
-2. **Income display missing stop_month (`ISSUES.md` #2a).** One-line fix in
+1. **Copy-scenario withdrawal order bug (`ISSUES.md` #1).** Regression test added
+   first (`ScenarioBuilderController.convertScenarioToFormData()` on a scenario with
+   non-trivial `order[]`), confirmed red, then fixed by building an `orderMap` from
+   `scenario.order[]` — the same pattern `ScenarioBuilderService.convertJsonToForm()`
+   already used — instead of the broken `order: asset.order || 1`. Deleted the dead
+   `ScenarioBuilderService.copyScenario()`/`convertScenarioToFormData()` duplicate
+   and its orphaned `scenario-builder:copy-scenario` listener.
+
+### Done criteria
+
+- [x] Regression test added before the fix (red → green)
+- [x] `npm test` passes (40 suites, 0 failing)
+- [x] `ISSUES.md` #1 marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.2`)
+
+---
+
+## v1.0.3 — Bug fixes and dead-code removal (PATCH)
+
+**Goal:** Fix every remaining `ISSUES.md` item that has a mechanical,
+already-root-caused fix and no open design question, and delete the code already
+confirmed dead. No new behavior, no schema changes — pure correctness and cleanup.
+(Originally scoped as part of v1.0.2 alongside Issue 1; split out once Issue 1
+shipped alone — see `DECISIONS.md`.)
+
+### Scope
+
+1. **Income display missing stop_month (`ISSUES.md` #2a).** One-line fix in
    `extractKeyAssumptions()`: `income.end_month` → `income.stop_month`. Add a test
    asserting an income entry with a `stop_month` renders an "ends month N" detail.
-3. **Dead `TabController` and the export-button bug it causes (`ISSUES.md` #4, #5).**
+2. **Dead `TabController` and the export-button bug it causes (`ISSUES.md` #4, #5).**
    Delete `scripts/controllers/TabController.js` and its instantiation in `main.js`.
    In `ExportController.js`, remove the dead `.tab-button` document-click listener
    and the `currentTab` tracking it feeds; gate the "📊 Results" button on
    `this.simulationResults !== null` alone (matching the Monte Carlo buttons' already-
    correct gating). Add a test asserting the Results button becomes visible after
    `simulation:completed` fires, with no dependency on any tab state.
-4. **Other confirmed-dead code (`ISSUES.md` #6).** Remove `#export-config-btn` from
+3. **Other confirmed-dead code (`ISSUES.md` #6).** Remove `#export-config-btn` from
    `index.html` (zero JS binding). Delete `UIController.exportSingleResults()`,
    `main.js`'s `setupExportHandlers()`/`handleSingleScenarioExport()`/
    `exportSingleScenarioCSV()`/`exportSingleScenarioJSON()` (zero call sites,
    superseded by the now-fixed `ExportController` path). Remove
    `windfallUsedAtMonth: scenario._windfallUsedAtMonth` from
    `simulateScenarioAdvanced()`'s return value (never set).
-5. **Close out resolved engine issues (`ISSUES.md` #8, #9).** Re-enable the
+4. **Close out resolved engine issues (`ISSUES.md` #8, #9).** Re-enable the
    `start_month` test in `tests/integration/timeaware-engine-real.test.js` (confirm
    it passes against current code). For the negative-balance test, fix its assertion
    to read the true pre-simulation total (sum of `asset.balance` from the input
    scenario) rather than `balanceHistory[name][0]`, or remove the assertion if it no
    longer makes a meaningful claim — re-enable either way.
-6. **`EventBus` re-entrancy during `emit()` (`ISSUES.md` #11).** In `emit()`
+5. **`EventBus` re-entrancy during `emit()` (`ISSUES.md` #11).** In `emit()`
    (`EventBus.js:38`), iterate a snapshot instead of the live array —
    `[...this.events.get(event)].forEach(...)` — so a handler that unsubscribes
    during the same `emit()` call (as `once()` does to itself) can't skip a
@@ -62,23 +82,23 @@ versions and Backlog below.
 
 ### Done criteria
 
-- [ ] All 6 scope items above complete with a regression test added per item
+- [ ] All 5 scope items above complete with a regression test added per item
       before the fix (red → green)
 - [ ] `npm test` passes, suite count reflects new tests added, no skipped tests
-      remain from items 1–5 in this scope
+      remain from items in this scope
 - [ ] `~300` lines removed (`TabController.js` + the dead export chain) with no
       replacement code — net negative diff
-- [ ] `ISSUES.md` updated: items 1, 2a, 4, 5, 6, 8, 9, 11 marked resolved with the
+- [ ] `ISSUES.md` updated: items 2a, 4, 5, 6, 8, 9, 11 marked resolved with the
       commit/PR that fixed them
 - [ ] `DECISIONS.md` updated if any fix took a different approach than scoped above
-- [ ] Version bumped via `npm version patch` (→ `1.0.2`)
+- [ ] Version bumped via `npm version patch` (→ `1.0.3`)
 
 ---
 
-## v1.0.3 — Income-display correctness and schema-vocabulary cleanup (PATCH)
+## v1.0.4 — Income-display correctness and schema-vocabulary cleanup (PATCH)
 
 **Goal:** Fix the remaining display/calculation bugs that need a little more care
-than v1.0.2's mechanical fixes, but still introduce no new behavior or schema
+than v1.0.2/v1.0.3's mechanical fixes, but still introduce no new behavior or schema
 changes.
 
 ### Scope
@@ -122,7 +142,7 @@ Issue 10 (new `strict` behavior — v1.1.0), Story Mode, `UIController` split.
 - [ ] README changes (items 3–4) reviewed for accuracy against current engine
       behavior, not just old assumptions
 - [ ] `ISSUES.md` items 2b, 3, and the two README notes marked resolved
-- [ ] Version bumped via `npm version patch` (→ `1.0.3`)
+- [ ] Version bumped via `npm version patch` (→ `1.0.4`)
 
 ---
 
