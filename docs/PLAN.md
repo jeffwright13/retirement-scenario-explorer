@@ -481,3 +481,30 @@ section with file changes and done criteria.
   entry for the full rationale. Revisit only if this becomes a real need rather
   than a hypothetical; if so, the shape discussed was an opt-in toggle (e.g.
   `plan.deplete_reserves_at_end`) rather than changing default behavior.
+- **Monte Carlo return-model architecture** (`ISSUES.md` #19, found by cross-analysis
+  audit 2026-08-31). `ReturnModelService`'s generated per-period return sequences
+  never reach the simulation engine — the only randomization that actually affects
+  a trial is a single constant annual rate mutated per rate-schedule per trial.
+  Before this can be fixed, needs a decision on: whether Monte Carlo returns should
+  be generated per-asset or per-asset-*type*; whether ADDITIVE mode (documented in
+  `docs/monte-carlo-analysis-guide.md`) layers volatility *on* a scenario's
+  configured rate or replaces it outright — the docs describe ADDITIVE/REPLACE as
+  implemented and no code implementing that distinction was found; and whether
+  returns should be drawn monthly or annual-with-monthly-interpolation. That
+  decision determines the fix shape for `ISSUES.md` #19 and its four bundled
+  sub-bugs (UI-hardcoded variable ranges overriding asset-aware ones,
+  `interest_rate`-only scenarios being skipped from randomization entirely, the
+  non-fixed-schedule 7% baseline fallback, and the exported return-sequence CSV
+  showing a different random draw than what was actually simulated) all at once.
+  Record the decision in `DECISIONS.md` once made.
+- **Learning Examples: finish or cut** (`ISSUES.md` #26, found by cross-analysis
+  audit 2026-08-31). Two independent defects currently make this dead: the dropdown
+  code reads `window.app` where `main.js` assigns `window.retirementApp`, and —
+  more fundamentally — all nine files in `data/examples/` use a third scenario
+  schema (`accounts[]`/`events[]`) the engine can't run, directly contradicting
+  `docs/BRIEF.md`'s "everything is an asset" philosophy. Needs a decision on
+  whether the nine files get converted to the real schema (several, e.g.
+  `sequence-of-returns-shocks`, would be genuinely useful teaching scenarios and
+  a natural regression fixture for the Monte Carlo return-model fix above) or the
+  whole path is removed, following the `TabController` precedent (`ISSUES.md` #5),
+  before the wiring bug is even worth fixing.
