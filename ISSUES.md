@@ -568,3 +568,305 @@ it); "Test" read more like a QA/validation step.
 **Fixed in `fix/scenario-dropdown-sync-and-rename`.** Regression tests added
 first (`tests/unit/controllers/UIController.test.js`, covering both the `key` and
 `scenarioKey` payload shapes), confirmed red, then fixed.
+
+---
+
+## Found by cross-analysis audit of two independent repository assessments (2026-08-31) — not yet in any user-facing report
+
+_Two independent read-only assessments (Claude Opus, SWE-1.7) were each run against
+commit `f4e3b4d` without seeing the other's output, then cross-audited against each
+other and directly against the running code — every finding below was independently
+re-verified by reading the cited source and, where practical, tracing the execution
+path, not just copied from either report. Full detail, reproduction reasoning, and
+the two source assessments are preserved outside this file; the entries below are
+the root-caused summary. All Monte Carlo findings are new; none were previously in
+this file._
+
+### Issue 19 (critical impact) — OPEN: Monte Carlo "Return Model" selection has no effect on any simulated outcome, and the surrounding config layer has four separate bugs compounding it
+
+**Root cause.** `ReturnModelService.generateReturns()` produces per-period return
+sequences and emits `returnmodel:returns-generated`, but nothing ever writes them
+into the scenario the engine actually simulates — `getAssetReturns()`
+(`timeaware-engine.js:372-380`) reads only `asset.return_schedule`/`interest_rate`.
+The only randomization that actually reaches the engine is
+`MonteCarloService.generateRandomScenario()` (`:279-290`) mutating
+`rate_schedules.<key>.rate` on `type: 'fixed'` schedules — a single constant annual
+return per trial (no sequence-of-returns risk within a trial). Selecting Simple
+Random, Historical Bootstrap, or Historical Sequence in the UI produces identical
+simulated outcomes under a fixed seed.
+
+**Four compounding bugs in the same subsystem:**
+- `MonteCarloUI.getConfigurationFromUI()` (`MonteCarloUI.js:261-298`) hardcodes
+  `config.variableRanges` for exactly four schedule names (comment cites
+  `jeffs-learning-journey-scenarios.json`, which doesn't exist in `data/`), and
+  `MonteCarloController.startAnalysis()` (`:183-186`) merges these **over** the
+  controller's own correct, asset-aware ranges — so the UI's hardcoded ±2%/±2.5%
+  volatility wins even for equity holdings that should vary far more, and two of
+  the four names create orphaned `rate_schedules` entries referenced by no asset.
+- `MonteCarloController.getDefaultVariableRanges()` (`:247`) falls back to a
+  hardcoded 7% baseline mean for any `sequence`/`pipeline`-type rate schedule,
+  since those types have no top-level `.rate` field (`rate-schedules.js:61-80`) —
+  confirmed by direct read of `RateSchedule.calculateTypedRate()`.
+- The same function requires **both** `market_dependent === true` **and**
+  `asset.return_schedule` (`:243`) — any asset using the legacy `interest_rate`
+  field is skipped entirely, so an `interest_rate`-only scenario gets zero variable
+  ranges and a fully degenerate Monte Carlo (every trial identical) reported as a
+  confident success rate.
+- The "Export MC Returns" CSV (live path: `ExportController.js:514`,
+  `resultItem.returnSequence || resultItem.result?.returnSequence`) exports
+  `SimulationService.generateReturnSequences()`'s output, seeded independently
+  (`seed: Math.floor(Math.random() * 1000000)`, `SimulationService.js:175`) from
+  the Monte Carlo run's own seed — so the exported "return sequence" for a given
+  trial is not the sequence that actually produced that trial's result.
+
+Separately, `HistoricalBootstrapModel.loadHistoricalData()`'s `bond` array
+(`ReturnModelService.js:369-380`) is a repeating 5-value cycle, not 97 distinct
+historical years like its `stock` sibling — currently moot for simulated outcomes
+(none of this service's output reaches the engine, per above), but the docs
+(`docs/return-model-service-guide.md`) claim real 1926–2023 coverage for both.
+
+**Expected behavior, and source of expectation:** `docs/monte-carlo-technical-implementation.md`
+and `docs/return-model-service-guide.md` describe the three return models as
+materially affecting simulated returns and preserving sequence risk / cross-asset
+correlation; `docs/SPEC.md` §5.1 describes ADDITIVE/REPLACE modes as implemented.
+
+**This needs a design decision before it can be fixed** — see `docs/PLAN.md`
+Backlog. Not scoped into a version yet.
+
+### Issue 20 (high impact) — OPEN: Monte Carlo statistics/aggregation layer reads engine output at the wrong field name or object depth, zeroing or nulling most reported metrics
+
+**Root cause, same class as the already-resolved Issue #4/#6/#7 `.assets` bug,
+found here in the Monte Carlo statistics layer specifically (never previously
+audited for it).** The engine's per-month log is `{month, income, expenses,
+withdrawals, shortfall}` — no `.assets` field exists anywhere in its output.
+`MonteCarloService.extractMetrics()` (`:445-488`) reads `lastMonth.assets` for
+`finalBalance` (always `0`), and the same assumption breaks
+`calculateMaxDrawdownFromResults()`, `calculateTimeToDepletionFromResults()`,
+`calculateVaR()`, `calculateCVaR()`, and the "Final Balance Range" insight. Separately
+and independently, the same function reads `result.results.shortfallMonths`/
+`result.results.totalWithdrawals` (`:476-477`) — but `shortfallMonths` is actually
+computed into the sibling `result.metrics.shortfallMonths`
+(`SimulationService.js:598`), and `totalWithdrawals` isn't precomputed anywhere.
+Both default to `0` regardless of the fix to the `.assets` bug above — this is a
+second, distinct defect in the same function, not a symptom of the first.
+
+**Two more downstream consequences of the same root cause:**
+- `identifyKeyPercentileScenarios()` (`:361-423`) reads `result.returnSequence`
+  from each *wrapper* object, but the sequence is attached to the *inner* `result`
+  (i.e. the real path is `wrapper.result.returnSequence`) — the filter drops every
+  item, so `analysis.keyScenarios` is always empty.
+- `calculateIndividualSuccess()` (`:665-680`) defines survival as
+  `timeawareResults.length` (months *simulated*, not months *solvent*) because the
+  intended solvency check also depends on the broken `.assets` read above. With
+  `plan.stop_on_shortfall: false`, nothing ever shortens that array, so success
+  rate becomes unconditionally 100% even for trials that end at $0.
+- `SimulationService.analyzeAssetDepletion()` (`:339-359`) reads
+  `finalResult.balances`, also nonexistent — the "Asset Alert" depletion insight
+  can never fire.
+
+**Expected behavior:** `docs/SPEC.md` §5 describes final-balance percentiles, max
+drawdown, VaR/CVaR, key-percentile scenarios, and the success criterion ("survives
+... **and** every asset with `min_balance > 0` ends at or above that floor") as
+working outputs.
+
+**Fix:** one shared accessor reading `result.results.balanceHistory` (the field
+every one of these sites should be using — already used correctly by
+`calculateIndividualFinalBalance()` and `MonteCarloChart.extractBalanceTrajectory()`),
+called from all affected sites, plus the `result.metrics.shortfallMonths` correction
+and the `wrapper.result.returnSequence` correction. Blocked on Issue 21 first so the
+fix is actually tested.
+
+### Issue 21 (test quality, high impact — the reason Issue 20 has shipped invisibly through 44 green suites) — OPEN: every Monte Carlo test fixture fabricates a `month.assets` shape the real engine never produces
+
+`tests/integration/monte-carlo.test.js` (`:166-168`, `:393`),
+`tests/unit/services/simulation-service-return-sequences.test.js` (`:90`, `:117`),
+`tests/unit/controllers/monte-carlo-controller-csv.test.js` (12 sites), and
+`tests/unit/controllers/monte-carlo-csv-success-logic.test.js` (`:93`) all
+hand-write `results: [{ assets: { investment: 1000000 } }]` or similar — a shape
+`simulateScenarioAdvanced()` never emits. `tests/unit/survivorship-bias.test.js`
+(`:19`) uses its own `createMockSimulation()` rather than the real engine, so the
+survivorship-bias behavior it documents is never checked against production code
+either. This single fixture choice is why the six-plus statistics bugs in Issue 20
+pass CI today. **Fix:** add one shared fixture built by actually calling
+`simulateScenarioAdvanced()` on a small scenario, and use it in place of hand-written
+month objects — do this before or alongside Issue 20 so the fix is provably correct.
+
+### Issue 22 (medium impact) — OPEN: time-varying inflation schedules mis-compound; nominal expenses can decrease
+
+**Root cause.** `getInflationAdjustedExpenses(month)` (`timeaware-engine.js:356-369`)
+computes `base × (1 + rate(month)/12)^month` — it raises the *current* month's rate
+to the power of *total elapsed months*, discarding every prior rate rather than
+accumulating them. For any `inflation_schedule` of type `sequence` with a
+non-monotonic rate array (e.g. `data/scenarios/learning-journey-scenarios.json`'s
+`stage-5-full-complexity`, schedule `[0.035, 0.04, 0.05, 0.045, 0.03, 0.025, 0.03, 0.035]`),
+nominal monthly expenses **decrease** every time the schedule steps down (verified:
+decreases at month indices 36, 48, 60, 96 in that scenario), understating expenses
+and making affected plans look more solvent than they are. The legacy constant
+`inflation_rate` path is unaffected (different, correct formula), but every shipped
+scenario using a non-`fixed` inflation schedule hits this.
+
+**Fix:** accumulate a running `expenseMultiplier`, multiplying by `(1 +
+rate(month)/12)` each month, instead of recomputing a power from a single sampled
+rate. **Regression test first:** with the sequence above, assert
+`results[i].expenses >= results[i-1].expenses` for all `i` (currently fails).
+
+### Issue 23 (medium impact) — OPEN: `applyDeposits()` throws `ReferenceError: assetNames is not defined` for any deposit targeting an asset that doesn't already exist
+
+**Root cause.** `applyDeposits()` auto-creates a target asset for a `deposits[]`
+entry whose `target` isn't in `assets[]`, then calls `assetNames.push(targetName)`
+— but the module's actual binding is `allAssetNames` (`timeaware-engine.js:300`);
+`assetNames` is declared nowhere and this throws unconditionally as a `ReferenceError`
+on read. Effect: the whole simulation aborts (`simulation:error`), and in Monte
+Carlo mode every trial fails. `deposits[]` has zero test coverage today, which is
+why this survives a green suite (coverage report flags `338-348` as uncovered).
+**Fix:** `allAssetNames.push(targetName)`. **Regression test first:** a `deposits[]`
+entry with a novel `target`, assert the simulation completes and the new asset
+appears in `balanceHistory`.
+
+### Issue 24 (low-medium impact) — OPEN: `deposits[].start_month` fires one month later than income/asset-activation for the same value
+
+**Root cause.** The main loop calls `applyDeposits(month)` with the 0-based
+counter, while `getMonthlyIncome()` and delayed-asset activation both compare
+against `month + 1` (`timeaware-engine.js:404-418` vs `:328-333`). A deposit and an
+income source sharing `start_month: 3` land in different simulated months.
+`scenario-schema.json`'s `deposits[].start_month` uses the same 1-based vocabulary
+("Month when deposits begin", `minimum: 1`) as `income[].start_month`. **Fix:**
+`applyDeposits(month + 1)`. **Regression test first:** shared `start_month` across
+a deposit and an income source, assert they take effect in the same month index
+(currently they don't — zero existing coverage for `deposits[]` timing).
+
+### Issue 25 (medium impact, documented-vs-actual) — OPEN: `compounding: 'annual'` is documented — including in the engine's own monthly-loop spec — but never implemented
+
+**Root cause.** `getAssetReturns()` (`timeaware-engine.js:372-380`) always returns
+`rate / 12` and never branches on `asset.compounding`; every asset compounds
+monthly regardless of this field. This isn't just an unmarked schema row:
+`docs/SPEC.md` §1.3 lists `compounding: monthly | annual` with **no** `Future:`
+marker — unlike the two genuinely-unimplemented sibling fields on the next line
+(`withdrawal_limit`, `early_withdrawal_penalty`), which are explicitly marked
+`Future:` — and §2.1 step 5 states the monthly loop "Apply[ies] growth to every
+active asset (`interest_rate`/`return_schedule`, monthly **or annual compounding**)."
+`ScenarioBuilderService.js:280` also writes `compounding: 'monthly'` onto every
+asset it creates, as if the field is consumed downstream. Compounding this:
+`tests/unit/timeaware-engine-comprehensive.test.js:78-108` "tests" annual
+compounding via a **locally reimplemented** helper function that never calls the
+real engine, so the suite gives false confidence that this documented feature
+works. **Fix:** either implement the branch (track month-of-year, apply `(1 + rate)
+- 1` once per 12 months for `annual`), or mark the field `Future:` in both
+`scenario-schema.json` and `docs/SPEC.md` §1.3/§2.1 and fix the misleading test —
+the doc fix is smaller but the test is actively misleading either way.
+
+### Issue 26 (medium impact) — OPEN: "Learning Examples" dropdown group is unreachable, and its underlying files use a third, unrunnable scenario schema
+
+**Root cause, two independent defects on one feature.**
+`UIController.populateScenarioDropdown()` reads `window.app?.getExamplesCatalog()`
+(`:478-501`), but `main.js:299` assigns `window.retirementApp`, never `window.app`
+— the optional chain silently yields `[]`, so the "🎓 Learning Examples" `<optgroup>`
+(documented in `docs/SPEC.md` §3.1) never appears. `ScenarioController.selectScenario()`
+calls `window.app.loadExample(exampleId)` with no optional chaining, which would
+throw if ever reached. Even fixing the wiring exposes a worse problem: all nine
+files in `data/examples/` are shaped `{metadata, assumptions, accounts[], events[]}`
+— not `{plan, assets[], order[], income[]}` — and `ExamplesService` performs no
+conversion. The engine's first read is `scenario.plan.duration_months`, which would
+throw `TypeError` on this shape. This directly contradicts `docs/BRIEF.md`'s core
+"everything is an asset" philosophy — the examples are built on the very `events[]`
+model the project rejected. `ExamplesService.js` is at 0% test coverage, consistent
+with the feature being unreachable. **This needs a decision (convert the nine files
+vs. delete the feature, following the `TabController` precedent, Issue #5) before
+it can be fixed** — see `docs/PLAN.md` Backlog. Not scoped into a version yet.
+
+### Issue 27 (medium impact, validation gap) — OPEN: duplicate asset names silently corrupt `balanceHistory` array alignment
+
+**Root cause.** `balanceHistory` is keyed by `asset.name` (a plain object, so
+`timeaware-engine.js:317/320/347` naturally dedupe on assignment), but the growth
+loop iterates `allAssetNames` (`:300`, `allAssets.map(a => a.name)`, **not**
+deduplicated) — so two assets sharing a name push two entries per month into the
+same `balanceHistory` array. The array ends up twice the length of the actual
+recorded months; `prepareChartData` and the CSV writer both index it by month
+number, so the chart and CSV silently show the drawdown at half speed with every
+value duplicated. `scenario-schema.json` documents `name` as "Must be unique," but
+nothing enforces it — not `ValidationService`, not `ScenarioBuilderService`, not
+the engine. **Fix:** add a duplicate-name error to `ValidationService.validateAssets()`
+(and `ScenarioBuilderService.validateFormData()`, which is actually live) rather
+than a silent engine-level `Set()` dedupe, so the user learns their scenario is
+wrong instead of getting a masked symptom.
+
+### Issue 28 (medium impact, dead code) — OPEN: a cluster of heavily-tested Monte Carlo chart/export code is entirely unreachable from the live UI
+
+**Root cause, same pattern as Issue #5/#6.** `MonteCarloUI.js:84` binds its export
+handler to `document.getElementById('export-monte-carlo')` — but `index.html` has
+no element with that id (only `export-monte-carlo-results` and
+`export-monte-carlo-returns`, both bound separately by the live `ExportController`).
+`this.exportButton` is always `null`, so `MonteCarloController.exportResults()` →
+`downloadJSON()`/`downloadCSV()` (`:728-997`, ~215 lines) can never run — despite
+being the most heavily tested Monte Carlo export code in the repo
+(`tests/unit/controllers/monte-carlo-controller-csv.test.js`,
+`monte-carlo-csv-success-logic.test.js`, `tests/integration/csv-export-success-fix.test.js`).
+Separately, `MonteCarloChart.drawScenarioPaths()` (`:1274-1293`) destructures
+`{ result }` from each sampled wrapper and calls `this.extractBalanceTrajectory(result)`
+— but that method expects the *outer* wrapper (`.result.results...`,
+`:586-609`), so it always returns an empty trajectory. This function is also dead:
+`displayScenarioPathsChart`, its only caller, is never invoked from the live
+`displayMonteCarloCharts()` dispatcher, and `index.html` has no matching canvas
+element. **Fix:** delete both dead chains and their dedicated test files, following
+the Issue #6 precedent (verify `ExportController`'s live export path already covers
+the need — it does, per `docs/SPEC.md` §6.1).
+
+### Issue 29 (low-medium impact) — OPEN: Monte Carlo iterations silently clamp to 1,000 while the UI advertises up to 10,000, with no warning shown to the user
+
+`index.html:403` — `<input id="monte-carlo-iterations" min="100" max="10000">` —
+but `MonteCarloService.defaultConfig.maxIterations` is `1000`
+(`MonteCarloService.js:19`), and `runAnalysis()` silently clamps
+(`:65-68`, `console.warn` only) with no UI feedback. Requesting 5,000 iterations
+silently runs 1,000. Separately, `MonteCarloUI.validateConfiguration()` — which
+would reject out-of-range iterations/seeds — has zero call sites in `scripts/`
+despite being directly tested (`tests/unit/ui/MonteCarloUI.test.js:287-291`).
+**Fix:** either set `max="1000"` in `index.html` to match the real cap (smaller),
+or wire `validateConfiguration()` into `handleRunAnalysis()` and surface the
+result.
+
+### Issue 30 (low impact, export correctness) — OPEN: Monte Carlo trajectory CSV hardcodes four specific asset-name columns
+
+`ExportController.generateMonteCarloCSV()` builds real per-asset balances into
+`monthData.assets` keyed by actual name, then emits a fixed header
+(`:446`, `['Scenario','Month','Total_Balance','Savings','Investment','Traditional_IRA','Roth_IRA']`)
+and reads only those four literal keys. Any scenario with differently-named assets
+— including every `realistic-scenarios.json` scenario ("High-Yield Savings",
+"Brokerage Investment") and every Scenario Builder output — exports four columns of
+`0.00`; `Total_Balance` stays correct, so the file looks plausible at a glance.
+The sibling function `generateMonteCarloReturnsCSV()` already builds dynamic
+columns from the real asset-name union — same fix, mirror it here.
+
+### Issue 31 (informational, grab-bag) — OPEN: minor Monte Carlo/validation findings from the same audit, not yet worth individual issues
+
+- `MonteCarloController.downloadCSV()` labels annual return sequences with a
+  `Month` header (`:915`/`:929`); the live `ExportController` correctly says `Year`
+  — moot once Issue 28 deletes the dead chain.
+- `prepareChartData` (`UIController.js:1503-1504`) skips an income trace when
+  `start_month` is falsy (`0`), even though the engine defaults and simulates it
+  from month 1 — income active from month 1 is invisible on the chart.
+- A `tax_config` rate `>= 1` divides by zero (`net / (1 - rate)` → `Infinity`);
+  `TaxService.validateTaxConfig()` would catch it but is `static` and never called
+  from `scripts/`.
+- Four independent scenario validators exist with different rules
+  (`ValidationService.validateScenario`, `SimulationService.validateScenario`,
+  `ScenarioBuilderService.validateFormData`, `ContentService.validateScenario`);
+  two of the four (`ValidationService`'s and `SimulationService`'s) have zero live
+  listeners/callers.
+- `MonteCarloChart.calculatePercentileData()` filters out ended trajectories,
+  while the live `createPlotlyChart()` path correctly pads them with `0` — the
+  project's own `docs/survivorship-bias-vs-min-balance-behavior.md` labels the
+  filtering approach `// WRONG (survivorship bias)`. Latent only because the
+  filtering function's sole caller, `exportData()`, has zero call sites.
+- `MonteCarloService.returnSequences` (a `Map`) is never cleared between runs;
+  grows by one entry per trial for the page's lifetime.
+- `new MonteCarloController(eventBus, monteCarloService, monteCarloChart, monteCarloUI)`
+  passes four arguments to a one-parameter constructor (`main.js`) — misleading
+  about the real dependency graph, though harmless (extra args are ignored).
+- `duration_months: -5` returns `actualDuration: -5` with zero simulated months and
+  no error; `duration_months: "12"` (string) silently works via coercion.
+- At default settings (1,000 iterations), per-trial `console.log` volume inside the
+  engine's monthly loop plus an unconditional 50ms `await` per trial in
+  `generateReturnSequences()` (work already complete on a synchronous event bus)
+  combine for on the order of 10⁵–10⁶ console writes and roughly a minute of pure
+  waiting per Monte Carlo run — worth a debug-flag gate and dropping the sleep,
+  independent of the correctness fixes above.

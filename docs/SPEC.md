@@ -110,6 +110,18 @@ see `docs/schema-documentation.md` §3 for the operation list).
   today the mismatch is silent/inert rather than user-visible. Only `result.errors`
   (missing `plan`/`assets`) has any observable effect. Worth fixing or removing
   before this validation path is ever surfaced to a user.
+- **`assets[].compounding: 'annual'` is not implemented.** `getAssetReturns()`
+  (`timeaware-engine.js:372-380`) always applies `rate / 12` monthly regardless of
+  this field — despite §2.1 step 5 below describing "monthly or annual compounding"
+  as something the engine does. `ISSUES.md` #25.
+- **`deposits[]` has two timing bugs**, both currently untested: it throws
+  `ReferenceError: assetNames is not defined` for any deposit whose `target` isn't
+  already in `assets[]` (`ISSUES.md` #23), and fires one month later than income or
+  asset activation for the same `start_month` value (`ISSUES.md` #24).
+- **Duplicate `assets[].name` values corrupt `balanceHistory`.** The schema
+  documents `name` as "Must be unique," but nothing enforces it, and the growth
+  loop's asset-name list isn't deduplicated the way `balanceHistory`'s keys are —
+  see `ISSUES.md` #27.
 
 ---
 
@@ -441,6 +453,42 @@ static scenario fields and aren't affected; only the income insight needs
 timing-aware logic (e.g. report income active "now," or a range, rather than a flat
 sum).
 
+### 5.3 Known gap: "Return Model" selection doesn't affect the simulated returns
+
+**`ISSUES.md` Issue 19, root-caused.** §5.1 above describes the three return models
+as materially different simulation inputs. In the running code, `ReturnModelService`'s
+generated sequences are captured for display/export only — the engine reads returns
+exclusively from `rate_schedules`/`interest_rate`, and the only randomization that
+reaches it is a single constant annual rate per rate-schedule per trial (mutated by
+`MonteCarloService.generateRandomScenario()`), not a per-period sequence from any of
+the three models. Selecting a different return model in the UI has no effect on
+simulated outcomes. The same root cause also means: the UI's hardcoded variable
+ranges silently override the controller's correct, asset-aware ones for four
+specific rate-schedule names; assets using the legacy `interest_rate` field are
+skipped from randomization entirely (a fully degenerate, single-outcome Monte Carlo
+reported as a confident success rate); non-`fixed`-type rate schedules get a
+hardcoded 7% baseline mean regardless of their actual configured rate; and the
+"Export MC Returns" CSV's per-trial return sequence is drawn from a seed unrelated
+to the trial it's labeled with. Needs an architecture decision — see `docs/PLAN.md`
+Backlog — before it can be fixed.
+
+### 5.4 Known gap: several Monte Carlo statistics and aggregation outputs are always zero, null, or trivially constant
+
+**`ISSUES.md` Issue 20, root-caused.** The engine's per-month log has no `.assets`
+field (§2.1), but `MonteCarloService.extractMetrics()` and several sibling
+functions read `month.assets` to compute final balance, max drawdown, and time to
+depletion — all silently `0`/`null` for every trial, and the "Final Balance Range"
+insight renders as a literal "$0K to $0K" range. `shortfallMonths` and
+`totalWithdrawals` are read from the wrong object depth (a separate bug in the same
+function) and are also always `0`. `analysis.keyScenarios` (worst/median/best) is
+always empty due to a wrapper/inner object mismatch in the percentile-selection
+filter. With `plan.stop_on_shortfall: false`, the success criterion in §5.1 above
+degrades to "survived the full simulated horizon regardless of solvency," since the
+intended balance check depends on the same broken `.assets` read — success rate
+becomes unconditionally 100% even for trials that end at $0. All of the above
+passes the existing test suite because every Monte Carlo test fixture fabricates
+the `.assets` shape the real engine never produces (`ISSUES.md` #21).
+
 ---
 
 ## 6. Export
@@ -510,6 +558,14 @@ tab-tracking bug (§7.3) to surface the toolbar's Results button, or
   `setupExportHandlers()`/`handleSingleScenarioExport()` plumbing around them) rather
   than fixing the field names — §6.1's `ExportController` path already covers the
   same use case correctly and is the one actually in use.
+- **The same pattern recurs in the Monte Carlo layer** (`ISSUES.md` #28):
+  `MonteCarloController.exportResults()`/`downloadCSV()` (~215 lines, and the most
+  heavily tested Monte Carlo export code in the repo) binds to a DOM element id that
+  doesn't exist in `index.html` and can never run; `MonteCarloChart.drawScenarioPaths()`
+  has its own independent bug (passes the wrong wrapper shape to its own helper
+  method) and is additionally never called from the live chart-display path. Same
+  recommendation: delete rather than fix, since the live `ExportController`/
+  `displayTrajectoryOverlay` paths (§6.1, §5) already cover the need.
 
 ---
 
