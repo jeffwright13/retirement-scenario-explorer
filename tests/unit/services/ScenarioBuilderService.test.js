@@ -93,6 +93,23 @@ describe('ScenarioBuilderService', () => {
 
       expect(emittedEvents.some(e => e.event === 'scenario-builder:validation-result')).toBe(true);
     });
+
+    test('should reject duplicate asset names (ISSUES.md #27)', () => {
+      const formData = {
+        title: 'Test Scenario',
+        monthlyExpenses: 5000,
+        durationYears: 30,
+        assets: [
+          { name: 'Investment', balance: 50000 },
+          { name: 'Investment', balance: 100000 }
+        ]
+      };
+
+      const result = scenarioBuilderService.validateFormData(formData);
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.some(e => e.includes('Investment') && e.includes('unique'))).toBe(true);
+    });
   });
 
   describe('JSON Conversion', () => {

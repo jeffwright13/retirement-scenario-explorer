@@ -214,6 +214,18 @@ describe('ValidationService', () => {
         expect(result.errors.length).toBeGreaterThan(0);
         expect(result.errors.some(e => e.includes('insufficient'))).toBe(true);
       });
+
+      test('should error on duplicate asset names (ISSUES.md #27)', () => {
+        const result = { errors: [], warnings: [], suggestions: [] };
+        const assets = [
+          { name: 'Investment', balance: 50000, type: 'taxable' },
+          { name: 'Investment', balance: 100000, type: 'tax_deferred' }
+        ];
+
+        validationService.validateAssets(assets, result);
+
+        expect(result.errors.some(e => e.includes('Investment') && e.includes('unique'))).toBe(true);
+      });
     });
 
     describe('validateAsset', () => {

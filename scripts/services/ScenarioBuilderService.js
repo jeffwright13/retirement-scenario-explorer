@@ -172,6 +172,20 @@ export class ScenarioBuilderService {
           warnings.push(`Asset ${index + 1}: Return rate ${asset.returnRate}% seems unusual`);
         }
       });
+
+      // Duplicate names corrupt balanceHistory array alignment (ISSUES.md #27)
+      const seenAssetNames = new Set();
+      const duplicateAssetNames = new Set();
+      formData.assets.forEach(asset => {
+        if (!asset.name) return;
+        if (seenAssetNames.has(asset.name)) {
+          duplicateAssetNames.add(asset.name);
+        }
+        seenAssetNames.add(asset.name);
+      });
+      duplicateAssetNames.forEach(name => {
+        errors.push(`Asset name "${name}" is used more than once -- asset names must be unique`);
+      });
     }
 
     // Income validation

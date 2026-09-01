@@ -122,6 +122,23 @@ export class ValidationService {
       this.validateAsset(asset, index, result);
     });
 
+    // Duplicate names corrupt balanceHistory array alignment (ISSUES.md #27)
+    // -- balanceHistory is keyed by name (so duplicates collapse into one
+    // entry) but the engine's growth loop iterates the un-deduplicated asset
+    // list, pushing two entries per month for a duplicated name.
+    const seenNames = new Set();
+    const duplicateNames = new Set();
+    assets.forEach(asset => {
+      if (!asset.name) return;
+      if (seenNames.has(asset.name)) {
+        duplicateNames.add(asset.name);
+      }
+      seenNames.add(asset.name);
+    });
+    duplicateNames.forEach(name => {
+      result.errors.push(`Asset name "${name}" is used more than once -- asset names must be unique`);
+    });
+
     // Check for reasonable total asset value
     const totalValue = assets.reduce((sum, asset) =>
       sum + (asset.balance ?? 0), 0

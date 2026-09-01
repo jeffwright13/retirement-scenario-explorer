@@ -949,7 +949,7 @@ the synthetic test schedule): zero nominal-expense decreases across the full
 run, where the pre-fix code produced decreases at month indices 36, 48, 60,
 and 96 as originally reported above.
 
-### Issue 23 (medium impact) — OPEN: `applyDeposits()` throws `ReferenceError: assetNames is not defined` for any deposit targeting an asset that doesn't already exist
+### Issue 23 (medium impact) — RESOLVED: `applyDeposits()` throws `ReferenceError: assetNames is not defined` for any deposit targeting an asset that doesn't already exist
 
 **Root cause.** `applyDeposits()` auto-creates a target asset for a `deposits[]`
 entry whose `target` isn't in `assets[]`, then calls `assetNames.push(targetName)`
@@ -962,7 +962,11 @@ why this survives a green suite (coverage report flags `338-348` as uncovered).
 entry with a novel `target`, assert the simulation completes and the new asset
 appears in `balanceHistory`.
 
-### Issue 24 (low-medium impact) — OPEN: `deposits[].start_month` fires one month later than income/asset-activation for the same value
+**Fixed (2026-09-01).** Exactly the one-line fix above. Regression test in
+`tests/integration/timeaware-engine-real.test.js`, confirmed red against the
+pre-fix code via a temporary revert, then green.
+
+### Issue 24 (low-medium impact) — RESOLVED: `deposits[].start_month` fires one month later than income/asset-activation for the same value
 
 **Root cause.** The main loop calls `applyDeposits(month)` with the 0-based
 counter, while `getMonthlyIncome()` and delayed-asset activation both compare
@@ -973,6 +977,20 @@ income source sharing `start_month: 3` land in different simulated months.
 `applyDeposits(month + 1)`. **Regression test first:** shared `start_month` across
 a deposit and an income source, assert they take effect in the same month index
 (currently they don't — zero existing coverage for `deposits[]` timing).
+
+**Fixed (2026-09-01).** Exactly the fix above. Regression test in
+`tests/integration/timeaware-engine-real.test.js`, confirmed red against the
+pre-fix code, then green. Fixing this also revealed that an existing test
+(`should handle deposits to correct target assets`) had a dormant assertion
+that had never actually executed — its `if (checkingMonth3 > checkingMonth2)`
+guard was always false under the old (buggy, one-month-late) timing, so its
+hardcoded `toBeCloseTo(5000, -2)` expectation never ran. Fixing the timing
+made the guard true for the first time, which then exposed that the
+expectation itself didn't account for a concurrent monthly withdrawal.
+Corrected to isolate the deposit's marginal effect from the ongoing
+withdrawal drag (compare the deposit month's balance change against the
+prior month's, rather than asserting the raw change equals the deposit
+amount) rather than just loosening the assertion.
 
 ### Issue 25 (medium impact, documented-vs-actual) — OPEN: `compounding: 'annual'` is documented — including in the engine's own monthly-loop spec — but never implemented
 
@@ -1013,7 +1031,7 @@ with the feature being unreachable. **This needs a decision (convert the nine fi
 vs. delete the feature, following the `TabController` precedent, Issue #5) before
 it can be fixed** — see `docs/PLAN.md` Backlog. Not scoped into a version yet.
 
-### Issue 27 (medium impact, validation gap) — OPEN: duplicate asset names silently corrupt `balanceHistory` array alignment
+### Issue 27 (medium impact, validation gap) — RESOLVED: duplicate asset names silently corrupt `balanceHistory` array alignment
 
 **Root cause.** `balanceHistory` is keyed by `asset.name` (a plain object, so
 `timeaware-engine.js:317/320/347` naturally dedupe on assignment), but the growth
@@ -1028,6 +1046,15 @@ the engine. **Fix:** add a duplicate-name error to `ValidationService.validateAs
 (and `ScenarioBuilderService.validateFormData()`, which is actually live) rather
 than a silent engine-level `Set()` dedupe, so the user learns their scenario is
 wrong instead of getting a masked symptom.
+
+**Fixed (2026-09-01), exactly as recommended** — a duplicate-name check
+added to both `ValidationService.validateAssets()` and
+`ScenarioBuilderService.validateFormData()` (the live path), pushing a hard
+`error` (not a warning) naming the duplicated asset. Deliberately did not
+add an engine-level dedupe, per the original recommendation, so the
+underlying scenario mistake stays visible rather than silently masked.
+Regression tests in `tests/unit/services/ValidationService.test.js` and
+`tests/unit/services/ScenarioBuilderService.test.js`.
 
 ### Issue 28 (medium impact, dead code) — OPEN: a cluster of heavily-tested Monte Carlo chart/export code is entirely unreachable from the live UI
 
