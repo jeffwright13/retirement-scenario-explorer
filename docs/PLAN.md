@@ -777,6 +777,41 @@ available option, not chosen).
 
 ---
 
+## v1.0.23 — Chart axis labeling and plan.start_date (PATCH)
+
+**Goal:** User-reported readability gap on the Monte Carlo chart's axes, plus
+a question about whether the Single Scenario chart's dates could reflect
+something other than "today" -- which turned out to be a real, root-caused
+bug (`ISSUES.md` #34).
+
+### Scope
+
+1. **MC chart Y-axis** — `MonteCarloChart.createPlotlyChart()`'s `yaxis` now
+   sets `tickprefix: '$'` / `ticksuffix: 'K'` so tick labels read `$50K`
+   instead of bare `50`; `xaxis` title clarified to `'Years from Simulation
+   Start'`; the chart now has a real title (interpolating the scenario name,
+   same pattern as `ISSUES.md` #32's Single Scenario chart title fix).
+   Confirmed with the user: X-axis stays relative years, not calendar dates —
+   right convention for a probability-of-success distribution.
+2. **`plan.start_date`** — was documented in `docs/scenario-schema.json` and
+   `docs/SPEC.md` §1.2, and even set in two real scenario files, but never
+   actually read. Added `UIController.resolveScenarioStartDate()` and wired
+   it into `prepareChartData()` and `displayWithdrawalDetails()`, replacing
+   two hardcoded `new Date()` calls. Caught and fixed a UTC-midnight
+   timezone-shift bug in the initial implementation via the red-test-first
+   discipline (a plain `new Date('2033-01-01')` silently rendered as
+   December 2032 in timezones behind UTC).
+
+### Done criteria
+
+- [x] Each fix's regression test confirmed red against the pre-fix code via
+      a temporary revert, then green
+- [x] `npm test` passes, no regressions
+- [x] `ISSUES.md` #34 marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.23`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns

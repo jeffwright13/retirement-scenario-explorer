@@ -228,6 +228,54 @@ describe('Testing Setup Verification', () => {
     });
   });
 
+  describe('prepareChartData respects plan.start_date (ISSUES.md #34)', () => {
+    test('uses plan.start_date as month 0 instead of today, when provided', () => {
+      const uiController = new UIController(mockEventBus);
+      const results = [{ month: 1 }, { month: 2 }, { month: 3 }];
+      const balanceHistory = { Checking: [1000, 1100, 1200] };
+      const scenario = {
+        plan: { start_date: '2033-01-01' },
+        assets: [{ name: 'Checking' }]
+      };
+
+      const traces = uiController.prepareChartData(results, balanceHistory, scenario);
+      const checkingTrace = traces.find(t => t.name === 'Checking');
+
+      expect(checkingTrace.x[0]).toBe('01-33');
+      expect(checkingTrace.x[1]).toBe('02-33');
+    });
+
+    test('falls back to today when plan.start_date is absent', () => {
+      const uiController = new UIController(mockEventBus);
+      const results = [{ month: 1 }];
+      const balanceHistory = { Checking: [1000] };
+      const scenario = { plan: {}, assets: [{ name: 'Checking' }] };
+
+      const expectedMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+      const expectedYear = String(new Date().getFullYear()).slice(-2);
+
+      const traces = uiController.prepareChartData(results, balanceHistory, scenario);
+      const checkingTrace = traces.find(t => t.name === 'Checking');
+
+      expect(checkingTrace.x[0]).toBe(`${expectedMonth}-${expectedYear}`);
+    });
+
+    test('falls back to today when plan.start_date is invalid', () => {
+      const uiController = new UIController(mockEventBus);
+      const results = [{ month: 1 }];
+      const balanceHistory = { Checking: [1000] };
+      const scenario = { plan: { start_date: 'not-a-date' }, assets: [{ name: 'Checking' }] };
+
+      const expectedMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+      const expectedYear = String(new Date().getFullYear()).slice(-2);
+
+      const traces = uiController.prepareChartData(results, balanceHistory, scenario);
+      const checkingTrace = traces.find(t => t.name === 'Checking');
+
+      expect(checkingTrace.x[0]).toBe(`${expectedMonth}-${expectedYear}`);
+    });
+  });
+
   describe('prepareChartData income trace visibility (ISSUES.md #31)', () => {
     test('shows an income trace for a source active from month 1 (no explicit start_month)', () => {
       const uiController = new UIController(mockEventBus);

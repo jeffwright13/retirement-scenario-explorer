@@ -34,7 +34,7 @@ original rationale.
 | `inflation_schedule` | string | Reference into `rate_schedules{}` for inflation |
 | `inflation_rate` | number | Legacy fixed-rate alternative to `inflation_schedule` |
 | `stop_on_shortfall` | boolean, default `true` | Stop simulation when assets are depleted |
-| `start_date` | date string | Optional, for display only |
+| `start_date` | date string (`YYYY-MM-DD`) | Optional, display only -- used as month 0 for chart/withdrawal-detail date labels; defaults to today when omitted |
 | `tax_config` | object | Per-account-type tax rates: `tax_deferred` (default 0.22), `taxable` (default 0.15), `tax_free` (default 0) |
 
 ### 1.3 `assets[]` (required, min 1)

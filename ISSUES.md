@@ -1328,3 +1328,52 @@ test, loads the real files from disk through a mocked `fetch`, not
 hand-written fixtures); direct simulation probes confirming max monthly
 income for each fixed scenario.
 
+### Issue 34 (user-reported, UX/data bug) — RESOLVED: Monte Carlo chart Y-axis effectively unlabeled; `plan.start_date` documented but never read, so charts always assume "today"
+
+**Reported 2026-09-01.** Two related findings from a chart-readability
+question about the Monte Carlo results view:
+
+- **MC chart Y-axis reads as unlabeled.** `MonteCarloChart.createPlotlyChart()`
+  did set `yaxis: { title: 'Balance ($K)' }`, but the tick labels themselves
+  carried no `$` formatting -- ticks just showed bare numbers (`50`, `100`,
+  `200`), easy to read past the small axis title and conclude the axis has no
+  units at all. The chart's own `title.text` was also always `''`, unlike the
+  Single Scenario chart (see `ISSUES.md` #32's title fix).
+- **`plan.start_date` is documented but dead.** `docs/scenario-schema.json`
+  and `docs/SPEC.md` §1.2 both document `assets[].compounding`'s sibling field
+  `plan.start_date` ("Optional, for display only"), and it's actually set in
+  two real scenario files (`data/scenarios/learning-journey-scenarios.json`,
+  `data/scenarios/roth-scenarios.json`) -- but `grep` across `scripts/` found
+  zero reads of it anywhere. `UIController.prepareChartData()` hardcoded
+  `const startDate = new Date();` for the Single Scenario chart's MM-YY
+  x-axis labels, and `displayWithdrawalDetails()` did the same for its
+  per-month withdrawal breakdown -- both always labeled month 0 as "today"
+  (whenever the simulation happened to be run), regardless of what the
+  scenario's own data said.
+
+**Fixed (2026-09-01).**
+
+- `MonteCarloChart.createPlotlyChart()`: `yaxis` now sets `tickprefix: '$'`
+  and `ticksuffix: 'K'` so tick labels read `$50K`, `$100K`, etc.; `xaxis`
+  title clarified to `'Years from Simulation Start'`; the chart now has a
+  real title interpolating the scenario's `metadata.title` when available
+  (matching the `ISSUES.md` #32 pattern), falling back to `'Monte Carlo
+  Simulation'`. The X-axis stays relative years, not calendar dates --
+  deliberate choice (confirmed with the user): a distribution of thousands of
+  trials is about "how many years does this last," not a specific calendar
+  date, and calendar labels would clutter a 20-30 year axis.
+- Added `UIController.resolveScenarioStartDate(scenario)`: returns
+  `scenario.plan.start_date` parsed as a local calendar date when present and
+  valid, otherwise `new Date()`. Wired into both `prepareChartData()` (chart
+  x-axis) and `displayWithdrawalDetails()` (per-month breakdown headers).
+  Note: a bare `YYYY-MM-DD` string is parsed by hand into
+  year/month/day components rather than via `new Date(str)`, because the
+  latter parses date-only strings as UTC midnight, which silently shifts to
+  the *previous* calendar day in any timezone behind UTC (caught by a
+  regression test asserting `2033-01-01` renders as `01-33`, not `12-32`,
+  before landing this fix).
+- Regression tests: `tests/unit/components/MonteCarloChart.test.js` ("Chart
+  axis labeling (ISSUES.md #34)"); `tests/unit/controllers/UIController.test.js`
+  ("prepareChartData respects plan.start_date (ISSUES.md #34)") -- all
+  confirmed red against the pre-fix code via a temporary revert, then green.
+
