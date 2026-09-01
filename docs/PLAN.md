@@ -532,6 +532,41 @@ findings from the same audit.
 
 ---
 
+## v1.0.17 — Fix double-division bug in v1.0.16 found in live testing (PATCH)
+
+**Goal:** `v1.0.16` is already shipped/closed, so per this file's own rule this
+follow-up gets its own version. The user retested the return-randomization fix
+live with a fixed seed (1001) immediately after `v1.0.16` shipped and still
+saw implausibly large outcomes ($60M/$50M/$25M/$9M trajectories).
+
+### Scope
+
+1. **`rate_schedules['monthly_values'].values[m]` was pre-divided by 12
+   (`ISSUES.md` #19 follow-up).** `timeaware-engine.js`'s `getAssetReturns()`
+   divides whatever `getRate()` returns by 12 unconditionally, for every
+   schedule type — `v1.0.16`'s new `monthly_values` type broke that
+   convention by storing an already-monthly value, so it got divided by 12 a
+   second time. Fixed by storing `values[m] = baseAnnualRate + noise[m]`
+   (annual-scale, matching every other type) and drawing noise at
+   `stdDev·√12` so the engine's own `/12` produces the intended effective
+   monthly-noise stdDev of `stdDev/√12`.
+2. Verified via an isolated probe (not part of the automated suite) that the
+   fix's remaining wide, right-skewed output — a real outlier is still
+   possible for a long-horizon, undiversified, high-volatility stock
+   scenario — is mathematically expected `√T·σ` dispersion, not a further
+   bug. Documented in `ISSUES.md` #19's follow-up note with the probe
+   numbers for future reference.
+
+### Done criteria
+
+- [x] Regression test added (deterministic, zero-volatility case), confirmed
+      red against the `v1.0.16` code via a temporary revert, then green
+- [x] `npm test` passes, no regressions
+- [x] `ISSUES.md` #19 follow-up note added with the probe numbers
+- [x] Version bumped via `npm version patch` (→ `1.0.17`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns

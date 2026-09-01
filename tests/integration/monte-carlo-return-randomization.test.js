@@ -39,10 +39,10 @@ describe('Monte Carlo return randomization (ISSUES.md #19)', () => {
 
     const valuesA = scenario.rate_schedules.fund_a.values;
     const valuesB = scenario.rate_schedules.fund_b.values;
-    const expectedBaseDiff = (0.09 - 0.06) / 12;
+    const expectedBaseDiff = 0.09 - 0.06; // values[] is annual-scale (see generateRandomScenario)
 
     // Both funds are "stocks" -- the noise term must be identical each
-    // month, so the two monthly-rate arrays differ by exactly the two
+    // month, so the two annual-scale rate arrays differ by exactly the two
     // funds' base-rate difference at every single month.
     for (let m = 0; m < 24; m++) {
       expect(valuesB[m] - valuesA[m]).toBeCloseTo(expectedBaseDiff, 10);
