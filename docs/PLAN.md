@@ -657,6 +657,39 @@ apparently by oversight rather than design.
 
 ---
 
+## v1.0.20 — Clear the mechanical ISSUES.md backlog, part 1: engine and validation (PATCH)
+
+**Goal:** User asked to clear out remaining low-hanging fruit across
+`ISSUES.md` and `docs/PLAN.md` Backlog. Triaged the OPEN list into
+mechanical fixes (no open design question) vs. genuine decisions still
+needing one; this version covers the engine/validation-layer mechanical
+fixes. See v1.0.21+ for the rest.
+
+### Scope
+
+1. **`ISSUES.md` #23** — `applyDeposits()`'s `ReferenceError` on a deposit
+   targeting a new asset. One-line fix (`assetNames` → `allAssetNames`).
+2. **`ISSUES.md` #24** — `deposits[].start_month` off-by-one vs.
+   income/asset-activation. `applyDeposits(month)` → `applyDeposits(month + 1)`.
+   Fixing this activated a dormant assertion in an existing test that had
+   never actually run (its guard condition was always false under the old
+   timing) — corrected that assertion to isolate the deposit's effect from
+   concurrent withdrawal drag rather than asserting a raw dollar amount.
+3. **`ISSUES.md` #27** — duplicate asset names corrupting `balanceHistory`.
+   Added a duplicate-name check to `ValidationService.validateAssets()` and
+   `ScenarioBuilderService.validateFormData()` (the live path), erroring
+   rather than silently deduping.
+
+### Done criteria
+
+- [x] Each fix's regression test confirmed red against the pre-fix code via
+      a temporary revert, then green
+- [x] `npm test` passes, no regressions
+- [x] `ISSUES.md` #23, #24, #27 marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.20`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns

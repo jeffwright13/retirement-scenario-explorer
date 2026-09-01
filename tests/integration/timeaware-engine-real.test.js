@@ -416,15 +416,59 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
         expect(typeof investmentMonth1).toBe('number');
         expect(typeof investmentMonth2).toBe('number');
         
-        // Checking should increase from bonus in month 3
-        const checkingMonth2 = checkingHistory[1];
-        const checkingMonth3 = checkingHistory[2];
-        
-        if (checkingMonth3 > checkingMonth2) {
-          // Bonus was applied correctly
-          expect(checkingMonth3 - checkingMonth2).toBeCloseTo(5000, -2); // Within $100
-        }
+        // Checking should show the $5,000 bonus's effect in month 3 (index 2).
+        // Isolate the deposit's marginal contribution from the ongoing
+        // withdrawal drag every month has: compare this month's balance
+        // change against the *prior* (no-deposit) month's change, rather
+        // than asserting the raw change equals 5000 outright -- that would
+        // only hold if expenses happened to be zero that month too. (This
+        // assertion was previously vacuous: before ISSUES.md #24's fix, the
+        // deposit landed one month later, so the `if` guard below was always
+        // false and this expectation never actually ran.)
+        const priorMonthChange = checkingHistory[1] - checkingHistory[0];
+        const depositMonthChange = checkingHistory[2] - checkingHistory[1];
+        expect(depositMonthChange - priorMonthChange).toBeCloseTo(5000, -2); // Within $100
       }
+    });
+
+    it('does not throw when a deposit targets an asset that does not already exist (ISSUES.md #23)', () => {
+      const scenario = {
+        plan: { monthly_expenses: 500, duration_months: 6, stop_on_shortfall: false },
+        assets: [{ name: 'Checking', balance: 10000, min_balance: 0, interest_rate: 0 }],
+        order: [{ account: 'Checking', order: 1 }],
+        deposits: [
+          { name: 'New Account Funding', target: 'NewAccount', amount: 5000, start_month: 2, stop_month: 2 }
+        ]
+      };
+
+      expect(() => simulateScenarioAdvanced(scenario)).not.toThrow();
+
+      const result = simulateScenarioAdvanced(scenario);
+      expect(result.balanceHistory['NewAccount']).toBeDefined();
+      expect(Math.max(...result.balanceHistory['NewAccount'])).toBe(5000);
+    });
+
+    it('a deposit and an income source sharing the same start_month take effect in the same month (ISSUES.md #24)', () => {
+      const scenario = {
+        plan: { monthly_expenses: 500, duration_months: 6, stop_on_shortfall: false },
+        assets: [{ name: 'Checking', balance: 10000, min_balance: 0, interest_rate: 0 }],
+        order: [{ account: 'Checking', order: 1 }],
+        income: [{ name: 'Windfall', amount: 2000, start_month: 3, stop_month: 3 }],
+        deposits: [{ name: 'Matching Deposit', target: 'Checking', amount: 2000, start_month: 3, stop_month: 3 }]
+      };
+
+      const result = simulateScenarioAdvanced(scenario);
+
+      // Income is recorded on the month-3 log entry (0-indexed month 2).
+      const incomeMonthIndex = result.results.findIndex(r => r.income === 2000);
+      expect(incomeMonthIndex).toBeGreaterThanOrEqual(0);
+
+      // The deposit should land in balanceHistory at the same index as when
+      // income becomes active -- previously it landed one month later.
+      const checkingHistory = result.balanceHistory['Checking'];
+      const balanceBeforeDeposit = checkingHistory[incomeMonthIndex - 1];
+      const balanceAtDepositMonth = checkingHistory[incomeMonthIndex];
+      expect(balanceAtDepositMonth - balanceBeforeDeposit).toBeCloseTo(2000, 0);
     });
   });
 

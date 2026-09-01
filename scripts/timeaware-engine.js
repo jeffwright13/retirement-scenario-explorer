@@ -345,7 +345,7 @@ export function simulateScenarioAdvanced(scenario) {
           };
           assets.push(assetMap[targetName]);
           balanceHistory[targetName] = [];
-          assetNames.push(targetName);
+          allAssetNames.push(targetName);
         }
 
         assetMap[targetName].balance += event.amount;
@@ -426,8 +426,10 @@ export function simulateScenarioAdvanced(scenario) {
     const activatedThisMonth = activateDelayedAssets(month);
     const activatedThisMonthSet = new Set(activatedThisMonth);
 
-    // 2. Apply deposits
-    applyDeposits(month);
+    // 2. Apply deposits (1-based month, matching income/asset-activation's
+    // convention -- deposits[].start_month is documented 1-based, same as
+    // income[].start_month)
+    applyDeposits(month + 1);
 
     // 3. Calculate income and expenses
     const income = getMonthlyIncome(incomeSources, month + 1);
