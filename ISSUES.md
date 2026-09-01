@@ -1056,7 +1056,7 @@ underlying scenario mistake stays visible rather than silently masked.
 Regression tests in `tests/unit/services/ValidationService.test.js` and
 `tests/unit/services/ScenarioBuilderService.test.js`.
 
-### Issue 28 (medium impact, dead code) — OPEN: a cluster of heavily-tested Monte Carlo chart/export code is entirely unreachable from the live UI
+### Issue 28 (medium impact, dead code) — RESOLVED: a cluster of heavily-tested Monte Carlo chart/export code is entirely unreachable from the live UI
 
 **Root cause, same pattern as Issue #5/#6.** `MonteCarloUI.js:84` binds its export
 handler to `document.getElementById('export-monte-carlo')` — but `index.html` has
@@ -1077,7 +1077,25 @@ element. **Fix:** delete both dead chains and their dedicated test files, follow
 the Issue #6 precedent (verify `ExportController`'s live export path already covers
 the need — it does, per `docs/SPEC.md` §6.1).
 
-### Issue 29 (low-medium impact) — OPEN: Monte Carlo iterations silently clamp to 1,000 while the UI advertises up to 10,000, with no warning shown to the user
+**Fixed (2026-09-01), exactly as recommended.** Deleted
+`MonteCarloController.exportResults()`/`downloadJSON()`/`downloadCSV()`
+(~270 lines including the `ui:monte-carlo-export-requested` listener),
+`MonteCarloUI.exportButton`/`handleExportResults()` and its DOM binding, and
+`MonteCarloChart.displayScenarioPathsChart()`/`drawScenarioPaths()`.
+Re-verified `ExportController`'s live export path covers the need before
+deleting, per the original recommendation. Deleted the two test files that
+called the dead chain directly
+(`tests/unit/controllers/monte-carlo-controller-csv.test.js`,
+`tests/integration/csv-export-success-fix.test.js`) and updated the tests in
+`monte-carlo.test.js`, `MonteCarloChart.test.js`, and `MonteCarloUI.test.js`
+that referenced the deleted methods/properties. Deliberately left
+`tests/unit/controllers/monte-carlo-csv-success-logic.test.js` alone — it
+was originally cited alongside these two, but it tests a hand-written
+reimplementation rather than calling the real dead chain (confirmed via
+`grep`: zero references to `downloadCSV`/`exportResults`), so it's tracked
+separately in `docs/PLAN.md` Backlog rather than deleted here.
+
+### Issue 29 (low-medium impact) — RESOLVED: Monte Carlo iterations silently clamp to 1,000 while the UI advertises up to 10,000, with no warning shown to the user
 
 `index.html:403` — `<input id="monte-carlo-iterations" min="100" max="10000">` —
 but `MonteCarloService.defaultConfig.maxIterations` is `1000`
@@ -1090,7 +1108,15 @@ despite being directly tested (`tests/unit/ui/MonteCarloUI.test.js:287-291`).
 or wire `validateConfiguration()` into `handleRunAnalysis()` and surface the
 result.
 
-### Issue 30 (low impact, export correctness) — OPEN: Monte Carlo trajectory CSV hardcodes four specific asset-name columns
+**Fixed (2026-09-01), the smaller fix as recommended** — `index.html`'s
+`max` now matches `MonteCarloService.defaultConfig.maxIterations` exactly.
+`validateConfiguration()`'s dead-but-tested status is unchanged (out of
+scope for this fix). Regression test in
+`tests/unit/index-html-config.test.js` (new file) reads `index.html`
+directly and asserts the `max` attribute equals the service's actual cap,
+so the two can't drift apart silently again.
+
+### Issue 30 (low impact, export correctness) — RESOLVED: Monte Carlo trajectory CSV hardcodes four specific asset-name columns
 
 `ExportController.generateMonteCarloCSV()` builds real per-asset balances into
 `monthData.assets` keyed by actual name, then emits a fixed header
@@ -1102,42 +1128,67 @@ and reads only those four literal keys. Any scenario with differently-named asse
 The sibling function `generateMonteCarloReturnsCSV()` already builds dynamic
 columns from the real asset-name union — same fix, mirror it here.
 
-### Issue 31 (informational, grab-bag) — OPEN: minor Monte Carlo/validation findings from the same audit, not yet worth individual issues
+**Fixed (2026-09-01), mirroring `generateMonteCarloReturnsCSV()` exactly as
+recommended.** `generateMonteCarloCSV()` now collects the real union of
+asset names across all trajectories into a `Set`, sorts it, and emits
+dynamic columns (sanitized to replace spaces with underscores for the CSV
+header, e.g. `Brokerage_Investment`). The legacy "simple balance array"
+format (no per-asset breakdown available) leaves those columns blank rather
+than guessing. Regression test in
+`tests/unit/controllers/export-controller-trajectory-csv.test.js` (new file
+— this function had zero prior test coverage) confirms a differently-named
+asset now appears as its own real-valued column instead of being silently
+dropped in favor of four zeroed hardcoded ones.
 
-- `MonteCarloController.downloadCSV()` labels annual return sequences with a
+### Issue 31 (informational, grab-bag) — OPEN (partially resolved): minor Monte Carlo/validation findings from the same audit, not yet worth individual issues
+
+- ~~`MonteCarloController.downloadCSV()` labels annual return sequences with a
   `Month` header (`:915`/`:929`); the live `ExportController` correctly says `Year`
-  — moot once Issue 28 deletes the dead chain.
-- `prepareChartData` (`UIController.js:1503-1504`) skips an income trace when
-  `start_month` is falsy (`0`), even though the engine defaults and simulates it
-  from month 1 — income active from month 1 is invisible on the chart.
-- A `tax_config` rate `>= 1` divides by zero (`net / (1 - rate)` → `Infinity`);
-  `TaxService.validateTaxConfig()` would catch it but is `static` and never called
-  from `scripts/`.
+  — moot once Issue 28 deletes the dead chain.~~ **Moot — `downloadCSV()` was
+  deleted entirely as part of the `ISSUES.md` #28 fix (2026-09-01).**
+- ~~`prepareChartData` (`UIController.js:1503-1504`) skips an income trace when
+  `start_month` is falsy (`0`)...~~ **Fixed (2026-09-01).** The outer
+  condition no longer gates on `start_month` truthiness at all — the
+  existing "only add trace if it has non-zero values" check already covers
+  "nothing to show," so the gate was pure liability, not a needed
+  precondition. Regression tests in `tests/unit/controllers/UIController.test.js`
+  cover both a missing `start_month` (defaults to 1) and an explicit `0`.
+- ~~A `tax_config` rate `>= 1` divides by zero...~~ **Fixed (2026-09-01).**
+  `TaxService`'s constructor and `updateTaxConfig()` both now sanitize
+  through `validateTaxConfig()`, falling back to the default rate for any
+  invalid entry rather than letting `net / (1 - rate)` divide by zero or go
+  negative. Regression tests in `tests/unit/services/TaxService.test.js`.
 - Four independent scenario validators exist with different rules
   (`ValidationService.validateScenario`, `SimulationService.validateScenario`,
   `ScenarioBuilderService.validateFormData`, `ContentService.validateScenario`);
   two of the four (`ValidationService`'s and `SimulationService`'s) have zero live
-  listeners/callers.
-- `MonteCarloChart.calculatePercentileData()` filters out ended trajectories,
-  while the live `createPlotlyChart()` path correctly pads them with `0` — the
-  project's own `docs/survivorship-bias-vs-min-balance-behavior.md` labels the
-  filtering approach `// WRONG (survivorship bias)`. Latent only because the
-  filtering function's sole caller, `exportData()`, has zero call sites.
+  listeners/callers. **Still open** — needs a decision, tracked in `docs/PLAN.md`
+  Backlog, not a mechanical fix.
+- ~~`MonteCarloChart.calculatePercentileData()` filters out ended trajectories...~~
+  **Fixed (2026-09-01)** — deleted `MonteCarloChart.exportData()` and
+  `calculatePercentileData()` together; both were dead (`exportData()` had
+  zero call sites), and the survivorship-bias-flagged filtering logic went
+  with them rather than being fixed in place, since nothing reachable used
+  it.
 - ~~`MonteCarloService.returnSequences` (a `Map`) is never cleared between
   runs; grows by one entry per trial for the page's lifetime.~~ **Resolved as
   a byproduct of the `ISSUES.md` #19 fix (2026-08-31)** — this `Map` and the
   whole `ReturnModelService` round-trip it supported were deleted; return
   sequences are now attached directly at the point of generation instead.
-- `new MonteCarloController(eventBus, monteCarloService, monteCarloChart, monteCarloUI)`
-  passes four arguments to a one-parameter constructor (`main.js`) — misleading
-  about the real dependency graph, though harmless (extra args are ignored).
+- ~~`new MonteCarloController(eventBus, monteCarloService, monteCarloChart, monteCarloUI)`
+  passes four arguments to a one-parameter constructor (`main.js`)...~~
+  **Fixed (2026-09-01)** — trimmed to `new MonteCarloController(this.eventBus)`,
+  matching the constructor's actual one-parameter signature.
 - `duration_months: -5` returns `actualDuration: -5` with zero simulated months and
-  no error; `duration_months: "12"` (string) silently works via coercion.
+  no error; `duration_months: "12"` (string) silently works via coercion. **Still
+  open** — earmarked for `v1.1.0`'s strict-validation scope, not a standalone fix.
 - At default settings (1,000 iterations), per-trial `console.log` volume inside
   the engine's monthly loop is on the order of 10⁵–10⁶ console writes per Monte
-  Carlo run — worth a debug-flag gate. (The other half of this finding — an
+  Carlo run — worth a debug-flag gate. **Still open** — out of scope for this
+  pass (touches many scattered log sites in the engine's hot loop, more
+  invasive than the other items here). (The other half of this finding — an
   unconditional 50ms `await` per trial in `SimulationService.generateReturnSequences()`,
-  worth ~a minute of pure waiting per run — is now moot: that function was
+  worth ~a minute of pure waiting per run — is moot: that function was
   deleted entirely as part of the `ISSUES.md` #19 fix, 2026-08-31.)
 
 ### Issue 32 (user-reported, UX) — OPEN: "Run Single Scenario" chart has several usability gaps

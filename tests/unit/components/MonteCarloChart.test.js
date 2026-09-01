@@ -214,94 +214,6 @@ describe('MonteCarloChart', () => {
     });
   });
 
-  describe('Export Data', () => {
-    test('should export data when trajectories are available', () => {
-      const mockTrajectories = [
-        [{ totalBalance: 100000 }, { totalBalance: 95000 }],
-        [{ totalBalance: 110000 }, { totalBalance: 105000 }]
-      ];
-
-      monteCarloChart.currentTrajectories = mockTrajectories;
-
-      const calculatePercentileDataSpy = jest.spyOn(monteCarloChart, 'calculatePercentileData')
-        .mockReturnValue([
-          { month: 0, p10: 100, p25: 105, p50: 110, p75: 115, p90: 120, activeCount: 2 },
-          { month: 1, p10: 95, p25: 100, p50: 105, p75: 110, p90: 115, activeCount: 2 }
-        ]);
-
-      monteCarloChart.exportData();
-
-      expect(calculatePercentileDataSpy).toHaveBeenCalledWith(mockTrajectories);
-      expect(global.Blob).toHaveBeenCalledWith(
-        [expect.stringContaining('Year,P10,P25,P50_Median,P75,P90,ActiveScenarios')],
-        { type: 'text/csv' }
-      );
-      expect(window.URL.createObjectURL).toHaveBeenCalled();
-    });
-
-    test('should handle no data to export', () => {
-      monteCarloChart.currentTrajectories = null;
-
-      monteCarloChart.exportData();
-
-      expect(console.log).toHaveBeenCalledWith('📊 MonteCarloChart: No data to export');
-      expect(global.Blob).not.toHaveBeenCalled();
-    });
-
-    test('should handle empty trajectories', () => {
-      monteCarloChart.currentTrajectories = [];
-
-      monteCarloChart.exportData();
-
-      expect(console.log).toHaveBeenCalledWith('📊 MonteCarloChart: No data to export');
-    });
-  });
-
-  describe('Calculate Percentile Data', () => {
-    test('should calculate percentiles correctly', () => {
-      // Need at least 10 trajectories for the method to return data
-      const trajectories = [];
-      for (let i = 0; i < 12; i++) {
-        trajectories.push([
-          { totalBalance: 100000 + i * 1000 }, 
-          { totalBalance: 95000 + i * 1000 }
-        ]);
-      }
-
-      const result = monteCarloChart.calculatePercentileData(trajectories);
-
-      expect(result).toHaveLength(2); // 2 months
-      expect(result[0]).toHaveProperty('month', 0);
-      expect(result[0]).toHaveProperty('p10');
-      expect(result[0]).toHaveProperty('p50');
-      expect(result[0]).toHaveProperty('p90');
-      expect(result[0]).toHaveProperty('activeCount', 12);
-    });
-
-    test('should handle trajectories with different lengths', () => {
-      // Need at least 10 trajectories, but with different lengths
-      const trajectories = [];
-      for (let i = 0; i < 12; i++) {
-        if (i < 10) {
-          // Most trajectories have 3 months
-          trajectories.push([
-            { totalBalance: 100000 + i * 1000 }, 
-            { totalBalance: 95000 + i * 1000 }, 
-            { totalBalance: 90000 + i * 1000 }
-          ]);
-        } else {
-          // Some shorter trajectories
-          trajectories.push([{ totalBalance: 110000 + i * 1000 }]);
-        }
-      }
-
-      const result = monteCarloChart.calculatePercentileData(trajectories);
-
-      expect(result).toHaveLength(3); // Max length is 3
-      expect(result[2].activeCount).toBe(10); // 10 trajectories have 3rd month
-    });
-  });
-
   describe('Render Methods', () => {
     test('should render with valid data', () => {
       const data = {
@@ -443,32 +355,6 @@ describe('MonteCarloChart', () => {
       expect(mockContext.clearRect).toHaveBeenCalled();
     });
 
-    test('should display scenario paths chart', () => {
-      const results = [
-        { 
-          result: { 
-            results: { 
-              results: [{ totalBalance: 100000 }, { totalBalance: 95000 }],
-              balanceHistory: [100000, 95000]
-            }
-          }
-        },
-        { 
-          result: { 
-            results: { 
-              results: [{ totalBalance: 110000 }, { totalBalance: 105000 }],
-              balanceHistory: [110000, 105000]
-            }
-          }
-        }
-      ];
-      const scenarioData = { plan: { monthly_expenses: 5000 } };
-      
-      monteCarloChart.displayScenarioPathsChart(results, scenarioData, 'paths-chart');
-      
-      expect(mockContext.clearRect).toHaveBeenCalled();
-    });
-
     test('should display success rate chart', () => {
       const analysis = { successRate: 0.85 };
       
@@ -580,14 +466,6 @@ describe('MonteCarloChart', () => {
   });
 
   describe('Edge Cases', () => {
-    test('should handle null trajectories in export', () => {
-      monteCarloChart.currentTrajectories = null;
-      
-      expect(() => {
-        monteCarloChart.exportData();
-      }).not.toThrow();
-    });
-
     test('should handle empty analysis data', () => {
       expect(() => {
         monteCarloChart.render({ analysis: null });

@@ -443,43 +443,52 @@ export class ExportController {
 
     console.log('📊 Found', trajectories.length, 'trajectories');
 
-    const headers = ['Scenario', 'Month', 'Total_Balance', 'Savings', 'Investment', 'Traditional_IRA', 'Roth_IRA'];
+    // Build columns dynamically from the actual asset names present, rather
+    // than four hardcoded names (ISSUES.md #30) -- any scenario with
+    // differently-named assets previously exported four columns of 0.00.
+    // Mirrors generateMonteCarloReturnsCSV()'s dynamic-column approach below.
+    const allAssets = new Set();
+    trajectories.forEach(trajectory => {
+      if (!Array.isArray(trajectory)) return;
+      trajectory.forEach(monthData => {
+        if (monthData && typeof monthData === 'object' && monthData.assets) {
+          Object.keys(monthData.assets).forEach(name => allAssets.add(name));
+        }
+      });
+    });
+    const assetColumns = Array.from(allAssets).sort();
+
+    const headers = ['Scenario', 'Month', 'Total_Balance', ...assetColumns.map(name => name.replace(/\s+/g, '_'))];
     const rows = [headers.join(',')];
 
     trajectories.forEach((trajectory, scenarioIndex) => {
       if (Array.isArray(trajectory)) {
         trajectory.forEach((monthData, monthIndex) => {
           if (typeof monthData === 'number') {
-            // Handle simple balance array (legacy format)
+            // Handle simple balance array (legacy format) -- no per-asset
+            // breakdown available, leave those columns blank.
             rows.push([
               scenarioIndex + 1,
               monthIndex + 1,
               monthData.toFixed(2),
-              '', '', '', '' // Empty asset columns for simple format
+              ...assetColumns.map(() => '')
             ].join(','));
           } else if (monthData && typeof monthData === 'object') {
             // Handle detailed month data with individual assets
             const totalBalance = monthData.totalBalance || 0;
-            const savings = monthData.assets?.Savings || 0;
-            const investment = monthData.assets?.Investment || 0;
-            const traditionalIRA = monthData.assets?.['Traditional IRA'] || 0;
-            const rothIRA = monthData.assets?.['Roth IRA'] || 0;
-            
+
             rows.push([
               monthData.scenario || (scenarioIndex + 1),
               monthData.month || (monthIndex + 1),
               totalBalance.toFixed(2),
-              savings.toFixed(2),
-              investment.toFixed(2),
-              traditionalIRA.toFixed(2),
-              rothIRA.toFixed(2)
+              ...assetColumns.map(name => (monthData.assets?.[name] || 0).toFixed(2))
             ].join(','));
           }
         });
       }
     });
 
-    console.log('📊 Generated CSV with', rows.length - 1, 'data rows');
+    console.log('📊 Generated CSV with', rows.length - 1, 'data rows and', assetColumns.length, 'asset columns');
     return rows.join('\n');
   }
 

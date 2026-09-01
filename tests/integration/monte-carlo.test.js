@@ -350,50 +350,6 @@ describe('Monte Carlo Analysis Integration', () => {
       expect(first.investmentType).toBe('stocks');
     });
 
-    test('should export results in JSON format', () => {
-      // Mock DOM for download functionality
-      const mockLink = {
-        href: '',
-        download: '',
-        click: jest.fn(),
-        style: { display: '' }
-      };
-      document.createElement = jest.fn().mockReturnValue(mockLink);
-      document.body.appendChild = jest.fn();
-      document.body.removeChild = jest.fn();
-      global.URL.createObjectURL = jest.fn().mockReturnValue('mock-url');
-      global.URL.revokeObjectURL = jest.fn();
-      
-      // Mock successful analysis
-      monteCarloController.currentAnalysis = {
-        status: 'completed',
-        analysis: { statistics: {}, successRate: 0.8 },
-        results: [],
-        scenarioData: sampleScenario,
-        duration: 1000
-      };
-
-      // Mock download functionality
-      const mockCreateElement = jest.fn(() => ({
-        href: '',
-        download: '',
-        click: jest.fn()
-      }));
-      const mockCreateObjectURL = jest.fn(() => 'blob:url');
-      const mockRevokeObjectURL = jest.fn();
-
-      global.document.createElement = mockCreateElement;
-      global.URL = {
-        createObjectURL: mockCreateObjectURL,
-        revokeObjectURL: mockRevokeObjectURL
-      };
-      global.Blob = jest.fn();
-
-      monteCarloController.exportResults('json');
-
-      expect(mockCreateElement).toHaveBeenCalledWith('a');
-      expect(global.Blob).toHaveBeenCalled();
-    });
   });
 
   describe('Event Bus Integration', () => {

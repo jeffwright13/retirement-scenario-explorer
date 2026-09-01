@@ -76,12 +76,7 @@ class RetirementScenarioApp {
     this.scenarioBuilderUI = new ScenarioBuilderUI(this.eventBus);
     
     // Feature controllers
-    this.monteCarloController = new MonteCarloController(
-      this.eventBus,
-      this.monteCarloService,
-      this.monteCarloChart,
-      this.monteCarloUI
-    );
+    this.monteCarloController = new MonteCarloController(this.eventBus);
     this.insightsController = new InsightsController(this.eventBus);
     this.exportController = new ExportController(this.eventBus);
     this.scenarioBuilderController = new ScenarioBuilderController(

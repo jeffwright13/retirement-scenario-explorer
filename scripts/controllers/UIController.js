@@ -1501,11 +1501,17 @@ export class UIController {
       
       // Add income event traces to show when events occur
       incomeEvents.forEach(incomeEvent => {
-        if (incomeEvent.start_month && incomeEvent.amount !== 0) {
+        // start_month defaults to 1 (the engine simulates it from month 1
+        // when omitted, per getMonthlyIncome()). This used to also gate on
+        // `incomeEvent.start_month` being truthy, which treated a missing
+        // or explicit-0 start_month as "no trace" -- income active from
+        // month 1 was invisible on the chart (ISSUES.md #31). The
+        // non-zero-values check below already covers "nothing to show".
+        if (incomeEvent.amount !== 0) {
           // Create income event trace showing when the event occurs
           const incomeTrace = months.map((_, index) => {
             const currentMonth = index + 1;
-            const startMonth = incomeEvent.start_month;
+            const startMonth = incomeEvent.start_month ?? 1;
             const stopMonth = incomeEvent.stop_month;
             
             // Show income amount during active period, 0 otherwise
