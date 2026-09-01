@@ -736,6 +736,47 @@ the hot loop, more invasive than the rest of this pass).
 
 ---
 
+## v1.0.22 — Clear the mechanical ISSUES.md backlog, part 3: doc honesty and chart UX (PATCH)
+
+**Goal:** Continuation of the low-hanging-fruit sweep (see `v1.0.20`/`v1.0.21`)
+— the two remaining mechanical items explicitly committed to in the original
+triage: Issue #25's doc/test honesty fix and Issue #32's chart title +
+clear-on-click fixes.
+
+### Scope
+
+1. **`ISSUES.md` #25** — `compounding: 'annual'` is documented but never
+   implemented. Took the small fix (doc honesty), not the large one
+   (implementing annual compounding): marked the field `Future:` in
+   `docs/scenario-schema.json` and `docs/SPEC.md` §1.3/§2.1, and rewrote the
+   misleading test in `tests/unit/timeaware-engine-comprehensive.test.js` to
+   assert the real engine's actual (no-op) behavior via
+   `simulateScenarioAdvanced` instead of a local reimplementation that gave
+   false confidence the feature worked. No live scenario data used `annual`,
+   so this changes no runtime behavior.
+2. **`ISSUES.md` #32, two of four findings** — chart title now interpolates
+   the real scenario name (`UIController.js` `renderChart()`); the run
+   button's click handler now purges the stale chart synchronously before
+   `simulation:run` is emitted, instead of leaving it unchanged until results
+   arrive. The other two findings (interactivity clarification, staleness
+   indicator design) remain OPEN pending user input/design decisions.
+
+### Out of scope (left OPEN, needs a decision, not mechanical)
+
+Issue #32's chart-interactivity clarification and staleness-indicator design;
+actually implementing `compounding: 'annual'` (flagged to the user as an
+available option, not chosen).
+
+### Done criteria
+
+- [x] Each fix's regression test confirmed red against the pre-fix code via
+      a temporary revert, then green
+- [x] `npm test` passes, no regressions
+- [x] `ISSUES.md` #25 marked resolved; #32 updated per sub-item
+- [x] Version bumped via `npm version patch` (→ `1.0.22`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns

@@ -304,4 +304,73 @@ describe('Testing Setup Verification', () => {
       expect(document.getElementById('scenario-dropdown').value).toBe('simple-retirement');
     });
   });
+
+  describe('chart title (ISSUES.md #32)', () => {
+    let originalPlotly;
+
+    beforeEach(() => {
+      originalPlotly = global.Plotly;
+      global.Plotly = {
+        purge: jest.fn(),
+        newPlot: jest.fn(() => Promise.resolve()),
+        Plots: { resize: jest.fn() }
+      };
+    });
+
+    afterEach(() => {
+      global.Plotly = originalPlotly;
+    });
+
+    test('renderChart interpolates the real scenario title instead of a static string', () => {
+      document.body.innerHTML = `<div id="chart-area"></div>`;
+
+      const uiController = new UIController(mockEventBus);
+      uiController.initializeUIElements();
+      uiController.currentScenarioData = { metadata: { title: 'My Custom Plan' }, assets: [] };
+
+      const results = [{ month: 1 }, { month: 2 }];
+      const balanceHistory = { Checking: [1000, 1100] };
+
+      uiController.renderChart(results, balanceHistory);
+
+      expect(global.Plotly.newPlot).toHaveBeenCalled();
+      const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
+      expect(layoutArg.title.text).toContain('My Custom Plan');
+    });
+  });
+
+  describe('chart clears immediately on Run Single Scenario click (ISSUES.md #32)', () => {
+    let originalPlotly;
+
+    beforeEach(() => {
+      originalPlotly = global.Plotly;
+      global.Plotly = {
+        purge: jest.fn(),
+        newPlot: jest.fn(() => Promise.resolve()),
+        Plots: { resize: jest.fn() }
+      };
+    });
+
+    afterEach(() => {
+      global.Plotly = originalPlotly;
+    });
+
+    test('purges the stale chart synchronously before simulation:run is emitted', () => {
+      document.body.innerHTML = `
+        <button id="run-btn-primary">Run Single Scenario</button>
+        <div id="chart-area"></div>
+      `;
+
+      const eventBus = { emit: jest.fn(), on: jest.fn(), off: jest.fn() };
+      const uiController = new UIController(eventBus);
+      uiController.initializeUIElements();
+      uiController.setupEventListeners();
+      uiController.currentScenario = { metadata: { title: 'X' }, plan: {}, assets: [] };
+
+      document.getElementById('run-btn-primary').click();
+
+      expect(global.Plotly.purge).toHaveBeenCalledWith(uiController.chartArea);
+      expect(eventBus.emit).toHaveBeenCalledWith('simulation:run', uiController.currentScenario);
+    });
+  });
 });
