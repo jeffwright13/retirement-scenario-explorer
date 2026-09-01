@@ -145,7 +145,7 @@
                   "type": "string",
                   "enum": ["monthly", "annual"],
                   "default": "monthly",
-                  "description": "How often returns compound"
+                  "description": "How often returns compound. Future: 'annual' is accepted but not implemented -- the engine always compounds monthly regardless of this field (ISSUES.md #25)."
                 },
                 "start_month": {
                   "type": "integer",

@@ -992,7 +992,7 @@ withdrawal drag (compare the deposit month's balance change against the
 prior month's, rather than asserting the raw change equals the deposit
 amount) rather than just loosening the assertion.
 
-### Issue 25 (medium impact, documented-vs-actual) — OPEN: `compounding: 'annual'` is documented — including in the engine's own monthly-loop spec — but never implemented
+### Issue 25 (medium impact, documented-vs-actual) — RESOLVED: `compounding: 'annual'` is documented — including in the engine's own monthly-loop spec — but never implemented
 
 **Root cause.** `getAssetReturns()` (`timeaware-engine.js:372-380`) always returns
 `rate / 12` and never branches on `asset.compounding`; every asset compounds
@@ -1007,10 +1007,27 @@ asset it creates, as if the field is consumed downstream. Compounding this:
 `tests/unit/timeaware-engine-comprehensive.test.js:78-108` "tests" annual
 compounding via a **locally reimplemented** helper function that never calls the
 real engine, so the suite gives false confidence that this documented feature
-works. **Fix:** either implement the branch (track month-of-year, apply `(1 + rate)
-- 1` once per 12 months for `annual`), or mark the field `Future:` in both
-`scenario-schema.json` and `docs/SPEC.md` §1.3/§2.1 and fix the misleading test —
-the doc fix is smaller but the test is actively misleading either way.
+works.
+
+**Fixed (2026-09-01).** Took the doc-honesty fix, not the implementation
+(annual compounding was never actually used by any live scenario data — see
+below — so building it for real is deferred, not silently dropped):
+
+- `docs/scenario-schema.json` — `compounding`'s `description` now states
+  `annual` is accepted but not implemented, citing this issue.
+- `docs/SPEC.md` §1.3's field table row and §2.1 step 5's prose both now say
+  the engine always compounds monthly regardless of this field, instead of
+  implying both modes work.
+- Rewrote the misleading local-reimplementation test in
+  `tests/unit/timeaware-engine-comprehensive.test.js` to instead call the real
+  engine (`simulateScenarioAdvanced`) with otherwise-identical scenarios differing
+  only in `compounding: 'monthly'` vs. `'annual'`, and assert the resulting
+  `balanceHistory` is identical — i.e. it now documents and locks in the actual
+  (no-op) behavior instead of asserting a fictional one. Confirmed via `grep`
+  that no scenario file under `data/` uses `compounding: 'annual'`, so this
+  doc/test fix doesn't change behavior for any real scenario.
+- If `annual` compounding is ever implemented for real, this test and both doc
+  markers should be updated together.
 
 ### Issue 26 (medium impact) — OPEN: "Learning Examples" dropdown group is unreachable, and its underlying files use a third, unrunnable scenario schema
 
@@ -1191,19 +1208,18 @@ dropped in favor of four zeroed hardcoded ones.
   worth ~a minute of pure waiting per run — is moot: that function was
   deleted entirely as part of the `ISSUES.md` #19 fix, 2026-08-31.)
 
-### Issue 32 (user-reported, UX) — OPEN: "Run Single Scenario" chart has several usability gaps
+### Issue 32 (user-reported, UX) — OPEN (partially resolved): "Run Single Scenario" chart has several usability gaps
 
 **Reported 2026-09-01** while running through `docs/study-guide.md`. Four
 related findings, verified against `UIController.js`'s chart code:
 
-- **No chart title identifying the scenario.** `renderChart()`'s Plotly
-  `layout` has a `title` block, but it's entirely commented out
-  (`UIController.js:1293-1299`) — and even if uncommented as written, it's a
-  static string (`"💰 Assets & Income Events Over Time"`), not the scenario's
-  own name. The scenario title is already available on the controller
-  (`this.currentScenario.metadata?.title`, already read elsewhere for
-  logging, e.g. `:90`) — this is a small, mechanical fix: uncomment the
-  title block and interpolate the real scenario name into it.
+- ~~**No chart title identifying the scenario.**~~ **Fixed (2026-09-01).**
+  `renderChart()`'s Plotly `layout.title` is now built from
+  `this.currentScenarioData?.metadata?.title` (falling back to the old static
+  string when no scenario title is available) instead of being commented out.
+  Regression test added in `tests/unit/controllers/UIController.test.js`
+  ("chart title (ISSUES.md #32)"), confirmed red against the pre-fix code via
+  a temporary revert.
 - **Chart interactivity — partially already present, worth checking before
   assuming a gap.** `renderChart()`'s Plotly `config` already sets
   `displayModeBar: true` (`:1320-1323`), which gives zoom/pan/box-select/
@@ -1224,19 +1240,23 @@ related findings, verified against `UIController.js`'s chart code:
   useful), but visibly flag that what's displayed isn't what's currently
   loaded until re-run — needs a design decision on how (banner? dimming?
   title change?), not just a mechanical fix.
-- **Chart doesn't clear immediately when "Run Single Scenario" is pressed.**
-  Confirmed: the button's click handler (`:86-104`) only emits
-  `simulation:run` — no immediate UI feedback. `Plotly.purge()` and
-  `Plotly.newPlot()` both happen together, only once results arrive
-  (`:1326-1329`), so for however long the simulation takes, the old chart
-  sits unchanged and running the simulation can look like nothing happened.
-  Smallest fix: purge (or show a loading state) synchronously in the click
-  handler, before `simulation:run` is emitted.
+- ~~**Chart doesn't clear immediately when "Run Single Scenario" is pressed.**~~
+  **Fixed (2026-09-01).** The run button's click handler now calls
+  `Plotly.purge(this.chartArea)` synchronously (guarded on both `this.chartArea`
+  and `Plotly` being defined) before emitting `simulation:run`, so the stale
+  chart disappears immediately instead of sitting unchanged for however long
+  the simulation takes. Regression test added in
+  `tests/unit/controllers/UIController.test.js` ("chart clears immediately on
+  Run Single Scenario click (ISSUES.md #32)"), confirmed red against the
+  pre-fix code via a temporary revert.
 
-**Not yet scoped into a version** — the first and last findings are small,
-mechanical fixes; the second needs user clarification before any work is
-scoped; the third needs a design decision on the staleness-indication
-approach.
+**Remaining open items need a decision, not mechanical work**: the second
+finding (chart interactivity) needs user clarification on what specifically
+felt not-user-friendly before any work is scoped, since `displayModeBar` and
+legend-click selection may already cover the literal ask; the third
+(staleness indication when a new scenario loads without re-running) needs a
+design decision on the indicator approach (banner? dimming? title change?).
+Not yet scoped into a version.
 
 ### Issue 33 (user-reported, data bug) — RESOLVED: `realistic-scenarios.json`'s two scenarios claim Social Security twice — early *and* full, simultaneously
 

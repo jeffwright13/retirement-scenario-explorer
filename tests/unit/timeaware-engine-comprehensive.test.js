@@ -12,6 +12,7 @@
  */
 
 const { sampleScenarios, sampleResults, sampleBalanceHistory } = require('../fixtures/sample-scenarios.js');
+const { simulateScenarioAdvanced } = require('../../scripts/timeaware-engine.js');
 
 describe('TimeAware Engine - Comprehensive Schema-Driven Tests', () => {
   beforeEach(() => {
@@ -75,35 +76,33 @@ describe('TimeAware Engine - Comprehensive Schema-Driven Tests', () => {
       });
     });
 
-    describe('Compounding Frequencies', () => {
-      const compoundingTypes = ['monthly', 'annual'];
-      
-      compoundingTypes.forEach(compounding => {
-        it(`should calculate returns with ${compounding} compounding`, () => {
-          const calculateCompoundedReturn = (principal, annualRate, compounding, months) => {
-            if (compounding === 'monthly') {
-              const monthlyRate = annualRate / 12;
-              return principal * Math.pow(1 + monthlyRate, months);
-            } else {
-              const years = months / 12;
-              return principal * Math.pow(1 + annualRate, years);
-            }
-          };
-
-          const principal = 100000;
-          const annualRate = 0.06;
-          const months = 12;
-          
-          const result = calculateCompoundedReturn(principal, annualRate, compounding, months);
-          
-          if (compounding === 'monthly') {
-            // Monthly compounding should yield slightly more
-            expect(result).toBeGreaterThan(principal * (1 + annualRate));
-          } else {
-            // Annual compounding for 1 year
-            expect(result).toBeCloseTo(principal * (1 + annualRate), 2);
-          }
+    describe('Compounding Frequencies (real engine, ISSUES.md #25)', () => {
+      // assets[].compounding: 'annual' is documented but not implemented -- the
+      // engine always compounds monthly regardless of this field. This test
+      // asserts that documented-but-unimplemented behavior directly against the
+      // real engine, rather than a local reimplementation that would give false
+      // confidence the feature works. If this ever starts failing because
+      // 'annual' compounding was implemented for real, update this test (and
+      // drop the Future: marker in docs/scenario-schema.json and docs/SPEC.md).
+      it('produces identical results for compounding: "monthly" and compounding: "annual" (annual is a documented no-op)', () => {
+        const buildScenario = (compounding) => ({
+          plan: { monthly_expenses: 0, duration_months: 24, stop_on_shortfall: false },
+          assets: [{
+            name: 'Growth Account',
+            type: 'taxable',
+            balance: 100000,
+            interest_rate: 0.06,
+            compounding
+          }],
+          order: [{ account: 'Growth Account', order: 1 }]
         });
+
+        const monthlyResult = simulateScenarioAdvanced(buildScenario('monthly'));
+        const annualResult = simulateScenarioAdvanced(buildScenario('annual'));
+
+        expect(annualResult.balanceHistory['Growth Account']).toEqual(
+          monthlyResult.balanceHistory['Growth Account']
+        );
       });
     });
 

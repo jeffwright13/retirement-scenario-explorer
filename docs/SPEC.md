@@ -47,7 +47,7 @@ original rationale.
 | `min_balance` | number, default 0 | Floor the asset can't be drawn below (emergency-fund pattern) |
 | `return_schedule` | string | Reference into `rate_schedules{}` |
 | `interest_rate` | number | Legacy fixed-rate alternative to `return_schedule` |
-| `compounding` | enum: `monthly` \| `annual`, default `monthly` | |
+| `compounding` | enum: `monthly` \| `annual`, default `monthly` | Future: `annual` is accepted but not implemented -- see note below and `ISSUES.md` #25 |
 | `start_month` | integer, default 0 | Month the asset becomes available — see §2.3 for activation mechanics |
 | `notes` | string | Free text, display only |
 
@@ -144,8 +144,9 @@ For each month from 0 to `duration_months - 1`:
    `monthly_expenses`, derive `shortfall = expenses - income`
 4. Cover the shortfall via withdrawal (§2.2) — iterates up to 5 passes to converge
    on a tax-inclusive gross withdrawal
-5. Apply growth to every active asset (`interest_rate`/`return_schedule`, monthly or
-   annual compounding) — skipped once auto-stop has triggered (§2.4)
+5. Apply growth to every active asset (`interest_rate`/`return_schedule`, always
+   monthly compounding regardless of `assets[].compounding` — see §1.3) — skipped
+   once auto-stop has triggered (§2.4)
 6. Record the month's log (income, expenses, withdrawals, any leftover shortfall)
    and each asset's end-of-month balance into `balanceHistory`
 7. Check the auto-stop condition (§2.4)

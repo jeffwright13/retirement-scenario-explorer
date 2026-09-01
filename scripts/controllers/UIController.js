@@ -98,6 +98,11 @@ export class UIController {
             annualExpenses: (this.currentScenario.plan?.monthly_expenses || 0) * 12,
             scenarioTitle: this.currentScenario.metadata?.title
           });
+          // Clear the stale chart immediately so a slow-running simulation
+          // doesn't look like the button did nothing (ISSUES.md #32)
+          if (this.chartArea && typeof Plotly !== 'undefined') {
+            Plotly.purge(this.chartArea);
+          }
           this.eventBus.emit('simulation:run', this.currentScenario);
           console.log('📡 UIController: simulation:run event emitted successfully');
         } else {
@@ -1290,13 +1295,18 @@ export class UIController {
         filteredTicks.push(xLabels[xLabels.length - 1]);
       }
 
+      const scenarioTitle = this.currentScenarioData?.metadata?.title;
+      const chartTitleText = scenarioTitle
+        ? `💰 ${scenarioTitle} — Assets & Income Events Over Time`
+        : '💰 Assets & Income Events Over Time';
+
       const layout = {
-        // title: {
-        //   text: '💰 Assets & Income Events Over Time',
-        //   font: { size: 16, color: '#333' },
-        //   x: 0.5,
-        //   xanchor: 'center'
-        // },
+        title: {
+          text: chartTitleText,
+          font: { size: 16, color: '#333' },
+          x: 0.5,
+          xanchor: 'center'
+        },
         xaxis: { 
           title: 'Timeline (MM-YY)',
           tickvals: filteredTicks,
