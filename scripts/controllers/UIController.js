@@ -1364,6 +1364,30 @@ export class UIController {
   }
 
   /**
+   * Resolve the calendar date month 0 of a simulation corresponds to.
+   * Uses the scenario's plan.start_date when present and valid, falling back
+   * to today -- plan.start_date was documented in the schema but never
+   * actually read anywhere (ISSUES.md #34).
+   */
+  resolveScenarioStartDate(scenario) {
+    const raw = scenario?.plan?.start_date;
+    if (raw) {
+      // Parse a bare YYYY-MM-DD as a local calendar date -- new Date(str) would
+      // parse it as UTC midnight, which shifts to the prior day in any timezone
+      // behind UTC.
+      const dateOnlyMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw);
+      const parsed = dateOnlyMatch
+        ? new Date(Number(dateOnlyMatch[1]), Number(dateOnlyMatch[2]) - 1, Number(dateOnlyMatch[3]))
+        : new Date(raw);
+      if (!isNaN(parsed.getTime())) {
+        return parsed;
+      }
+      console.warn('⚠️ Ignoring invalid plan.start_date:', raw);
+    }
+    return new Date();
+  }
+
+  /**
    * Prepare chart data from simulation results and balance history
    */
   prepareChartData(results, balanceHistory = {}, scenario = null) {
@@ -1378,8 +1402,9 @@ export class UIController {
     console.log('🔍 Chart data - Results length:', results.length, 'months');
     console.log('🔍 Chart data - Final result:', results[results.length - 1]);
 
-    // Create MM-YY formatted dates starting from current date
-    const startDate = new Date();
+    // Create MM-YY formatted dates starting from the scenario's plan.start_date
+    // when provided, falling back to today (ISSUES.md #34)
+    const startDate = this.resolveScenarioStartDate(scenario);
     const months = results.map((_, index) => {
       const date = new Date(startDate);
       date.setMonth(date.getMonth() + index);
@@ -1845,9 +1870,11 @@ export class UIController {
       </div>
     `;
 
+    const withdrawalStartDate = this.resolveScenarioStartDate(this.currentScenarioData);
+
     results.forEach((result, monthIndex) => {
       if (result.withdrawals && Array.isArray(result.withdrawals) && result.withdrawals.length > 0) {
-        const monthDate = new Date();
+        const monthDate = new Date(withdrawalStartDate);
         monthDate.setMonth(monthDate.getMonth() + monthIndex);
         
         withdrawalHtml += `

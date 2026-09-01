@@ -483,4 +483,51 @@ describe('MonteCarloChart', () => {
       }).not.toThrow();
     });
   });
+
+  describe('Chart axis labeling (ISSUES.md #34)', () => {
+    let originalPlotly;
+    const trajectories = [
+      [{ totalBalance: 100000 }, { totalBalance: 105000 }],
+      [{ totalBalance: 110000 }, { totalBalance: 108000 }]
+    ];
+
+    beforeEach(() => {
+      originalPlotly = global.Plotly;
+      global.Plotly = { newPlot: jest.fn() };
+    });
+
+    afterEach(() => {
+      global.Plotly = originalPlotly;
+    });
+
+    test('yaxis shows a $ prefix and K suffix on tick labels, not just a title', () => {
+      monteCarloChart.createPlotlyChart(trajectories, mockContainer, null);
+
+      const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
+      expect(layoutArg.yaxis.tickprefix).toBe('$');
+      expect(layoutArg.yaxis.ticksuffix).toBe('K');
+      expect(layoutArg.yaxis.title).toBeTruthy();
+    });
+
+    test('xaxis has a descriptive title', () => {
+      monteCarloChart.createPlotlyChart(trajectories, mockContainer, null);
+
+      const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
+      expect(layoutArg.xaxis.title).toBe('Years from Simulation Start');
+    });
+
+    test('chart title interpolates the real scenario name when available', () => {
+      monteCarloChart.createPlotlyChart(trajectories, mockContainer, { metadata: { title: 'My Retirement Plan' } });
+
+      const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
+      expect(layoutArg.title.text).toContain('My Retirement Plan');
+    });
+
+    test('chart title falls back to a generic label when no scenario name is available', () => {
+      monteCarloChart.createPlotlyChart(trajectories, mockContainer, null);
+
+      const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
+      expect(layoutArg.title.text).toBeTruthy();
+    });
+  });
 });

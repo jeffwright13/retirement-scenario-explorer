@@ -293,7 +293,7 @@ export class MonteCarloChart {
       console.log(`📊 Drawing ${trajectories.length} individual trajectories`);
 
       // Convert to Plotly instead of Canvas
-      this.createPlotlyChart(trajectories, chartArea);
+      this.createPlotlyChart(trajectories, chartArea, scenarioData);
 
     } catch (error) {
       console.error('⚡ Error rendering trajectory overlay:', error);
@@ -304,7 +304,7 @@ export class MonteCarloChart {
   /**
    * Create interactive Plotly chart for Monte Carlo trajectories
    */
-  createPlotlyChart(trajectories, container) {
+  createPlotlyChart(trajectories, container, scenarioData = null) {
     console.log('📊 Creating Plotly chart with', trajectories.length, 'trajectories');
     
     const traces = [];
@@ -435,18 +435,25 @@ export class MonteCarloChart {
 
 
     // Layout configuration
+    const scenarioTitle = scenarioData?.metadata?.title;
+    const chartTitleText = scenarioTitle
+      ? `Monte Carlo Simulation — ${scenarioTitle}`
+      : 'Monte Carlo Simulation';
+
     const layout = {
       title: {
-        text: '',
+        text: chartTitleText,
         font: { size: 16 }
       },
       xaxis: {
-        title: 'Years',
+        title: 'Years from Simulation Start',
         showgrid: true,
         gridcolor: 'rgba(128, 128, 128, 0.2)'
       },
       yaxis: {
-        title: 'Balance ($K)',
+        title: 'Total Portfolio Balance',
+        tickprefix: '$',
+        ticksuffix: 'K',
         showgrid: true,
         gridcolor: 'rgba(128, 128, 128, 0.2)'
       },
@@ -458,7 +465,7 @@ export class MonteCarloChart {
         xanchor: 'right',
         yanchor: 'top'
       },
-      margin: { l: 60, r: 60, t: 40, b: 60 },
+      margin: { l: 70, r: 60, t: 50, b: 60 },
       plot_bgcolor: 'white',
       paper_bgcolor: 'white'
     };
