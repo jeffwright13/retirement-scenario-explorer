@@ -1455,3 +1455,22 @@ to be added to both `UIController.renderChart()` and
 this batch's chart-parity work. Not scoped into a version -- needs the user
 to confirm it's wanted before implementing.
 
+**Implementation risk, raised 2026-09-01.** A hand-rolled toggle button --
+a separately-positioned DOM element absolutely positioned on top of the
+Plotly SVG -- carries real cross-browser risk that this project has no
+automated way to catch: the test suite is Jest/jsdom unit tests only (no
+Playwright, per this project's own testing conventions), so a positioning
+bug that's fine in Chrome and subtly broken in Safari/Firefox (z-index or
+`pointer-events` conflicts with Plotly's own hover layer, or the overlay
+drifting out of alignment on resize since it has to independently track
+Plotly's responsive layout math) would only surface from someone actually
+eyeballing it in the affected browser, not from `npm test`.
+
+**Lower-risk alternative:** Plotly's built-in `layout.updatemenus` button
+feature renders *inside* the same SVG Plotly already draws (same layer as
+the axes/legend), driven by a `restyle`/`relayout` args array rather than a
+separate DOM element -- so it rides on Plotly's own cross-browser-tested
+rendering instead of introducing a hand-positioned overlay that has to be
+kept in sync with the chart's own coordinate system. If this gets built,
+prefer `updatemenus` over a custom DOM overlay for exactly this reason.
+
