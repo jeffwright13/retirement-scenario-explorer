@@ -1433,3 +1433,25 @@ findings comparing the Single Scenario and Monte Carlo charts side by side:
   `wrapChartTitle()` directly), and the legend anchor -- confirmed red
   against the pre-fix code via a temporary revert, then green.
 
+### Issue 36 (user-reported, UX idea) — OPEN: no way to collapse/hide the chart legend entirely
+
+**Raised 2026-09-01**, asking whether the legend box (upper-right "key") could
+be made clickable to show/hide itself, distinct from the already-working
+per-entry click-to-toggle-that-trace behavior (`layout.legend.groupclick:
+'toggleitem'`, noted in `ISSUES.md` #32's second finding). Not yet a
+confirmed ask -- explicitly asked as a "what's possible" question, not a
+request to build it.
+
+**Findings.** Plotly has no native "click the legend to hide the legend"
+interaction -- toggling the whole legend's visibility requires a small
+custom control (e.g. a toggle icon/button positioned over the plot) that
+calls `Plotly.relayout(chartArea, { showlegend: false })` and back, tracking
+the toggle state itself. Relevant now that both charts' legends float
+*inside* the plot's top-right corner (`ISSUES.md` #34/#35) rather than
+reserving dedicated margin outside the plot -- collapsing the legend would
+free up whatever corner of the data it's currently overlapping. Would need
+to be added to both `UIController.renderChart()` and
+`MonteCarloChart.createPlotlyChart()` to stay consistent with the rest of
+this batch's chart-parity work. Not scoped into a version -- needs the user
+to confirm it's wanted before implementing.
+
