@@ -1159,3 +1159,74 @@ related findings, verified against `UIController.js`'s chart code:
 mechanical fixes; the second needs user clarification before any work is
 scoped; the third needs a design decision on the staleness-indication
 approach.
+
+### Issue 33 (user-reported, data bug) — RESOLVED: `realistic-scenarios.json`'s two scenarios claim Social Security twice — early *and* full, simultaneously
+
+**Reported 2026-09-01** while reading the file directly (it wasn't reachable
+via the app at the time — see the note below). Both `early-retirement-baseline`
+and `tax-optimized-strategy` had identical `income[]` lists:
+
+```json
+[
+  { "name": "Early Social Security", "amount": 2500, "start_month": 8 },
+  { "name": "Full Social Security", "amount": 3400, "start_month": 84 }
+]
+```
+
+**Root cause.** Neither entry has a `stop_month`, and a missing `stop_month`
+means the income runs forever (`docs/SPEC.md`, `getMonthlyIncome()`
+convention). So "Early Social Security" never turns off when "Full Social
+Security" starts at month 84 — from that point on, both are active
+simultaneously: **$5,900/month combined**, not $2,500 or $3,400 alone.
+Verified directly: probed both scenarios pre-fix and confirmed monthly
+income exceeded either individual benefit from month 84 onward.
+
+This isn't just a stacking bug — it models something that can't happen in
+reality. Social Security claiming age is a single, essentially irrevocable
+choice: claim early and the benefit is *permanently* reduced (adjusted only
+for COLA thereafter); there is no later step-up to the full amount at full
+retirement age. The scenario's own `metadata.description`
+("Modeling a **7-year** tax optimization strategy **before** full Social
+Security benefits") confirms the intended design was zero SS income during
+the bridge window — 7 years × 12 = 84 months, exactly matching "Full Social
+Security"'s `start_month`. "Early Social Security" was the erroneous entry,
+not an intentional alternative.
+
+**Fixed:** removed "Early Social Security" from both scenarios, matching the
+documented 7-year-bridge intent. Added a new scenario,
+`early-claiming-comparison`, as the genuine early-vs-full comparison the
+finding suggested — same household as `early-retirement-baseline`, claiming
+only "Early Social Security" from month 8 for the full run, no later bump.
+Verified via direct simulation: `early-retirement-baseline` (full claim)
+never exceeds $3,400/month income; `early-claiming-comparison` (early claim)
+never exceeds $2,500/month — no stacking in either. As a side note for
+whoever runs the comparison: in this specific household, claiming early
+actually makes the money last *longer* (208 simulated months vs. 174) —
+more cumulative income during the early bridge years outweighs the lower
+per-month amount here, which won't generalize to every household but is a
+good concrete example of why the comparison is worth running rather than
+assuming "full is always better."
+
+**Also fixed the same day, related:** `data/scenarios/naive-scenarios.json`
+and `data/scenarios/realistic-scenarios.json` were dead data — present on
+disk but never loaded by `ContentService.js` (only
+`learning-journey-scenarios.json` was in `loadBuiltInScenarios()`'s
+`scenarioFiles` list, apparently an oversight rather than a deliberate
+exclusion — no `DECISIONS.md` entry or prior `ISSUES.md` mention). Both are
+now wired in (8 additional scenarios from `naive-scenarios.json`, including
+`sequence-risk-simulation`; 3 from `realistic-scenarios.json` including the
+new comparison scenario above). `data/scenarios/roth-scenarios.json`
+deliberately excluded — confirmed it's an earlier, superseded draft of the
+Roth-conversion arc already refined into `learning-journey-scenarios.json`,
+sharing two key names (`tax-smart-conversions`, `post-conversion-years`)
+with materially different content; loading it would silently overwrite
+those two already-working scenarios. Regression test in
+`tests/unit/services/ContentService.test.js` asserts all built-in files load
+with zero key collisions and specifically guards against `roth-scenarios.json`
+(or any future colliding file) ever silently winning that overwrite.
+
+**Regression tests:** `tests/unit/services/ContentService.test.js` (new
+test, loads the real files from disk through a mocked `fetch`, not
+hand-written fixtures); direct simulation probes confirming max monthly
+income for each fixed scenario.
+

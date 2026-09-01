@@ -13,16 +13,10 @@
       },
       "income": [
         {
-          "name": "Early Social Security",
-          "amount": 2500,
-          "start_month": 8,
-          "notes": "Early claiming strategy with reduced benefits"
-        },
-        {
           "name": "Full Social Security",
           "amount": 3400,
           "start_month": 84,
-          "notes": "Full retirement benefits at age 67"
+          "notes": "Full retirement benefits at age 67 -- no SS income before this; that's the tax-optimization window. See 'early-claiming-comparison' for the early-claim alternative."
         }
       ],
       "assets": [
@@ -92,7 +86,95 @@
         "roth_growth": {"type": "fixed", "rate": 0.07}
       }
     },
-  
+
+    "early-claiming-comparison": {
+      "metadata": {
+        "title": "Early Retirement Baseline - Early SS Claiming (Comparison)",
+        "description": "Same household as 'Early Retirement Baseline', but claims Social Security early (age ~62) at a permanently reduced amount instead of waiting for full benefits at 67. Direct comparison for the early-vs-full claiming tradeoff -- real Social Security has no later step-up from an early-claimed amount to the full amount.",
+        "tags": ["early-retirement", "social-security-comparison", "baseline-scenario"]
+      },
+      "plan": {
+        "monthly_expenses": 6500,
+        "duration_months": 300,
+        "inflation_schedule": "realistic_inflation",
+        "stop_on_shortfall": true
+      },
+      "income": [
+        {
+          "name": "Early Social Security",
+          "amount": 2500,
+          "start_month": 8,
+          "notes": "Early claiming strategy -- permanently reduced amount, no later step-up. Compare against early-retirement-baseline's full-benefit-at-67 claim."
+        }
+      ],
+      "assets": [
+        {
+          "name": "High-Yield Savings",
+          "type": "taxable",
+          "balance": 125000,
+          "min_balance": 30000,
+          "return_schedule": "savings_rate",
+          "market_dependent": false,
+          "notes": "Emergency fund and immediate liquidity"
+        },
+        {
+          "name": "Brokerage Investment",
+          "type": "taxable",
+          "balance": 500000,
+          "return_schedule": "market_growth",
+          "market_dependent": true,
+          "notes": "Taxable investment account"
+        },
+        {
+          "name": "Traditional IRA",
+          "type": "tax_deferred",
+          "balance": 300000,
+          "return_schedule": "ira_growth",
+          "market_dependent": true,
+          "notes": "Subject to RMDs at 73, tax optimization target"
+        },
+        {
+          "name": "Roth IRA",
+          "type": "tax_free",
+          "balance": 15000,
+          "return_schedule": "roth_growth",
+          "market_dependent": true,
+          "notes": "Tax-free growth and withdrawals"
+        }
+      ],
+      "order": [
+        {
+          "account": "High-Yield Savings",
+          "order": 1,
+          "notes": "Use cash first for immediate needs"
+        },
+        {
+          "account": "Brokerage Investment",
+          "order": 2,
+          "weight": 0.6,
+          "notes": "Primary withdrawal source - harvest gains strategically"
+        },
+        {
+          "account": "Traditional IRA",
+          "order": 2,
+          "weight": 0.4,
+          "notes": "Convert to Roth during low-income years (2026-2032)"
+        },
+        {
+          "account": "Roth IRA",
+          "order": 3,
+          "notes": "Last resort - preserve tax-free growth"
+        }
+      ],
+      "rate_schedules": {
+        "realistic_inflation": {"type": "fixed", "rate": 0.035},
+        "savings_rate": {"type": "fixed", "rate": 0.037},
+        "market_growth": {"type": "fixed", "rate": 0.065},
+        "ira_growth": {"type": "fixed", "rate": 0.062},
+        "roth_growth": {"type": "fixed", "rate": 0.07}
+      }
+    },
+
     "tax-optimized-strategy": {
       "metadata": {
         "title": "Tax-Optimized Strategy with Roth Conversions",
@@ -107,14 +189,10 @@
       },
       "income": [
         {
-          "name": "Early Social Security",
-          "amount": 2500,
-          "start_month": 8
-        },
-        {
-          "name": "Full Social Security", 
+          "name": "Full Social Security",
           "amount": 3400,
-          "start_month": 84
+          "start_month": 84,
+          "notes": "No SS income before this -- see early-retirement-baseline's note."
         }
       ],
       "assets": [
