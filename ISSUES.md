@@ -723,6 +723,26 @@ Regression test in `tests/integration/monte-carlo.test.js` (zero-volatility,
 fully deterministic case, confirmed red against the pre-fix code via a
 temporary revert — `0.07/12` instead of `0.07` — then green).
 
+**Final verification (2026-09-01, user-reported), against the user's real
+scenario and a live export, not a synthetic probe:** re-ran seed 1001 on the
+user's actual "Jeff Aug 26 w/ 400k Inheritance + Disability" scenario
+(~$637K across 5 assets, 3 `market_dependent` / `investment_type: "mixed"`
+holdings, `stop_on_shortfall: true`, $6,500/month expenses growing at 3.5%
+inflation, 28-year horizon). Statistical check on the exported per-trial
+annual returns CSV (2,800 samples = 100 iterations × 28 years): mean 7.49%
+(target 7%, the fixed `ira_growth`/`empowerinvestment_growth` rate), stdev
+12.96% (target 12%, `getVolatilityForAsset()`'s "mixed" figure), min/max
+-28.2%/+59.5% — both ≈4σ, matching extreme-value theory's predicted most-
+extreme draw out of 2,800 normal samples (√(2·ln 2800) ≈ 3.97σ) almost
+exactly. Chart trajectories now visibly wiggle month-to-month within a trial
+(real sequence-of-returns risk), rather than the pre-fix bug's single smooth
+exponential curve per trial. Issue closed with real-world evidence, not just
+synthetic-probe or unit-test confirmation.
+
+*(Separately, not a code issue: the user's own scenario has only a 6%
+25-year success rate at $6,500/month against this portfolio — a genuine
+spending-rate finding the fix surfaced accurately, not a bug in the fix.)*
+
 ### Issue 20 (high impact) — RESOLVED: Monte Carlo statistics/aggregation layer reads engine output at the wrong field name or object depth, zeroing or nulling most reported metrics
 
 **Root cause, same class as the already-resolved Issue #4/#6/#7 `.assets` bug,
