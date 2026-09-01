@@ -160,19 +160,24 @@ describe('Monte Carlo Analysis Integration', () => {
     });
 
     test('should handle analysis lifecycle events', async () => {
+      // Shaped like the real SimulationService wrapper -- per-month log
+      // entries have no `.assets` field, and shortfallMonths lives on the
+      // wrapper's `metrics` sibling, not on `results` (ISSUES.md #21).
       const mockSimulationResult = {
         results: {
           results: [
-            { assets: { investment: 1000000 } },
-            { assets: { investment: 950000 } },
-            { assets: { investment: 900000 } }
+            { month: 0, income: 0, expenses: 1000, withdrawals: [{ from: 'investment', grossAmount: 50000 }], shortfall: 0 },
+            { month: 1, income: 0, expenses: 1000, withdrawals: [{ from: 'investment', grossAmount: 50000 }], shortfall: 0 },
+            { month: 2, income: 0, expenses: 1000, withdrawals: [], shortfall: 0 }
           ],
           balanceHistory: {
             investment: [1000000, 950000, 900000]
-          },
-          shortfallMonths: 0,
-          totalWithdrawals: 100000
-        }
+          }
+        },
+        metrics: {
+          shortfallMonths: 0
+        },
+        insights: []
       };
 
       // Mock the simulation service response with unique event handling
@@ -390,10 +395,11 @@ describe('Monte Carlo Analysis Integration', () => {
           if (simulationId) {
             eventBus.emit(`simulation:completed:${simulationId}`, {
               results: {
-                results: [{ assets: { investment: 1000000 } }],
-                balanceHistory: { investment: [1000000] },
-                shortfallMonths: 0
-              }
+                results: [{ month: 0, income: 0, expenses: 1000, withdrawals: [], shortfall: 0 }],
+                balanceHistory: { investment: [1000000] }
+              },
+              metrics: { shortfallMonths: 0 },
+              insights: []
             });
           }
         }, 5);

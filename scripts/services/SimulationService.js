@@ -201,6 +201,11 @@ export class SimulationService {
   generateInsights(results, scenarioData, context = {}) {
     const insights = [];
 
+    // Capture balanceHistory before `results` is unwrapped to the monthly
+    // array below -- analyzeAssetDepletion() needs it (per-month log entries
+    // have no per-asset balance field of their own).
+    const balanceHistory = results && !Array.isArray(results) ? results.balanceHistory : undefined;
+
     // Ensure results is an array
     if (!Array.isArray(results)) {
       console.warn('SimulationService: Results is not an array, attempting to extract data:', results);
@@ -280,7 +285,7 @@ export class SimulationService {
       });
       
       // Asset depletion analysis
-      const depletedAssets = this.analyzeAssetDepletion(results, scenarioData);
+      const depletedAssets = this.analyzeAssetDepletion(balanceHistory, scenarioData);
       if (depletedAssets.length > 0) {
         insights.push({
           type: 'warning',
@@ -334,27 +339,35 @@ export class SimulationService {
   }
 
   /**
-   * Analyze asset depletion patterns
+   * Analyze asset depletion patterns using the engine's real balanceHistory
+   * (keyed by asset name -> array of end-of-month balances) -- per-month log
+   * entries have no `.balances` field of their own.
    */
-  analyzeAssetDepletion(results, scenarioData) {
+  analyzeAssetDepletion(balanceHistory, scenarioData) {
     const depletedAssets = [];
-    
-    if (!scenarioData.assets || !Array.isArray(results)) return depletedAssets;
-    
-    // Check final balances for each asset type
-    const finalResult = results[results.length - 1];
-    if (finalResult && finalResult.balances) {
-      scenarioData.assets.forEach(asset => {
-        const finalBalance = finalResult.balances[asset.name] || 0;
-        const initialBalance = asset.balance || 0;
-        
-        // Consider asset depleted if less than 5% of original value
-        if (finalBalance < (initialBalance * 0.05)) {
-          depletedAssets.push(asset.name);
-        }
-      });
-    }
-    
+
+    if (!scenarioData.assets || !balanceHistory) return depletedAssets;
+
+    scenarioData.assets.forEach(asset => {
+      const initialBalance = asset.balance || 0;
+      // Negative-balance assets are the "planned future expense" idiom
+      // (BRIEF.md) -- they're inert, never withdrawn from, so they never
+      // "deplete" in the sense this check means. Skip them rather than
+      // flag every one as depleted (initialBalance * 0.05 would itself be
+      // negative, and an unchanged negative balance is always below it).
+      if (initialBalance <= 0) return;
+
+      const history = balanceHistory[asset.name];
+      const finalBalance = Array.isArray(history) && history.length > 0
+        ? history[history.length - 1]
+        : 0;
+
+      // Consider asset depleted if less than 5% of original value
+      if (finalBalance < (initialBalance * 0.05)) {
+        depletedAssets.push(asset.name);
+      }
+    });
+
     return depletedAssets;
   }
 

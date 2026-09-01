@@ -84,10 +84,13 @@ describe('SimulationService Return Sequence Generation', () => {
         returnModelEvents.push(data);
       });
 
-      // Mock timeaware engine
+      // Mock timeaware engine -- shaped like the real engine's return value
+      // ({month, income, expenses, withdrawals, shortfall} per month log
+      // entry, balanceHistory keyed by asset name), not the `.assets` shape
+      // the engine never actually produces (ISSUES.md #21).
       const originalImport = simulationService.executeSimulation;
       simulationService.executeSimulation = jest.fn().mockResolvedValue({
-        results: [{ assets: { investment: 1000000 } }],
+        results: [{ month: 0, income: 0, expenses: 0, withdrawals: [], shortfall: 0 }],
         balanceHistory: { investment: [1000000] }
       });
 
@@ -112,9 +115,10 @@ describe('SimulationService Return Sequence Generation', () => {
         returnModelEvents.push(data);
       });
 
-      // Mock timeaware engine
+      // Mock timeaware engine -- see shape note above
       simulationService.executeSimulation = jest.fn().mockResolvedValue({
-        results: [{ assets: { investment: 1000000 } }]
+        results: [{ month: 0, income: 0, expenses: 0, withdrawals: [], shortfall: 0 }],
+        balanceHistory: { investment: [1000000] }
       });
 
       const scenarioData = {
