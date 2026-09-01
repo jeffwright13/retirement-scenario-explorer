@@ -1377,3 +1377,59 @@ question about the Monte Carlo results view:
   ("prepareChartData respects plan.start_date (ISSUES.md #34)") -- all
   confirmed red against the pre-fix code via a temporary revert, then green.
 
+### Issue 35 (user-reported, UX) — RESOLVED: chart Y-axis formatting inconsistent between the two charts, titles overflow instead of wrapping, and the Single Scenario chart's legend claims horizontal margin the Monte Carlo chart doesn't need
+
+**Reported 2026-09-01**, as a follow-up to `ISSUES.md` #34. Three related
+findings comparing the Single Scenario and Monte Carlo charts side by side:
+
+- **Inconsistent, non-auto-scaling dollar formatting.** Single Scenario used
+  `tickformat: '$,.0f'` (exact dollars with commas, e.g. `$800,000`); Monte
+  Carlo pre-divided every value by 1000 and hardcoded a `ticksuffix: 'K'`
+  (e.g. `$800K`) -- which doesn't rescale for larger balances, so a $4M
+  balance rendered as the clunky `$4000K` instead of `$4M`.
+- **Long chart titles spill past the plot's right edge instead of
+  wrapping.** Plotly doesn't wrap `layout.title.text` on its own regardless
+  of container width -- neither chart had any line-break logic for a title
+  longer than the available room.
+- **Single Scenario chart's plot area is narrower than Monte Carlo's for no
+  functional reason.** Monte Carlo's `legend` is anchored `{x: 1, y: 1,
+  xanchor: 'right', yanchor: 'top'}` -- floating *inside* the plot, top-right
+  corner -- so the plotting area extends the full container width. Single
+  Scenario's `legend` had no `x`/`y`/`xanchor` set, so Plotly fell back to
+  its default *outside*-the-plot placement, reserving a strip of margin on
+  the right for it whether or not that space was actually needed. Since
+  nearly every Single Scenario chart trends its asset-balance curves toward
+  zero as time increases (the whole point of the simulation), the top-right
+  corner is reliably empty late in the timeline -- the same condition Monte
+  Carlo's charts already rely on for an inside-corner legend.
+
+**Fixed (2026-09-01).**
+
+- Both charts' `yaxis` now use `tickprefix: '$'` with `tickformat: '.2~s'`
+  (d3-format's SI-prefix notation, trimmed) instead of a fixed decimal or
+  manual `/1000` + hardcoded suffix -- this auto-scales per tick (`$50k`,
+  `$800k`, `$4M`, `$1.2M`, ...) with no per-scenario tuning needed. Verified
+  the exact output against real `d3-format` (`.2~s`): `800000 -> "800k"`,
+  `4000000 -> "4M"`, `1234567 -> "1.2M"`. Monte Carlo's traces and percentile
+  bands now carry raw dollar values instead of pre-divided thousands (the
+  scaling is now the axis's job, not the data's); its hover templates were
+  updated to match (`%{y:$,.0f}`, exact dollars on hover, same convention
+  the Single Scenario chart's hover templates already used).
+- Added `wrapChartTitle(text, maxLineLength = 50)` (duplicated as a small
+  private method on both `UIController` and `MonteCarloChart` -- same ~15
+  lines in each, not worth a shared module for): breaks a title into
+  `<br>`-joined lines at word boundaries once it exceeds `maxLineLength`.
+  Wired into both charts' `layout.title.text`.
+- Single Scenario chart's `legend` now sets the same `{x: 1, y: 1, xanchor:
+  'right', yanchor: 'top'}` inside-corner anchor Monte Carlo already used,
+  so its plot area fills the full container width instead of reserving a
+  dedicated legend margin. Confirmed with the user this tradeoff is
+  intentional given the near-universal zero-trending-rightward shape of
+  Single Scenario asset curves.
+- Regression tests in both `tests/unit/components/MonteCarloChart.test.js`
+  and `tests/unit/controllers/UIController.test.js` ("ISSUES.md #35"
+  describe blocks) cover the tickformat/tickprefix change, the raw-dollar
+  trace values, title wrapping (both the integration point and
+  `wrapChartTitle()` directly), and the legend anchor -- confirmed red
+  against the pre-fix code via a temporary revert, then green.
+

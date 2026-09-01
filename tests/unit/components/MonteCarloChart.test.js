@@ -500,13 +500,21 @@ describe('MonteCarloChart', () => {
       global.Plotly = originalPlotly;
     });
 
-    test('yaxis shows a $ prefix and K suffix on tick labels, not just a title', () => {
+    test('yaxis auto-scales tick labels ($800k, $4M, ...) instead of a fixed $K suffix (ISSUES.md #35)', () => {
       monteCarloChart.createPlotlyChart(trajectories, mockContainer, null);
 
       const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
       expect(layoutArg.yaxis.tickprefix).toBe('$');
-      expect(layoutArg.yaxis.ticksuffix).toBe('K');
+      expect(layoutArg.yaxis.tickformat).toBe('.2~s');
+      expect(layoutArg.yaxis.ticksuffix).toBeUndefined();
       expect(layoutArg.yaxis.title).toBeTruthy();
+    });
+
+    test('trace y-values are raw dollars, not pre-divided by 1000 (ISSUES.md #35)', () => {
+      monteCarloChart.createPlotlyChart(trajectories, mockContainer, null);
+
+      const [traceArg] = global.Plotly.newPlot.mock.calls[0][1];
+      expect(traceArg.y).toEqual([100000, 105000]);
     });
 
     test('xaxis has a descriptive title', () => {
@@ -528,6 +536,31 @@ describe('MonteCarloChart', () => {
 
       const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
       expect(layoutArg.title.text).toBeTruthy();
+    });
+
+    test('long chart titles wrap with <br> instead of spilling past the plot edge (ISSUES.md #35)', () => {
+      const longTitle = 'A Very Long Retirement Scenario Name That Should Not Overflow The Chart';
+      monteCarloChart.createPlotlyChart(trajectories, mockContainer, { metadata: { title: longTitle } });
+
+      const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
+      expect(layoutArg.title.text).toContain('<br>');
+    });
+  });
+
+  describe('wrapChartTitle (ISSUES.md #35)', () => {
+    test('leaves short titles untouched', () => {
+      expect(monteCarloChart.wrapChartTitle('Monte Carlo Simulation')).toBe('Monte Carlo Simulation');
+    });
+
+    test('breaks long titles into multiple lines at word boundaries', () => {
+      const longTitle = 'Monte Carlo Simulation — A Very Long Retirement Scenario Name Indeed';
+      const wrapped = monteCarloChart.wrapChartTitle(longTitle, 30);
+
+      expect(wrapped).toContain('<br>');
+      wrapped.split('<br>').forEach(line => {
+        expect(line.length).toBeLessThanOrEqual(30 + 20); // allow one overflow word per line
+      });
+      expect(wrapped.replace(/<br>/g, ' ')).toBe(longTitle);
     });
   });
 });

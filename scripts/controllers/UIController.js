@@ -1302,25 +1302,30 @@ export class UIController {
 
       const layout = {
         title: {
-          text: chartTitleText,
+          text: this.wrapChartTitle(chartTitleText),
           font: { size: 16, color: '#333' },
           x: 0.5,
           xanchor: 'center'
         },
-        xaxis: { 
+        xaxis: {
           title: 'Timeline (MM-YY)',
           tickvals: filteredTicks,
           ticktext: filteredTicks,
           tickangle: -45
         },
-        yaxis: { 
+        yaxis: {
           title: 'Balance & Income ($)',
-          tickformat: '$,.0f'
+          tickprefix: '$',
+          tickformat: '.2~s'
         },
         hovermode: 'x unified',
         legend: {
           groupclick: 'toggleitem',
-          tracegroupgap: 10
+          tracegroupgap: 10,
+          x: 1,
+          y: 1,
+          xanchor: 'right',
+          yanchor: 'top'
         },
         margin: { t: 60, b: 80, l: 80, r: 40 },
         autosize: true,
@@ -1361,6 +1366,36 @@ export class UIController {
     return result ? 
       `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}` : 
       '107, 114, 128'; // Default gray
+  }
+
+  /**
+   * Break a long Plotly chart title into multiple lines (Plotly titles don't
+   * wrap on their own and just spill past the plot's edge) by inserting
+   * <br> at word boundaries near maxLineLength (ISSUES.md #35).
+   */
+  wrapChartTitle(text, maxLineLength = 50) {
+    if (!text || text.length <= maxLineLength) {
+      return text;
+    }
+
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      if (candidate.length > maxLineLength && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = candidate;
+      }
+    });
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    return lines.join('<br>');
   }
 
   /**
