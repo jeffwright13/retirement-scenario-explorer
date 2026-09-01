@@ -812,6 +812,42 @@ bug (`ISSUES.md` #34).
 
 ---
 
+## v1.0.24 — Chart formatting consistency and legend width (PATCH)
+
+**Goal:** Direct follow-up to `v1.0.23` -- once the axes had real labels, the
+user spotted three more disparities between the Single Scenario and Monte
+Carlo charts: inconsistent/non-auto-scaling dollar formatting, titles
+overflowing instead of wrapping, and Single Scenario's legend claiming
+margin the Monte Carlo chart doesn't need (`ISSUES.md` #35).
+
+### Scope
+
+1. Both charts' `yaxis` switched to `tickprefix: '$'` + `tickformat: '.2~s'`
+   (d3-format SI-prefix, trimmed) -- auto-scales ticks (`$800k`, `$4M`, ...)
+   instead of Single Scenario's fixed `$,.0f` or Monte Carlo's manual
+   `/1000` + hardcoded `K` suffix (which didn't rescale past a million).
+   Monte Carlo's trace/percentile data now carries raw dollars; hover
+   templates updated to match.
+2. Added `wrapChartTitle()` to both chart components -- breaks a title into
+   `<br>`-joined lines at word boundaries past a configurable length, since
+   Plotly doesn't wrap `title.text` on its own.
+3. Single Scenario chart's `legend` now anchors inside the plot's top-right
+   corner (`{x: 1, y: 1, xanchor: 'right', yanchor: 'top'}`), matching Monte
+   Carlo's existing convention, instead of Plotly's default outside-plot
+   placement which reserved margin whether or not it was needed. Confirmed
+   with the user this fits Single Scenario's typical curve shape (assets
+   trending toward zero rightward leaves the corner reliably empty).
+
+### Done criteria
+
+- [x] Each fix's regression test confirmed red against the pre-fix code via
+      a temporary revert, then green
+- [x] `npm test` passes, no regressions
+- [x] `ISSUES.md` #35 marked resolved
+- [x] Version bumped via `npm version patch` (→ `1.0.24`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns

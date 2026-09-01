@@ -327,9 +327,9 @@ export class MonteCarloChart {
     
     trajectories.forEach((trajectory, index) => {
       const x = trajectory.map((_, monthIndex) => monthIndex / 12); // Convert to years
-      const y = trajectory.map(point => point.totalBalance / 1000); // Convert to thousands
+      const y = trajectory.map(point => point.totalBalance);
       const colorIndex = index % rainbowColors.length;
-      
+
       traces.push({
         x: x,
         y: y,
@@ -341,7 +341,7 @@ export class MonteCarloChart {
           smoothing: 1.3
         },
         showlegend: false,
-        hovertemplate: `Scenario ${index + 1}<br>Year: %{x:.1f}<br>Balance: $%{y:.0f}K<extra></extra>`
+        hovertemplate: `Scenario ${index + 1}<br>Year: %{x:.1f}<br>Balance: %{y:$,.0f}<extra></extra>`
       });
     });
 
@@ -364,11 +364,11 @@ export class MonteCarloChart {
       if (monthBalances.length >= Math.max(10, trajectories.length * 0.1)) {
         percentileData.push({
           month: month / 12, // Convert to years
-          p10: this.percentile(monthBalances, 10) / 1000,
-          p25: this.percentile(monthBalances, 25) / 1000,
-          p50: this.percentile(monthBalances, 50) / 1000,
-          p75: this.percentile(monthBalances, 75) / 1000,
-          p90: this.percentile(monthBalances, 90) / 1000
+          p10: this.percentile(monthBalances, 10),
+          p25: this.percentile(monthBalances, 25),
+          p50: this.percentile(monthBalances, 50),
+          p75: this.percentile(monthBalances, 75),
+          p90: this.percentile(monthBalances, 90)
         });
       }
     }
@@ -393,7 +393,7 @@ export class MonteCarloChart {
       fillcolor: 'rgba(66, 139, 202, 0.35)',
       line: { color: 'transparent' },
       name: '10th-90th Percentile',
-      hovertemplate: '10th-90th Percentile<br>Year: %{x:.1f}<br>Range: $%{y:.0f}K<extra></extra>'
+      hovertemplate: '10th-90th Percentile<br>Year: %{x:.1f}<br>Range: %{y:$,.0f}<extra></extra>'
     });
 
     // 25th-75th percentile band
@@ -416,7 +416,7 @@ export class MonteCarloChart {
       fillcolor: 'rgba(66, 139, 202, 0.55)',
       line: { color: 'transparent' },
       name: '25th-75th Percentile',
-      hovertemplate: '25th-75th Percentile<br>Year: %{x:.1f}<br>Range: $%{y:.0f}K<extra></extra>'
+      hovertemplate: '25th-75th Percentile<br>Year: %{x:.1f}<br>Range: %{y:$,.0f}<extra></extra>'
     });
 
     // Median line
@@ -430,7 +430,7 @@ export class MonteCarloChart {
         width: 3
       },
       name: 'Median',
-      hovertemplate: 'Median<br>Year: %{x:.1f}<br>Balance: $%{y:.0f}K<extra></extra>'
+      hovertemplate: 'Median<br>Year: %{x:.1f}<br>Balance: %{y:$,.0f}<extra></extra>'
     });
 
 
@@ -442,7 +442,7 @@ export class MonteCarloChart {
 
     const layout = {
       title: {
-        text: chartTitleText,
+        text: this.wrapChartTitle(chartTitleText),
         font: { size: 16 }
       },
       xaxis: {
@@ -453,7 +453,7 @@ export class MonteCarloChart {
       yaxis: {
         title: 'Total Portfolio Balance',
         tickprefix: '$',
-        ticksuffix: 'K',
+        tickformat: '.2~s',
         showgrid: true,
         gridcolor: 'rgba(128, 128, 128, 0.2)'
       },
@@ -954,6 +954,36 @@ export class MonteCarloChart {
   addTrajectoryLegend(container, trajectoryCount = 0) {
     // Legacy method - redirect to new interactive legend
     this.addInteractiveLegend(container, trajectoryCount, { successRate: 0.75 }); // Default success rate
+  }
+
+  /**
+   * Break a long Plotly chart title into multiple lines (Plotly titles don't
+   * wrap on their own and just spill past the plot's edge) by inserting
+   * <br> at word boundaries near maxLineLength (ISSUES.md #35).
+   */
+  wrapChartTitle(text, maxLineLength = 50) {
+    if (!text || text.length <= maxLineLength) {
+      return text;
+    }
+
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      const candidate = currentLine ? `${currentLine} ${word}` : word;
+      if (candidate.length > maxLineLength && currentLine) {
+        lines.push(currentLine);
+        currentLine = word;
+      } else {
+        currentLine = candidate;
+      }
+    });
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+
+    return lines.join('<br>');
   }
 
   /**

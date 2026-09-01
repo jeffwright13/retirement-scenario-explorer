@@ -385,6 +385,102 @@ describe('Testing Setup Verification', () => {
       const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
       expect(layoutArg.title.text).toContain('My Custom Plan');
     });
+
+    test('wraps a long scenario title with <br> instead of letting it spill past the plot (ISSUES.md #35)', () => {
+      document.body.innerHTML = `<div id="chart-area"></div>`;
+
+      const uiController = new UIController(mockEventBus);
+      uiController.initializeUIElements();
+      uiController.currentScenarioData = {
+        metadata: { title: 'A Very Long Retirement Scenario Name That Should Not Overflow The Chart' },
+        assets: []
+      };
+
+      uiController.renderChart([{ month: 1 }], { Checking: [1000] });
+
+      const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
+      expect(layoutArg.title.text).toContain('<br>');
+    });
+  });
+
+  describe('chart Y-axis auto-scales dollar tick labels (ISSUES.md #35)', () => {
+    let originalPlotly;
+
+    beforeEach(() => {
+      originalPlotly = global.Plotly;
+      global.Plotly = {
+        purge: jest.fn(),
+        newPlot: jest.fn(() => Promise.resolve()),
+        Plots: { resize: jest.fn() }
+      };
+    });
+
+    afterEach(() => {
+      global.Plotly = originalPlotly;
+    });
+
+    test('yaxis uses a $ prefix with SI auto-scale tickformat, matching the MC chart convention', () => {
+      document.body.innerHTML = `<div id="chart-area"></div>`;
+
+      const uiController = new UIController(mockEventBus);
+      uiController.initializeUIElements();
+      uiController.currentScenarioData = { metadata: {}, assets: [] };
+
+      uiController.renderChart([{ month: 1 }], { Checking: [1000] });
+
+      const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
+      expect(layoutArg.yaxis.tickprefix).toBe('$');
+      expect(layoutArg.yaxis.tickformat).toBe('.2~s');
+    });
+  });
+
+  describe('chart legend floats inside the plot instead of reserving margin (ISSUES.md #35)', () => {
+    let originalPlotly;
+
+    beforeEach(() => {
+      originalPlotly = global.Plotly;
+      global.Plotly = {
+        purge: jest.fn(),
+        newPlot: jest.fn(() => Promise.resolve()),
+        Plots: { resize: jest.fn() }
+      };
+    });
+
+    afterEach(() => {
+      global.Plotly = originalPlotly;
+    });
+
+    test('legend is anchored top-right inside the plot area, same as the MC chart', () => {
+      document.body.innerHTML = `<div id="chart-area"></div>`;
+
+      const uiController = new UIController(mockEventBus);
+      uiController.initializeUIElements();
+      uiController.currentScenarioData = { metadata: {}, assets: [] };
+
+      uiController.renderChart([{ month: 1 }], { Checking: [1000] });
+
+      const layoutArg = global.Plotly.newPlot.mock.calls[0][2];
+      expect(layoutArg.legend.x).toBe(1);
+      expect(layoutArg.legend.y).toBe(1);
+      expect(layoutArg.legend.xanchor).toBe('right');
+      expect(layoutArg.legend.yanchor).toBe('top');
+    });
+  });
+
+  describe('wrapChartTitle (ISSUES.md #35)', () => {
+    test('leaves short titles untouched', () => {
+      const uiController = new UIController(mockEventBus);
+      expect(uiController.wrapChartTitle('Short Title')).toBe('Short Title');
+    });
+
+    test('breaks long titles into multiple lines at word boundaries', () => {
+      const uiController = new UIController(mockEventBus);
+      const longTitle = 'Assets & Income Events Over Time For A Very Long Retirement Plan Name';
+      const wrapped = uiController.wrapChartTitle(longTitle, 30);
+
+      expect(wrapped).toContain('<br>');
+      expect(wrapped.replace(/<br>/g, ' ')).toBe(longTitle);
+    });
   });
 
   describe('chart clears immediately on Run Single Scenario click (ISSUES.md #32)', () => {
