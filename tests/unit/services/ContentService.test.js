@@ -162,7 +162,9 @@ describe('ContentService', () => {
 
       // loadAllContent doesn't throw - it collects errors and returns successfully
       const result = await contentService.loadAllContent();
-      expect(result.errors).toHaveLength(2); // scenarios and stories both fail
+      // One error per built-in scenario file (3, see loadBuiltInScenarios()'s
+      // scenarioFiles list) plus one for the story file, all failing.
+      expect(result.errors).toHaveLength(4);
       expect(result.errors[0].error).toBe('Network error');
       expect(mockEventBus.emit).toHaveBeenCalledWith('content:errors', expect.any(Array));
     });
@@ -263,6 +265,37 @@ describe('ContentService', () => {
 
       expect(contentService.registry.errors.length).toBeGreaterThan(0);
       expect(contentService.registry.errors[0].type).toBe('scenario_load_error');
+    });
+
+    test('loads every built-in scenario file with no key collisions between them (regression: roth-scenarios.json)', async () => {
+      // Serve the REAL files from disk through the mocked fetch, so this
+      // exercises loadBuiltInScenarios()'s actual scenarioFiles list and the
+      // actual JSON content, not a hand-written fixture.
+      const fs = require('fs');
+      mockFetch.mockImplementation((path) => Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve(JSON.parse(fs.readFileSync(path, 'utf8')))
+      }));
+
+      await contentService.loadBuiltInScenarios();
+
+      // learning-journey (11) + naive (8) + realistic (2 -- or 3 once the
+      // early-vs-full SS comparison scenario is added) = every key present,
+      // none silently dropped or overwritten by a same-named key in another file.
+      expect(contentService.scenarios.size).toBeGreaterThanOrEqual(21);
+      expect(contentService.registry.errors).toHaveLength(0);
+
+      // Spot-check one scenario from each file actually made it in.
+      expect(contentService.scenarios.has('stage-1-no-growth')).toBe(true);
+      expect(contentService.scenarios.has('sequence-risk-simulation')).toBe(true);
+      expect(contentService.scenarios.has('early-retirement-baseline')).toBe(true);
+
+      // roth-scenarios.json must stay excluded -- if it (or any future file)
+      // were added back without resolving the key collision, this scenario
+      // would silently become the earlier, superseded draft instead of the
+      // one documented in docs/study-guide.md.
+      const taxSmart = contentService.scenarios.get('tax-smart-conversions');
+      expect(taxSmart.assets.find(a => a.name === 'Traditional IRA (Reduced)')).toBeDefined();
     });
   });
 

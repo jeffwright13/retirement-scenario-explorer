@@ -259,15 +259,37 @@ converted out," by hand, not just by the label.
 
 ---
 
-## A note on the orphaned scenario files
+## Two more scenario files, now reachable (added 2026-09-01)
 
-`data/scenarios/naive-scenarios.json`, `realistic-scenarios.json`, and
-`roth-scenarios.json` all exist on disk but aren't loaded by
-`ContentService.js` — only `learning-journey-scenarios.json` is (confirmed by
-`grep` across `scripts/`). `roth-scenarios.json` in particular contains an
-earlier draft of the same Roth-conversion arc covered above, under slightly
-different key names — don't confuse the two if you go looking; the live one
-is the one embedded in `learning-journey-scenarios.json`. This wasn't
-previously called out in `ISSUES.md`; if it's worth cleaning up (delete the
-dead files, or wire them in if they have content worth keeping) that's a
-separate, small decision for later — not blocking for this guide's purpose.
+`data/scenarios/naive-scenarios.json` and `realistic-scenarios.json` used to
+be orphaned — present on disk but never loaded — until `ISSUES.md` #33's fix
+wired them into `ContentService.js` alongside `learning-journey-scenarios.json`.
+Both are worth studying, though neither has the same deep treatment as
+Stage 1-6 above yet:
+
+- **`naive-scenarios.json`** (8 scenarios) — titles like `perfect-world-70k`,
+  `the-4-percent-rule`, `middle-class-reality`, `inflation-reality-check`,
+  `what-you-actually-need`. `sequence-risk-simulation` in particular is worth
+  running right after Stage 6 above — it's a second, independently-authored
+  worked example of the exact sequence-of-returns concept `ISSUES.md` #19
+  was about.
+- **`realistic-scenarios.json`** (3 scenarios) — `early-retirement-baseline`,
+  `tax-optimized-strategy` (a second, simpler Roth-conversion example
+  alongside the arc above — this one uses `deposits[]` without the
+  negative-income tax-payment idiom, worth comparing to see which parts of
+  the technique are essential vs. optional), and `early-claiming-comparison`
+  — a direct early-vs-full Social Security claiming comparison, added
+  alongside the `ISSUES.md` #33 fix specifically for this purpose. Run
+  `early-retirement-baseline` and `early-claiming-comparison` back to back:
+  same household, only the SS claiming strategy differs. Worth predicting
+  which one lasts longer *before* you run it — the real-world intuition
+  ("waiting for the bigger check is always better") doesn't necessarily hold
+  once you account for years of income you'd otherwise miss out on.
+
+**`data/scenarios/roth-scenarios.json` stays unloaded, deliberately.**
+Confirmed it's an earlier, superseded draft of the Roth-conversion arc above,
+under two colliding key names (`tax-smart-conversions`, `post-conversion-years`)
+with materially different content — loading it would silently overwrite the
+working versions. Don't confuse the two if you go looking at it directly; the
+live one is the one embedded in `learning-journey-scenarios.json`. Whether to
+delete the file outright is still an open, low-stakes decision.

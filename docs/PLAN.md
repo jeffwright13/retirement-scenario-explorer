@@ -605,6 +605,58 @@ studying, rather than fixing it before they got there.
 
 ---
 
+## v1.0.19 — Fix Social Security double-claim bug and revive two dead scenario files (PATCH)
+
+**Goal:** Close `ISSUES.md` #33, found while the user was reading
+`data/scenarios/realistic-scenarios.json` directly for study material. Two
+scenarios there claimed Social Security both early and at full retirement
+age simultaneously — a data bug, and one that models something that can't
+happen in reality (SS claiming age is a single, effectively irrevocable
+choice). Investigating it surfaced a second, unrelated finding: two of the
+four files in `data/scenarios/` were never wired into the app at all,
+apparently by oversight rather than design.
+
+### Scope
+
+1. **Fixed `data/scenarios/realistic-scenarios.json`.** Removed the
+   erroneous "Early Social Security" entry from `early-retirement-baseline`
+   and `tax-optimized-strategy` (neither had a `stop_month`, so it ran
+   forever and stacked with "Full Social Security" from month 84 onward).
+   Added `early-claiming-comparison`, a genuine early-vs-full-claiming
+   comparison scenario.
+2. **Wired `naive-scenarios.json` and `realistic-scenarios.json` into
+   `ContentService.loadBuiltInScenarios()`'s `scenarioFiles` list.** 10 net
+   new selectable scenarios in "Choose Scenario", including
+   `sequence-risk-simulation` (naive-scenarios.json) and the new SS
+   comparison scenario above. Treated as PATCH rather than MINOR since this
+   corrects an apparent oversight (pre-existing, already-authored content
+   simply never reachable) rather than adding new capability.
+3. **Deliberately did not revive `data/scenarios/roth-scenarios.json`.**
+   Confirmed it's an earlier, superseded draft of the Roth-conversion arc
+   already refined into `learning-journey-scenarios.json`, sharing two key
+   names with materially different content — loading it would silently
+   overwrite two already-working scenarios. Left in place, unloaded,
+   undeleted pending a decision on whether to delete it outright.
+4. Regression test in `tests/unit/services/ContentService.test.js`: loads
+   the real files from disk through a mocked `fetch`, asserts every built-in
+   scenario file's keys load with zero collisions, and specifically guards
+   against `roth-scenarios.json` (or any future colliding file) ever
+   silently winning that overwrite.
+5. Recorded a new Backlog item for modeling COLA increases on `income[]`
+   sources — surfaced by this same investigation, out of scope for this fix.
+
+### Done criteria
+
+- [x] `npm test` passes, no regressions
+- [x] Verified via direct simulation: neither fixed scenario's monthly
+      income exceeds a single Social Security benefit at any point
+- [x] `ISSUES.md` #33 marked resolved
+- [x] `docs/PLAN.md` Backlog gets the COLA modeling entry
+- [x] `docs/study-guide.md` updated to mention the newly-reachable scenarios
+- [x] Version bumped via `npm version patch` (→ `1.0.19`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns
@@ -726,3 +778,18 @@ section with file changes and done criteria.
   export chain (unreachable from the live UI). Fix Issue 28 first, then
   either delete this file with the code it tests or migrate whatever
   remains.
+- **Model COLA (Cost-of-Living Adjustment) increases on `income[]` sources**
+  (`ISSUES.md` #33, found 2026-09-01 while fixing the Social Security
+  double-claim bug there). `income[]` entries are a flat `amount` today —
+  no growth mechanism at all, unlike `assets[]` (`return_schedule`/
+  `interest_rate`). Real Social Security COLA is applied **annually** (every
+  January, based on CPI-W), not on a fixed multi-year cycle — the percentage
+  varies year to year and is sometimes 0% in low-inflation years. A pension
+  or other income source might have a different adjustment cadence entirely,
+  or none. Needs a decision on the mechanism before scoping: reuse the
+  existing `rate_schedules{}` system (add e.g. `income[].cola_schedule`,
+  mirroring `assets[].return_schedule` — consistent with how growth/inflation
+  already work elsewhere) vs. a simpler flat `income[].cola_rate`. Either
+  way this is opt-in per income entry, not a global behavior change — most
+  existing scenarios model flat nominal income deliberately (pensions,
+  fixed annuities) and shouldn't start growing without being asked to.

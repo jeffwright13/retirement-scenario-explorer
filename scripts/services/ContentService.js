@@ -149,8 +149,15 @@ export class ContentService {
    * Load built-in scenario files
    */
   async loadBuiltInScenarios() {
+    // roth-scenarios.json deliberately excluded: an earlier, superseded draft
+    // of the same Roth-conversion arc now refined into
+    // learning-journey-scenarios.json, sharing two key names
+    // (tax-smart-conversions, post-conversion-years) with different content
+    // -- loading it would silently overwrite those two working scenarios.
     const scenarioFiles = [
-      'data/scenarios/learning-journey-scenarios.json'
+      'data/scenarios/learning-journey-scenarios.json',
+      'data/scenarios/naive-scenarios.json',
+      'data/scenarios/realistic-scenarios.json'
     ];
 
     for (const filePath of scenarioFiles) {
