@@ -1096,16 +1096,66 @@ columns from the real asset-name union — same fix, mirror it here.
   project's own `docs/survivorship-bias-vs-min-balance-behavior.md` labels the
   filtering approach `// WRONG (survivorship bias)`. Latent only because the
   filtering function's sole caller, `exportData()`, has zero call sites.
-- `MonteCarloService.returnSequences` (a `Map`) is never cleared between runs;
-  grows by one entry per trial for the page's lifetime.
+- ~~`MonteCarloService.returnSequences` (a `Map`) is never cleared between
+  runs; grows by one entry per trial for the page's lifetime.~~ **Resolved as
+  a byproduct of the `ISSUES.md` #19 fix (2026-08-31)** — this `Map` and the
+  whole `ReturnModelService` round-trip it supported were deleted; return
+  sequences are now attached directly at the point of generation instead.
 - `new MonteCarloController(eventBus, monteCarloService, monteCarloChart, monteCarloUI)`
   passes four arguments to a one-parameter constructor (`main.js`) — misleading
   about the real dependency graph, though harmless (extra args are ignored).
 - `duration_months: -5` returns `actualDuration: -5` with zero simulated months and
   no error; `duration_months: "12"` (string) silently works via coercion.
-- At default settings (1,000 iterations), per-trial `console.log` volume inside the
-  engine's monthly loop plus an unconditional 50ms `await` per trial in
-  `generateReturnSequences()` (work already complete on a synchronous event bus)
-  combine for on the order of 10⁵–10⁶ console writes and roughly a minute of pure
-  waiting per Monte Carlo run — worth a debug-flag gate and dropping the sleep,
-  independent of the correctness fixes above.
+- At default settings (1,000 iterations), per-trial `console.log` volume inside
+  the engine's monthly loop is on the order of 10⁵–10⁶ console writes per Monte
+  Carlo run — worth a debug-flag gate. (The other half of this finding — an
+  unconditional 50ms `await` per trial in `SimulationService.generateReturnSequences()`,
+  worth ~a minute of pure waiting per run — is now moot: that function was
+  deleted entirely as part of the `ISSUES.md` #19 fix, 2026-08-31.)
+
+### Issue 32 (user-reported, UX) — OPEN: "Run Single Scenario" chart has several usability gaps
+
+**Reported 2026-09-01** while running through `docs/study-guide.md`. Four
+related findings, verified against `UIController.js`'s chart code:
+
+- **No chart title identifying the scenario.** `renderChart()`'s Plotly
+  `layout` has a `title` block, but it's entirely commented out
+  (`UIController.js:1293-1299`) — and even if uncommented as written, it's a
+  static string (`"💰 Assets & Income Events Over Time"`), not the scenario's
+  own name. The scenario title is already available on the controller
+  (`this.currentScenario.metadata?.title`, already read elsewhere for
+  logging, e.g. `:90`) — this is a small, mechanical fix: uncomment the
+  title block and interpolate the real scenario name into it.
+- **Chart interactivity — partially already present, worth checking before
+  assuming a gap.** `renderChart()`'s Plotly `config` already sets
+  `displayModeBar: true` (`:1320-1323`), which gives zoom/pan/box-select/
+  autoscale/reset-axes/PNG-export out of the box, and `layout.legend`
+  already sets `groupclick: 'toggleitem'` (`:1311-1314`), which makes
+  clicking a legend entry show/hide that trace — i.e. Plotly's standard
+  toolbar and legend-click selection are already wired up. Worth clarifying
+  with the user exactly what felt not-user-friendly (toolbar discoverability?
+  a specific missing interaction?) before scoping any actual work here,
+  since the literal "zoom/pan/select" asks may already be met.
+- **Chart doesn't reset/indicate staleness when a new scenario loads.**
+  Confirmed: nothing clears or badges the chart on scenario selection —
+  `Plotly.purge()` (`:1326`) only runs inside `renderChart()`, which is only
+  called from `displaySimulationResults()` after a simulation actually
+  completes. Loading a different scenario leaves the previous scenario's
+  chart displayed unchanged until "Run Single Scenario" is pressed again.
+  User's own suggested resolution: keep showing the last-run chart (it's
+  useful), but visibly flag that what's displayed isn't what's currently
+  loaded until re-run — needs a design decision on how (banner? dimming?
+  title change?), not just a mechanical fix.
+- **Chart doesn't clear immediately when "Run Single Scenario" is pressed.**
+  Confirmed: the button's click handler (`:86-104`) only emits
+  `simulation:run` — no immediate UI feedback. `Plotly.purge()` and
+  `Plotly.newPlot()` both happen together, only once results arrive
+  (`:1326-1329`), so for however long the simulation takes, the old chart
+  sits unchanged and running the simulation can look like nothing happened.
+  Smallest fix: purge (or show a loading state) synchronously in the click
+  handler, before `simulation:run` is emitted.
+
+**Not yet scoped into a version** — the first and last findings are small,
+mechanical fixes; the second needs user clarification before any work is
+scoped; the third needs a design decision on the staleness-indication
+approach.
