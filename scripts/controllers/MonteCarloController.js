@@ -179,11 +179,10 @@ export class MonteCarloController {
 
     console.log('🎲 MonteCarloController: Starting analysis for scenario:', this.currentScenarioData.name);
 
-    // Default variable ranges for retirement scenarios
-    const defaultVariableRanges = this.getDefaultVariableRanges();
-    
-    // Merge with user-provided ranges
-    const variableRanges = { ...defaultVariableRanges, ...(config.variableRanges || {}) };
+    // Market-dependent assets to randomize -- the controller is the sole
+    // source of truth for this (no UI override layer anymore; the old one
+    // silently defeated it -- ISSUES.md #19).
+    const marketDependentAssets = this.getMarketDependentAssetConfig();
 
     console.log('🎲 MonteCarloController: Starting Monte Carlo analysis');
     
@@ -207,7 +206,7 @@ export class MonteCarloController {
         targetSurvivalMonths: config.targetSurvivalMonths,
         returnModel: config.returnModel || 'simple-random'
       },
-      variableRanges,
+      marketDependentAssets,
       context: {
         analysisType: 'retirement_scenario',
         requestedBy: 'user',
@@ -227,42 +226,58 @@ export class MonteCarloController {
   }
 
   /**
-   * Get default variable ranges for retirement scenarios
-   * Dynamically generates ranges based on asset market_dependent flags
+   * Identify market-dependent assets for Monte Carlo randomization and
+   * describe how each should be randomized. Does NOT compute a mean/rate --
+   * MonteCarloService derives each asset's real per-month rate directly from
+   * its own rate_schedules entry (or interest_rate) at randomization time,
+   * so there's no baseline-mean fallback to get wrong for non-fixed
+   * schedule types (ISSUES.md #19).
+   *
+   * @returns {Array<{assetName, scheduleName, isLegacyInterestRate, baseInterestRate, investmentType, stdDev}>}
    */
-  getDefaultVariableRanges() {
-    const variableRanges = {};
-    
+  getMarketDependentAssetConfig() {
+    const config = [];
+
     if (!this.currentScenarioData || !this.currentScenarioData.assets) {
-      console.log('🎲 MonteCarloController: No scenario data available for variable ranges');
-      return variableRanges;
+      console.log('🎲 MonteCarloController: No scenario data available for market-dependent assets');
+      return config;
     }
 
-    // Scan assets for market-dependent investments
     this.currentScenarioData.assets.forEach(asset => {
-      if (asset.market_dependent === true && asset.return_schedule) {
-        const scheduleKey = `rate_schedules.${asset.return_schedule}.rate`;
-        
-        // Get current rate from rate schedules
-        const currentRate = this.currentScenarioData.rate_schedules?.[asset.return_schedule]?.rate || 0.07;
-        
-        // Determine volatility based on asset type
-        const volatility = this.getVolatilityForAsset(asset);
-        
-        variableRanges[scheduleKey] = {
-          type: 'normal',
-          mean: currentRate,
-          stdDev: volatility
-        };
-        
-        console.log(`🎲 MonteCarloController: Adding variability to ${asset.name} (${asset.return_schedule}): ${(currentRate * 100).toFixed(1)}% ± ${(volatility * 100).toFixed(1)}%`);
-      } else {
+      if (asset.market_dependent !== true) {
         console.log(`🎲 MonteCarloController: Keeping ${asset.name} stable (market_dependent: ${asset.market_dependent})`);
+        return;
       }
+
+      // Previously only assets with return_schedule were randomized;
+      // interest_rate-only assets were silently skipped entirely (a
+      // degenerate, single-outcome Monte Carlo reported as a confident
+      // success rate). Both are included now.
+      if (!asset.return_schedule && asset.interest_rate === undefined) {
+        console.log(`🎲 MonteCarloController: ${asset.name} is market_dependent but has neither return_schedule nor interest_rate -- skipping`);
+        return;
+      }
+
+      const stdDev = this.getVolatilityForAsset(asset);
+      // Assets without an explicit investment_type get their own isolated
+      // group rather than being guessed into one via keyword matching --
+      // no incorrect cross-asset correlation assumed.
+      const investmentType = asset.investment_type?.toLowerCase() || `_asset_${asset.name}`;
+
+      config.push({
+        assetName: asset.name,
+        scheduleName: asset.return_schedule || null,
+        isLegacyInterestRate: !asset.return_schedule,
+        baseInterestRate: asset.return_schedule ? null : (asset.interest_rate || 0),
+        investmentType,
+        stdDev
+      });
+
+      console.log(`🎲 MonteCarloController: ${asset.name} (${asset.return_schedule || 'interest_rate'}) will be randomized -- type: ${investmentType}, ±${(stdDev * 100).toFixed(1)}%`);
     });
 
-    console.log(`🎲 MonteCarloController: Generated ${Object.keys(variableRanges).length} variable ranges`);
-    return variableRanges;
+    console.log(`🎲 MonteCarloController: ${config.length} market-dependent asset(s) configured for randomization`);
+    return config;
   }
 
 

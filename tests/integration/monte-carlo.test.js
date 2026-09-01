@@ -83,25 +83,41 @@ describe('Monte Carlo Analysis Integration', () => {
       expect(monteCarloService.isRunning).toBe(false);
     });
 
-    test('should generate random scenarios with correct structure', () => {
-      const variableRanges = {
-        'plan.monthly_expenses': {
-          type: 'uniform',
-          min: 4000,
-          max: 6000
+    test('should generate a randomized monthly_values schedule for a market-dependent asset', () => {
+      const scenarioWithMarketAsset = {
+        ...sampleScenario,
+        plan: { ...sampleScenario.plan, duration_months: 24 },
+        assets: [
+          {
+            name: 'Investment',
+            balance: 500000,
+            return_schedule: 'growth',
+            market_dependent: true,
+            investment_type: 'stocks'
+          }
+        ],
+        rate_schedules: {
+          growth: { type: 'fixed', rate: 0.07 }
         }
       };
+      const marketDependentAssets = [
+        { assetName: 'Investment', scheduleName: 'growth', isLegacyInterestRate: false, baseInterestRate: null, investmentType: 'stocks', stdDev: 0.18 }
+      ];
 
-      const rng = () => 0.5;
-      const randomScenario = monteCarloService.generateRandomScenario(
-        sampleScenario, 
-        variableRanges, 
+      const rng = () => 0.5; // deterministic; asserting shape/length below, not exact noise values
+      const { scenario: randomScenario, returnSequence } = monteCarloService.generateRandomScenario(
+        scenarioWithMarketAsset,
+        marketDependentAssets,
         rng
       );
 
-      expect(randomScenario.plan.monthly_expenses).toBe(5000);
       expect(randomScenario.name).toBe(sampleScenario.name);
-      expect(randomScenario.assets).toEqual(sampleScenario.assets);
+      expect(randomScenario.rate_schedules.growth.type).toBe('monthly_values');
+      expect(randomScenario.rate_schedules.growth.values).toHaveLength(24);
+      // Original scenario object must not be mutated (deep clone)
+      expect(scenarioWithMarketAsset.rate_schedules.growth.type).toBe('fixed');
+      // returnSequence is keyed by investment_type, one annual-compounded value per year
+      expect(returnSequence.stocks).toHaveLength(2); // 24 months = 2 years
     });
 
     test('should generate different random values for different distributions', () => {
@@ -245,7 +261,7 @@ describe('Monte Carlo Analysis Integration', () => {
       expect(startEventSpy).toHaveBeenCalledWith({
         scenarioData: sampleScenario,
         config: expect.objectContaining({ iterations: 500 }),
-        variableRanges: expect.any(Object),
+        marketDependentAssets: expect.any(Array),
         context: expect.any(Object)
       });
     });
@@ -279,7 +295,7 @@ describe('Monte Carlo Analysis Integration', () => {
       expect(monteCarloController.analysisHistory).toHaveLength(1);
     });
 
-    test('should get default variable ranges', () => {
+    test('should get market-dependent asset config', () => {
       // Set up scenario data with market-dependent assets
       monteCarloController.currentScenarioData = {
         assets: [
@@ -296,23 +312,21 @@ describe('Monte Carlo Analysis Integration', () => {
         }
       };
 
-      const ranges = monteCarloController.getDefaultVariableRanges();
-      
-      expect(ranges).toBeDefined();
-      expect(typeof ranges).toBe('object');
-      
-      // Should include ranges for market-dependent assets
-      const rangeKeys = Object.keys(ranges);
-      expect(rangeKeys.length).toBeGreaterThan(0);
-      
-      // Check structure of first range
-      const firstRange = ranges[rangeKeys[0]];
-      expect(firstRange).toHaveProperty('mean');
-      expect(firstRange).toHaveProperty('stdDev');
-      expect(firstRange).toHaveProperty('type');
-      expect(typeof firstRange.mean).toBe('number');
-      expect(typeof firstRange.stdDev).toBe('number');
-      expect(typeof firstRange.type).toBe('string');
+      const config = monteCarloController.getMarketDependentAssetConfig();
+
+      expect(config).toBeDefined();
+      expect(Array.isArray(config)).toBe(true);
+      expect(config.length).toBeGreaterThan(0);
+
+      // Check structure of first descriptor
+      const first = config[0];
+      expect(first).toHaveProperty('assetName');
+      expect(first).toHaveProperty('scheduleName');
+      expect(first).toHaveProperty('investmentType');
+      expect(first).toHaveProperty('stdDev');
+      expect(typeof first.stdDev).toBe('number');
+      expect(first.scheduleName).toBe('stocks_growth');
+      expect(first.investmentType).toBe('stocks');
     });
 
     test('should export results in JSON format', () => {

@@ -1,3 +1,5 @@
+import { RateScheduleManager } from '../rate-schedules.js';
+
 /**
  * Monte Carlo Service - Statistical analysis for retirement scenarios
  * Provides probabilistic modeling and risk analysis capabilities
@@ -7,8 +9,7 @@ export class MonteCarloService {
     this.eventBus = eventBus;
     this.isRunning = false;
     this.currentAnalysis = null;
-    this.returnSequences = new Map(); // Store return sequences by simulation ID
-    
+
     // Configuration defaults
     this.defaultConfig = {
       iterations: 100, // Reduced default for better performance
@@ -52,11 +53,12 @@ export class MonteCarloService {
    * @param {Object} data - Analysis configuration
    * @param {Object} data.scenarioData - Base scenario to analyze
    * @param {Object} data.config - Monte Carlo configuration
-   * @param {Object} data.variableRanges - Ranges for random variables
+   * @param {Array} data.marketDependentAssets - Assets to randomize, from
+   *   MonteCarloController.getMarketDependentAssetConfig()
    * @param {Object} data.context - Additional context
    */
   async runAnalysis(data) {
-    const { scenarioData, config = {}, variableRanges = {}, context = {} } = data;
+    const { scenarioData, config = {}, marketDependentAssets = [], context = {} } = data;
     
     // Merge with defaults
     const analysisConfig = { ...this.defaultConfig, ...config };
@@ -81,7 +83,7 @@ export class MonteCarloService {
     this.eventBus.emit('montecarlo:started', {
       scenarioData,
       config: analysisConfig,
-      variableRanges,
+      marketDependentAssets,
       context
     });
 
@@ -101,7 +103,7 @@ export class MonteCarloService {
         
         const batchResults = await this.runSimulationBatch(
           scenarioData,
-          variableRanges,
+          marketDependentAssets,
           batchStart,
           batchEnd,
           rng,
@@ -158,22 +160,22 @@ export class MonteCarloService {
   /**
    * Run a batch of simulations
    */
-  async runSimulationBatch(scenarioData, variableRanges, startIndex, endIndex, rng, config) {
+  async runSimulationBatch(scenarioData, marketDependentAssets, startIndex, endIndex, rng, config) {
     const results = [];
-    
+
     for (let i = startIndex; i < endIndex && this.isRunning; i++) {
       // Generate random scenario variation
-      const randomScenario = this.generateRandomScenario(scenarioData, variableRanges, rng, config);
-      
+      const { scenario: randomScenario, returnSequence } = this.generateRandomScenario(scenarioData, marketDependentAssets, rng);
+
       // Run single simulation via event bus
       const result = await this.runSingleSimulation(randomScenario, i);
-      
+
       if (result) {
         // Calculate metrics for this individual simulation
         const success = this.calculateIndividualSuccess(result, randomScenario, config);
         const survivalTime = this.calculateIndividualSurvivalTime(result);
         const finalBalance = this.calculateIndividualFinalBalance(result);
-        
+
         results.push({
           iteration: i,
           scenario: randomScenario,
@@ -181,6 +183,7 @@ export class MonteCarloService {
           success: success,
           survivalTime: survivalTime, // in months
           finalBalance: finalBalance,
+          returnSequence, // the actual per-type monthly rates applied this trial
           timestamp: Date.now()
         });
       }
@@ -219,15 +222,6 @@ export class MonteCarloService {
 
       console.log(`🔍 MonteCarloService: Running simulation ${iteration} with ID ${simulationId}`);
 
-      // Listen for return sequences generated for this simulation
-      const returnSequenceHandler = (data) => {
-        if (data.simulationId === simulationId) {
-          this.returnSequences.set(simulationId, data.returns);
-          console.log(`📈 MonteCarloService: Captured return sequence for simulation ${iteration}`);
-        }
-      };
-      this.eventBus.on('returnmodel:returns-generated', returnSequenceHandler);
-
       // Use unique event names to avoid collision
       const completeEvent = `simulation:completed:${simulationId}`;
       const errorEvent = `simulation:error:${simulationId}`;
@@ -236,19 +230,12 @@ export class MonteCarloService {
         clearTimeout(timeout);
         this.eventBus.off(completeEvent, handleComplete);
         this.eventBus.off(errorEvent, handleError);
-        this.eventBus.off('returnmodel:returns-generated', returnSequenceHandler);
-        
+
         console.log(`🔍 MonteCarloService: Simulation ${iteration} completed via event bus:`, {
           hasResults: !!(data && data.results),
-          resultsLength: (data && data.results) ? data.results.length : 0,
-          hasReturnSequence: this.returnSequences.has(simulationId)
+          resultsLength: (data && data.results) ? data.results.length : 0
         });
-        
-        // Attach return sequence to result if available
-        if (this.returnSequences.has(simulationId)) {
-          data.returnSequence = this.returnSequences.get(simulationId);
-        }
-        
+
         resolve(data);
       };
 
@@ -256,7 +243,6 @@ export class MonteCarloService {
         clearTimeout(timeout);
         this.eventBus.off(completeEvent, handleComplete);
         this.eventBus.off(errorEvent, handleError);
-        this.eventBus.off('returnmodel:returns-generated', returnSequenceHandler);
         reject(new Error(`Simulation ${iteration} failed: ${data.error}`));
       };
 
@@ -274,19 +260,91 @@ export class MonteCarloService {
   }
 
   /**
-   * Generate a random scenario variation based on variable ranges
+   * Generate a random scenario variation for one Monte Carlo trial.
+   *
+   * Draws one shared per-month noise sequence per investment_type (so
+   * same-type assets move together within a trial -- real correlation, not
+   * independent per-asset draws), scaled as stdDev/√12 so annual dispersion
+   * comes out correctly (√T·σ, not the T·σ blowup a single constant-per-trial
+   * draw produced). Layers that noise ADDITIVELY on top of each asset's own
+   * real configured rate (evaluated per month via a RateScheduleManager
+   * loaded with the scenario's ORIGINAL, pre-randomization schedules, so
+   * fixed/sequence/map/pipeline schedules are all honored correctly rather
+   * than needing a single baseline-mean fallback). See ISSUES.md #19.
+   *
+   * @param {Object} baseScenario - Scenario to randomize
+   * @param {Array} marketDependentAssets - From MonteCarloController.getMarketDependentAssetConfig()
+   * @param {Function} rng - Seeded random generator
+   * @returns {{scenario: Object, returnSequence: Object}} randomized scenario
+   *   and its per-investment-type annual-compounded return sequence (for
+   *   export/display -- reflects exactly what was simulated)
    */
-  generateRandomScenario(baseScenario, variableRanges, rng, config) {
+  generateRandomScenario(baseScenario, marketDependentAssets, rng) {
     const randomScenario = JSON.parse(JSON.stringify(baseScenario)); // Deep clone
-    
-    // Apply random variations based on variable ranges
-    for (const [path, range] of Object.entries(variableRanges)) {
-      const value = this.generateRandomValue(range, rng);
-      this.setNestedProperty(randomScenario, path, value);
+    const durationMonths = baseScenario.plan?.duration_months || 0;
+    const returnSequence = {};
+
+    if (!marketDependentAssets || marketDependentAssets.length === 0 || durationMonths <= 0) {
+      return { scenario: randomScenario, returnSequence };
     }
-    
-    
-    return randomScenario;
+
+    const originalRateManager = new RateScheduleManager();
+    originalRateManager.loadSchedules(baseScenario.rate_schedules || {});
+
+    const byType = new Map();
+    for (const asset of marketDependentAssets) {
+      if (!byType.has(asset.investmentType)) byType.set(asset.investmentType, []);
+      byType.get(asset.investmentType).push(asset);
+    }
+
+    if (!randomScenario.rate_schedules) randomScenario.rate_schedules = {};
+
+    for (const [investmentType, assetsOfType] of byType.entries()) {
+      const monthlyStdDev = assetsOfType[0].stdDev / Math.sqrt(12);
+      const noise = [];
+      for (let m = 0; m < durationMonths; m++) {
+        noise.push(this.normalRandom(0, monthlyStdDev, rng));
+      }
+
+      for (const assetDescriptor of assetsOfType) {
+        const values = [];
+        for (let m = 0; m < durationMonths; m++) {
+          const baseAnnualRate = assetDescriptor.isLegacyInterestRate
+            ? assetDescriptor.baseInterestRate
+            : originalRateManager.getRate(assetDescriptor.scheduleName, m);
+          values.push((baseAnnualRate / 12) + noise[m]);
+        }
+
+        const scheduleName = assetDescriptor.isLegacyInterestRate
+          ? `_mc_${assetDescriptor.assetName}`
+          : assetDescriptor.scheduleName;
+        randomScenario.rate_schedules[scheduleName] = { type: 'monthly_values', values };
+
+        if (assetDescriptor.isLegacyInterestRate) {
+          const clonedAsset = randomScenario.assets.find(a => a.name === assetDescriptor.assetName);
+          if (clonedAsset) clonedAsset.return_schedule = scheduleName;
+        }
+      }
+
+      returnSequence[investmentType] = this.rollUpMonthlyToAnnual(noise);
+    }
+
+    return { scenario: randomScenario, returnSequence };
+  }
+
+  /**
+   * Compound a monthly rate sequence into an annual return per year, for
+   * export/display purposes -- {investmentType: number[]} matching what
+   * ExportController.generateMonteCarloReturnsCSV() already expects.
+   */
+  rollUpMonthlyToAnnual(monthlyRates) {
+    const annual = [];
+    for (let start = 0; start < monthlyRates.length; start += 12) {
+      const yearMonths = monthlyRates.slice(start, start + 12);
+      const compounded = yearMonths.reduce((acc, r) => acc * (1 + r), 1) - 1;
+      annual.push(compounded);
+    }
+    return annual;
   }
 
   /**
@@ -925,23 +983,6 @@ export class MonteCarloService {
     } else {
       return max - Math.sqrt((1 - u) * (max - min) * (max - mode));
     }
-  }
-
-  /**
-   * Set nested property using dot notation path
-   */
-  setNestedProperty(obj, path, value) {
-    const keys = path.split('.');
-    let current = obj;
-    
-    for (let i = 0; i < keys.length - 1; i++) {
-      if (!(keys[i] in current)) {
-        current[keys[i]] = {};
-      }
-      current = current[keys[i]];
-    }
-    
-    current[keys[keys.length - 1]] = value;
   }
 
   /**

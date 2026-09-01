@@ -62,16 +62,28 @@ export class RateSchedule {
     switch (this.config.type) {
       case 'fixed':
         return this.config.rate;
-        
+
       case 'sequence':
         return this.calculateSequenceRate(month);
-        
+
       case 'map':
         return this.calculateMapRate(month);
-        
+
+      case 'monthly_values':
+        return this.calculateMonthlyValuesRate(month);
+
       default:
         throw new Error(`Unknown rate type: ${this.config.type}`);
     }
+  }
+
+  /**
+   * One rate per month index (`config.values[month]`). Used by Monte Carlo
+   * trials to express a randomized per-month rate for a given asset; usable
+   * by hand-authored scenarios too.
+   */
+  calculateMonthlyValuesRate(month) {
+    return this.config.values[month] ?? this.config.values[this.config.values.length - 1] ?? 0;
   }
 
   calculateSequenceRate(month) {

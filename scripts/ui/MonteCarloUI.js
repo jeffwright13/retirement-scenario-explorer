@@ -226,9 +226,6 @@ export class MonteCarloUI {
       config.returnModel = 'simple-random'; // Default model
     }
     
-    // Add default variable ranges (can be extended with advanced UI)
-    config.variableRanges = this.getDefaultVariableRanges();
-    
     return config;
   }
 
@@ -253,48 +250,6 @@ export class MonteCarloUI {
       this.monteCarloSection.classList.add('monte-carlo-config-collapsed');
       console.log('🎲 MonteCarloUI: Configuration collapsed');
     }
-  }
-
-  /**
-   * Get default variable ranges for UI - FIXED for realistic retirement returns
-   */
-  getDefaultVariableRanges() {
-    return {
-      // Individual asset return variations (realistic retirement planning ranges)
-      // Match actual scenario rate schedule names from jeffs-learning-journey-scenarios.json
-      
-      // Savings account: Conservative returns (1-5% annually)
-      'rate_schedules.savings_growth.rate': {
-        type: 'normal',
-        mean: 0.037, // 3.7% baseline (current scenario value)
-        stdDev: 0.015 // 1.5% volatility (realistic savings variation)
-      },
-      
-      // Investment account: Moderate portfolio returns (3-10% annually)
-      'rate_schedules.investment_growth.rate': {
-        type: 'normal',
-        mean: 0.065, // 6.5% baseline (current scenario value)
-        stdDev: 0.025 // 2.5% volatility (realistic market variation)
-      },
-      
-      // Traditional IRA: Retirement-focused returns (3-9% annually)
-      'rate_schedules.ira_growth.rate': {
-        type: 'normal',
-        mean: 0.0625, // 6.25% baseline (current scenario value)
-        stdDev: 0.02 // 2% volatility (conservative retirement allocation)
-      },
-      
-      // Roth IRA: Growth-focused returns (4-10% annually)
-      'rate_schedules.roth_growth.rate': {
-        type: 'normal',
-        mean: 0.07, // 7% baseline (current scenario value)
-        stdDev: 0.025 // 2.5% volatility (growth allocation)
-      },
-      
-      // NOTE: Fixed paths to match actual scenario structure
-      // Reduced volatility from unrealistic 15% to realistic 2-2.5%
-      // This prevents 20%+ return outliers that cause hockey stick curves
-    };
   }
 
   /**

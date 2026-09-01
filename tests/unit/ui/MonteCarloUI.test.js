@@ -224,7 +224,6 @@ describe('MonteCarloUI', () => {
       expect(config.targetSurvivalMonths).toBe(300); // 25 years * 12
       expect(config.targetSuccessRate).toBe(0.8); // 80% / 100
       expect(config.returnModel).toBe('simple-random');
-      expect(config.variableRanges).toBeDefined();
     });
 
     test('should handle missing UI values with defaults', () => {
@@ -258,28 +257,6 @@ describe('MonteCarloUI', () => {
       const config = monteCarloUI.getConfigurationFromUI();
       
       expect(config.targetSurvivalMonths).toBe(360); // Falls back to scenario duration
-    });
-
-    test('should get default variable ranges', () => {
-      const ranges = monteCarloUI.getDefaultVariableRanges();
-      
-      // Check that the object has the expected properties
-      expect(ranges['rate_schedules.savings_growth.rate']).toBeDefined();
-      expect(ranges['rate_schedules.investment_growth.rate']).toBeDefined();
-      expect(ranges['rate_schedules.ira_growth.rate']).toBeDefined();
-      expect(ranges['rate_schedules.roth_growth.rate']).toBeDefined();
-      
-      // Check structure of a range
-      const savingsRange = ranges['rate_schedules.savings_growth.rate'];
-      expect(savingsRange.type).toBe('normal');
-      expect(savingsRange.mean).toBe(0.037);
-      expect(savingsRange.stdDev).toBe(0.015);
-      
-      // Check another range
-      const investmentRange = ranges['rate_schedules.investment_growth.rate'];
-      expect(investmentRange.type).toBe('normal');
-      expect(investmentRange.mean).toBe(0.065);
-      expect(investmentRange.stdDev).toBe(0.025);
     });
 
     test('should validate configuration correctly', () => {

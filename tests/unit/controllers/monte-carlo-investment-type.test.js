@@ -133,17 +133,21 @@ describe('MonteCarloController Investment Type', () => {
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
       // Should vary market-dependent assets with appropriate volatility
-      expect(variableRanges['rate_schedules.stocks_growth.rate']).toBeDefined();
-      expect(variableRanges['rate_schedules.stocks_growth.rate'].stdDev).toBe(0.18); // 18% volatility for stocks
+      const stockEntry = config.find(c => c.scheduleName === 'stocks_growth');
+      expect(stockEntry).toBeDefined();
+      expect(stockEntry.investmentType).toBe('stocks');
+      expect(stockEntry.stdDev).toBe(0.18); // 18% volatility for stocks
 
-      expect(variableRanges['rate_schedules.bonds_growth.rate']).toBeDefined();
-      expect(variableRanges['rate_schedules.bonds_growth.rate'].stdDev).toBe(0.08); // 8% volatility for bonds
+      const bondEntry = config.find(c => c.scheduleName === 'bonds_growth');
+      expect(bondEntry).toBeDefined();
+      expect(bondEntry.investmentType).toBe('bonds');
+      expect(bondEntry.stdDev).toBe(0.08); // 8% volatility for bonds
 
       // Should not vary stable assets
-      expect(variableRanges['rate_schedules.savings_growth.rate']).toBeUndefined();
+      expect(config.find(c => c.scheduleName === 'savings_growth')).toBeUndefined();
     });
   });
 });
