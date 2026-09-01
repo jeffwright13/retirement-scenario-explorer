@@ -508,3 +508,27 @@ section with file changes and done criteria.
   a natural regression fixture for the Monte Carlo return-model fix above) or the
   whole path is removed, following the `TabController` precedent (`ISSUES.md` #5),
   before the wiring bug is even worth fixing.
+- **Two Monte Carlo test files exercise a hand-written reimplementation
+  instead of production code** (`ISSUES.md` #21, found 2026-08-31 while
+  migrating that issue's other files to a real-engine fixture).
+  `tests/unit/controllers/monte-carlo-csv-success-logic.test.js` defines its
+  own local `calculateIndividualSuccess()` and never calls the real
+  `MonteCarloService`/`MonteCarloController` for the logic it claims to
+  test; `tests/unit/survivorship-bias.test.js` defines a whole parallel
+  `TestMonteCarloService`/`createMockSimulation()` (explicit in its own
+  docstring: "without requiring the full engine") and never imports the real
+  `MonteCarloService`. Neither file can regress or protect against a
+  regression in real code. Needs a decision per file: rewrite
+  `monte-carlo-csv-success-logic.test.js` to call the real, now-fixed
+  `calculateIndividualSuccess()` (it looks like a straightforward swap), and
+  decide whether `survivorship-bias.test.js`'s statistical illustration
+  (survivorship bias vs. min-balance discrete-jump behavior) is more valuable
+  kept as a self-contained math demonstration or rebuilt against the real
+  engine.
+- **`tests/unit/controllers/monte-carlo-controller-csv.test.js`'s ~12
+  fabricated-shape mock sites are not worth fixing until Issue 28 is
+  resolved** (`ISSUES.md` #21/#28). The file calls the real
+  `MonteCarloController.downloadCSV()`, but that method is Issue 28's dead
+  export chain (unreachable from the live UI). Fix Issue 28 first, then
+  either delete this file with the code it tests or migrate whatever
+  remains.

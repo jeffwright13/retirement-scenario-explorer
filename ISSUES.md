@@ -707,18 +707,26 @@ consistently means "solvent for N months" everywhere it's used —
 `calculateSurvivalStatistics()` was also simplified to reuse this same
 per-trial value instead of independently re-deriving it a third time.
 
-**Not included in this fix, still open:** `SimulationService.analyzeAssetDepletion()`
-reading `finalResult.balances` (a nonexistent field) — same bug family, different
-file, not exercised by the regression suite below. Worth its own small follow-up.
+**Also fixed, same pass:** `SimulationService.analyzeAssetDepletion()` read
+`finalResult.balances` (nonexistent — per-month log entries have no
+`.balances` field) — same bug family, different file. `generateInsights()`
+now captures `balanceHistory` before unwrapping `results` to the monthly
+array, and passes it through so `analyzeAssetDepletion()` can read real
+per-asset final balances. Also added an `initialBalance <= 0` guard for
+negative-balance "planned future expense" assets (`BRIEF.md` idiom) — without
+it, an inert negative-balance asset's unchanged final balance is always below
+`initialBalance * 0.05` (since both are negative), which would have flagged
+every such asset as "depleted" on every run. Regression tests in
+`tests/unit/services/simulation-service-asset-depletion.test.js` (new, 3
+tests — confirmed red before the fix via a temporary revert, green after).
 
 **Regression tests:** `tests/integration/monte-carlo-real-engine-statistics.test.js`
 (new, added by Issue 21's fix below) — 7 tests, one per bug described above, all
 run the real event-driven pipeline (`EventBus` + real `SimulationService` +
 real `MonteCarloService` + real `ReturnModelService`) with no fabricated
 `.assets` shapes anywhere. Confirmed red before the fix, green after. Full suite:
-45 suites / 745 passed / 2 skipped, no regressions in the four legacy mock-based
-files this issue is about (their `balanceHistory` fixtures happened to already be
-shaped correctly alongside their buggy `.assets` fields).
+46 suites / 748 passed / 2 skipped, no regressions anywhere (see Issue 21 for
+the legacy test files' individual status).
 
 ### Issue 21 (test quality, high impact — the reason Issue 20 shipped invisibly through 44 green suites) — RESOLVED (partially): a real-engine regression suite now exists; the four legacy mock-based files are not yet migrated
 
@@ -746,16 +754,43 @@ resolves with the real `montecarlo:completed` payload) and a new suite,
 on it — no `.assets` fabrication anywhere. This is the "one shared fixture"
 called for above, and it's what proved and now guards Issue 20's fix.
 
-**Scope note:** the four originally-cited legacy files
-(`monte-carlo.test.js`, `simulation-service-return-sequences.test.js`,
-`monte-carlo-controller-csv.test.js`, `monte-carlo-csv-success-logic.test.js`)
-and `survivorship-bias.test.js`'s own `createMockSimulation()` were **not**
-migrated to the shared fixture — they still hand-write `.assets`/wrong-depth
-shapes, they just happen to still pass because their `balanceHistory` mocks
-were already shaped correctly in parallel. They no longer guard against a
-regression the way a real-engine fixture would. Migrating them is still open;
-tracked as a follow-up rather than done here to keep this change scoped to
-proving and fixing Issue 20.
+**Scope note, updated after inspecting all five files individually — they
+split into three different situations, not one:**
+
+- **`monte-carlo.test.js`** (`:166-168`, `:393`) and
+  **`simulation-service-return-sequences.test.js`** (`:90`, `:117`) — fixed.
+  Both `.assets`-shaped mocks corrected to real per-month log shape
+  (`{month, income, expenses, withdrawals, shortfall}`) with `shortfallMonths`
+  moved onto a `metrics` sibling, matching the real `SimulationService`
+  wrapper. Neither file's assertions actually checked numeric statistics
+  values (they check event firing and structural shape only), so this was a
+  pure honesty fix, not a behavior change — confirmed by re-running both
+  files after the edit (still green).
+- **`monte-carlo-controller-csv.test.js`** (12 sites) — **not fixed, and not
+  worth fixing yet.** It calls the real `MonteCarloController.downloadCSV()`,
+  but that method is the dead export chain identified in Issue 28 below
+  (unreachable from the live UI — `MonteCarloUI.js:84` binds to a DOM id that
+  doesn't exist). Correcting its dozen mock sites would be wasted effort if
+  Issue 28's recommended fix (delete the dead chain and its tests) is taken.
+  Resolve Issue 28 first, then either delete this file with the code it tests
+  or migrate what's left.
+- **`monte-carlo-csv-success-logic.test.js`** (`:63-83` and throughout) and
+  **`survivorship-bias.test.js`** (`:19-84`) — **a different, previously
+  undocumented problem: both test a hand-written reimplementation, not
+  production code.** The first defines its own local `calculateIndividualSuccess()`
+  helper and never calls `MonteCarloController`/`MonteCarloService` for the
+  logic under test; the second defines a whole parallel `TestMonteCarloService`/
+  `createMockSimulation()` (explicit in its own docstring: "without requiring
+  the full engine") and never imports the real `MonteCarloService` at all.
+  Correcting either file's fabricated shapes would be cosmetic only — neither
+  file exercises real code, so neither can regress or protect against a
+  regression in it. `survivorship-bias.test.js`'s statistical illustration
+  (survivorship bias vs. min-balance discrete-jump behavior) may be
+  legitimately more useful as a self-contained math demonstration than as a
+  real-engine test; `monte-carlo-csv-success-logic.test.js`'s reimplementation
+  looks like it should just call the real, now-fixed
+  `MonteCarloService.calculateIndividualSuccess()` instead. Needs a decision
+  per file, not a mechanical fix — see `docs/PLAN.md` Backlog.
 
 ### Issue 22 (medium impact) — OPEN: time-varying inflation schedules mis-compound; nominal expenses can decrease
 
