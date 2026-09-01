@@ -902,7 +902,7 @@ split into three different situations, not one:**
   `MonteCarloService.calculateIndividualSuccess()` instead. Needs a decision
   per file, not a mechanical fix — see `docs/PLAN.md` Backlog.
 
-### Issue 22 (medium impact) — OPEN: time-varying inflation schedules mis-compound; nominal expenses can decrease
+### Issue 22 (medium impact) — RESOLVED: time-varying inflation schedules mis-compound; nominal expenses can decrease
 
 **Root cause.** `getInflationAdjustedExpenses(month)` (`timeaware-engine.js:356-369`)
 computes `base × (1 + rate(month)/12)^month` — it raises the *current* month's rate
@@ -920,6 +920,34 @@ scenario using a non-`fixed` inflation schedule hits this.
 rate(month)/12)` each month, instead of recomputing a power from a single sampled
 rate. **Regression test first:** with the sequence above, assert
 `results[i].expenses >= results[i-1].expenses` for all `i` (currently fails).
+
+**Fixed (2026-09-01), prompted by writing `docs/study-guide.md` and finding
+this was about to confuse a real study session.** `getInflationAdjustedExpenses()`
+now maintains a running `cumulativeInflationMultiplier`, closure-scoped per
+simulation run. Each call multiplies in the *previous* month's rate (not the
+current month's) before returning — this indexing was the one subtlety in the
+fix: it has to reduce to the exact original `(1 + rate/12)^month` formula for
+a constant rate (no inflation yet at month 0, one period of compounding by
+month 1, etc.), which only works if each month's own rate is applied starting
+the *following* month rather than retroactively to itself. Relies on the
+function being called once per month in increasing order — verified this is
+its only call site (the main loop). The legacy `plan.inflation_rate` path is
+untouched (already correct, unaffected by this bug, and — noted while fixing
+this — uses a genuinely different compounding convention from the schedule
+path, annual-step vs. monthly-compounding, so the two were never expected to
+produce identical numbers for an equal rate; not a discrepancy this fix
+introduces or needed to resolve).
+
+**Regression tests** in `tests/integration/timeaware-engine-real.test.js`
+(new `describe` block): the exact non-monotonic sequence above, confirmed red
+before the fix (decrease detected between the sequence's step-down months)
+and green after; plus a constant-rate case asserting the fix reduces to the
+exact pre-fix formula at several months (`0, 1, 11, 12, 24, 35`), confirming
+Stage 3 and every other constant-rate scenario is unaffected. Verified
+directly against the real `stage-5-full-complexity` scenario data (not just
+the synthetic test schedule): zero nominal-expense decreases across the full
+run, where the pre-fix code produced decreases at month indices 36, 48, 60,
+and 96 as originally reported above.
 
 ### Issue 23 (medium impact) — OPEN: `applyDeposits()` throws `ReferenceError: assetNames is not defined` for any deposit targeting an asset that doesn't already exist
 

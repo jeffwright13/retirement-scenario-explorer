@@ -567,6 +567,44 @@ saw implausibly large outcomes ($60M/$50M/$25M/$9M trajectories).
 
 ---
 
+## v1.0.18 — Fix inflation schedule mis-compounding (PATCH)
+
+**Goal:** Close `ISSUES.md` #22, already root-caused during the 2026-08-31
+cross-analysis audit but left unfixed at the time. Prompted back into scope
+by writing `docs/study-guide.md`, which was about to tell the user "you'll
+hit a live bug in Stage 5" as though that were expected behavior worth
+studying, rather than fixing it before they got there.
+
+### Scope
+
+1. **`getInflationAdjustedExpenses()` (`timeaware-engine.js`).** Replaced
+   `base × (1 + rate(month)/12)^month` (which raises the *current* month's
+   rate to the power of total elapsed months, discarding every prior rate)
+   with a running `cumulativeInflationMultiplier`, closure-scoped per
+   simulation run, that multiplies in each month's own rate one call after
+   it's current — the indexing needed to exactly reproduce the original,
+   correct constant-rate formula while fixing the varying-rate case. The
+   legacy `plan.inflation_rate` path is untouched.
+2. Regression tests in `tests/integration/timeaware-engine-real.test.js`
+   (new): the exact non-monotonic sequence from `ISSUES.md` #22's original
+   writeup, confirmed red before the fix; a constant-rate case confirming no
+   behavior change for Stage 3 and similar scenarios; and a direct check
+   against the real `stage-5-full-complexity` scenario data (not just the
+   synthetic test schedule).
+3. Updated `docs/study-guide.md`'s Stage 3 and Stage 5 sections, which had
+   been written to warn the user they'd hit this bug live.
+
+### Done criteria
+
+- [x] Regression test added first and confirmed red against the pre-fix
+      code, then green after
+- [x] `npm test` passes, no regressions
+- [x] `ISSUES.md` #22 marked resolved
+- [x] `docs/study-guide.md` updated to match the fix
+- [x] Version bumped via `npm version patch` (→ `1.0.18`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns

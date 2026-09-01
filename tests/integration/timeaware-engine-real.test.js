@@ -324,6 +324,63 @@ describe('TimeAware Engine - REAL Integration Tests', () => {
     });
   });
 
+  describe('Inflation Schedules - Real Behavior (ISSUES.md #22)', () => {
+    it('nominal expenses never decrease under a non-monotonic inflation sequence', () => {
+      // Same schedule shape as data/scenarios/learning-journey-scenarios.json's
+      // stage-5-full-complexity: rate steps down partway through, which is
+      // exactly what triggered the mis-compounding bug.
+      const scenario = {
+        plan: {
+          monthly_expenses: 1000,
+          duration_months: 96, // 8 years -- one full pass through the sequence
+          inflation_schedule: 'variable_inflation',
+          stop_on_shortfall: false
+        },
+        assets: [{ name: 'Investment', balance: 10000000, min_balance: 0, interest_rate: 0 }],
+        order: [{ account: 'Investment', order: 1 }],
+        rate_schedules: {
+          variable_inflation: {
+            type: 'sequence',
+            values: [0.035, 0.04, 0.05, 0.045, 0.03, 0.025, 0.03, 0.035],
+            default_rate: 0.03
+          }
+        }
+      };
+
+      const result = simulateScenarioAdvanced(scenario);
+
+      for (let i = 1; i < result.results.length; i++) {
+        expect(result.results[i].expenses).toBeGreaterThanOrEqual(result.results[i - 1].expenses);
+      }
+    });
+
+    it('a fixed-rate inflation_schedule still compounds monthly at (1 + rate/12)^month, unchanged by the fix', () => {
+      // Regression guard: the fix must not change behavior for a constant
+      // rate, only for a schedule whose rate actually varies over time. Note
+      // this schedule-path formula is deliberately monthly-compounding and
+      // does NOT match the legacy plan.inflation_rate path's once-per-year
+      // step (docs/SPEC.md / ISSUES.md #22's own writeup already notes the
+      // two paths use different compounding conventions) -- this test checks
+      // the schedule path against its own known-correct constant-rate
+      // formula, not against the legacy path.
+      const fixedRate = 0.06;
+      const monthlyExpenses = 1000;
+      const durationMonths = 36;
+
+      const result = simulateScenarioAdvanced({
+        plan: { monthly_expenses: monthlyExpenses, duration_months: durationMonths, inflation_schedule: 'steady', stop_on_shortfall: false },
+        assets: [{ name: 'Investment', balance: 10000000, min_balance: 0, interest_rate: 0 }],
+        order: [{ account: 'Investment', order: 1 }],
+        rate_schedules: { steady: { type: 'fixed', rate: fixedRate } }
+      });
+
+      for (const month of [0, 1, 11, 12, 24, 35]) {
+        const expected = monthlyExpenses * Math.pow(1 + fixedRate / 12, month);
+        expect(result.results[month].expenses).toBeCloseTo(expected, 6);
+      }
+    });
+  });
+
   describe('Deposits - Real Behavior', () => {
     it('should handle deposits to correct target assets', () => {
       const scenario = {

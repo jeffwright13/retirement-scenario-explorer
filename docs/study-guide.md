@@ -81,12 +81,12 @@ This scenario uses `inflation_schedule: "realistic_inflation"`, a `type:
 "fixed"` rate schedule at 3.5% (`rate_schedules.realistic_inflation` in the
 JSON) — a constant rate, applied every month.
 
-**Note for later:** this specific stage is *not* affected by it, but the same
-function has a real, currently-open bug (`ISSUES.md` #22) for **non-constant**
-inflation schedules (`type: "sequence"`) — it mis-compounds badly enough that
-nominal expenses can visibly *decrease* over time, which is financially
-nonsensical. You'll hit this directly in Stage 5 below; flagging it here so
-you're not caught off guard mid-stage.
+**Note for later:** this specific stage uses a constant rate, so it was never
+affected, but the same function used to have a real bug (`ISSUES.md` #22,
+fixed 2026-09-01) for **non-constant** inflation schedules (`type:
+"sequence"`) — it mis-compounded badly enough that nominal expenses could
+visibly *decrease* over time. Stage 5 below uses exactly that schedule shape
+and is where the bug used to show up; see that section for the fix.
 
 **Try this:** verify month 60's expense figure by hand:
 `8000 × (1 + 0.035/12)^60`. This is the same formula the legacy
@@ -159,14 +159,20 @@ actually need after tax.
   hand: if you need $1,000 net from a `tax_deferred` account, the engine
   pulls `1000 / (1 - 0.22) = $1,282.05` gross.
 
-**You will hit `ISSUES.md` #22 directly here.** This stage's
-`variable_inflation` schedule is a `type: "sequence"` with a non-monotonic
-rate array (`[0.035, 0.04, 0.05, 0.045, 0.03, 0.025, 0.03, 0.035]`) — exactly
-the shape that trips the mis-compounding bug. If you hand-calculate expected
-inflation-adjusted expenses at a few different months and they don't match
-what the chart shows — even *decrease* at some points — that's not you
-misunderstanding the code, that's the live bug. Good exercise: find the exact
-month(s) where nominal expenses decrease.
+**This stage used to be where you'd hit `ISSUES.md` #22 — now fixed
+(2026-09-01), a good worked example of the bug rather than a live trap.**
+This stage's `variable_inflation` schedule is a `type: "sequence"` with a
+non-monotonic rate array (`[0.035, 0.04, 0.05, 0.045, 0.03, 0.025, 0.03,
+0.035]`) — exactly the shape that used to trip a mis-compounding bug where
+nominal expenses could visibly *decrease* when the rate stepped down. The fix
+accumulates a running multiplier month-over-month using each month's own
+rate (`getInflationAdjustedExpenses()`, `timeaware-engine.js`), instead of
+raising the *current* month's rate to the power of total elapsed months. If
+you want to see the bug itself rather than take this on faith, `git show`
+the commit that fixed it (`ISSUES.md` #22) and diff the function — it's a
+small, self-contained change, worth reading both versions side by side as a
+lesson in why "compounding" has to accumulate history, not just re-derive
+from the current rate.
 
 Also worth noticing: `market_growth` (the "Investment" account's schedule) is
 also a `sequence` type with a **-15% year** baked in — a scripted market
