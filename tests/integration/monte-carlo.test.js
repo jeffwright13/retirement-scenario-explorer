@@ -120,6 +120,27 @@ describe('Monte Carlo Analysis Integration', () => {
       expect(returnSequence.stocks).toHaveLength(2); // 24 months = 2 years
     });
 
+    test('rate_schedules[x].values must be annual-scale, matching every other schedule type (regression: was double-divided by 12)', () => {
+      // stdDev: 0 -- zero noise, so this is fully deterministic. The engine's
+      // getAssetReturns() divides whatever getRate() returns by 12
+      // unconditionally, for every schedule type including monthly_values --
+      // so values[m] must equal the real annual rate as-is, NOT pre-divided.
+      const scenario = {
+        plan: { duration_months: 12 },
+        assets: [{ name: 'Investment', return_schedule: 'growth', market_dependent: true, investment_type: 'stocks' }],
+        rate_schedules: { growth: { type: 'fixed', rate: 0.07 } }
+      };
+      const marketDependentAssets = [
+        { assetName: 'Investment', scheduleName: 'growth', isLegacyInterestRate: false, baseInterestRate: null, investmentType: 'stocks', stdDev: 0 }
+      ];
+
+      const { scenario: randomScenario } = monteCarloService.generateRandomScenario(scenario, marketDependentAssets, () => 0.5);
+
+      for (const rate of randomScenario.rate_schedules.growth.values) {
+        expect(rate).toBeCloseTo(0.07, 10);
+      }
+    });
+
     test('should generate different random values for different distributions', () => {
       const rng = () => 0.5;
 

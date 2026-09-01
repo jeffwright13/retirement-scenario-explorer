@@ -264,13 +264,21 @@ export class MonteCarloService {
    *
    * Draws one shared per-month noise sequence per investment_type (so
    * same-type assets move together within a trial -- real correlation, not
-   * independent per-asset draws), scaled as stdDev/√12 so annual dispersion
-   * comes out correctly (√T·σ, not the T·σ blowup a single constant-per-trial
-   * draw produced). Layers that noise ADDITIVELY on top of each asset's own
-   * real configured rate (evaluated per month via a RateScheduleManager
-   * loaded with the scenario's ORIGINAL, pre-randomization schedules, so
-   * fixed/sequence/map/pipeline schedules are all honored correctly rather
-   * than needing a single baseline-mean fallback). See ISSUES.md #19.
+   * independent per-asset draws). Layers that noise ADDITIVELY on top of
+   * each asset's own real configured rate (evaluated per month via a
+   * RateScheduleManager loaded with the scenario's ORIGINAL,
+   * pre-randomization schedules, so fixed/sequence/map/pipeline schedules
+   * are all honored correctly rather than needing a single baseline-mean
+   * fallback). See ISSUES.md #19.
+   *
+   * IMPORTANT: `rate_schedules[x].values[m]` must be an ANNUAL rate, same as
+   * every other schedule type -- the engine's getAssetReturns() divides
+   * whatever getRate() returns by 12 unconditionally, for every schedule
+   * type. So the noise is drawn at annual scale (stdDev·√12) rather than
+   * monthly scale (stdDev/√12): after the engine's own /12, that produces
+   * the correct effective monthly-noise stdDev of stdDev/√12, which is what
+   * gives annual dispersion the correct √T·σ scaling instead of the T·σ
+   * blowup a single constant-per-trial draw produced.
    *
    * @param {Object} baseScenario - Scenario to randomize
    * @param {Array} marketDependentAssets - From MonteCarloController.getMarketDependentAssetConfig()
@@ -300,11 +308,20 @@ export class MonteCarloService {
     if (!randomScenario.rate_schedules) randomScenario.rate_schedules = {};
 
     for (const [investmentType, assetsOfType] of byType.entries()) {
-      const monthlyStdDev = assetsOfType[0].stdDev / Math.sqrt(12);
+      // getAssetReturns() in the engine unconditionally divides whatever
+      // getRate() returns by 12 -- every schedule type (fixed/sequence/map)
+      // stores an ANNUAL rate per period and relies on that /12, so this
+      // schedule's `values[]` must too. The noise is therefore drawn in
+      // "annual-equivalent" units (stdDev * sqrt(12)) so that AFTER the
+      // engine's own /12, the effective monthly noise stdDev works out to
+      // stdDev/sqrt(12) -- the actual sqrt(T) dispersion-scaling fix.
+      const annualEquivalentStdDev = assetsOfType[0].stdDev * Math.sqrt(12);
       const noise = [];
       for (let m = 0; m < durationMonths; m++) {
-        noise.push(this.normalRandom(0, monthlyStdDev, rng));
+        noise.push(this.normalRandom(0, annualEquivalentStdDev, rng));
       }
+
+      let representativeMonthlyRates = null;
 
       for (const assetDescriptor of assetsOfType) {
         const values = [];
@@ -312,7 +329,7 @@ export class MonteCarloService {
           const baseAnnualRate = assetDescriptor.isLegacyInterestRate
             ? assetDescriptor.baseInterestRate
             : originalRateManager.getRate(assetDescriptor.scheduleName, m);
-          values.push((baseAnnualRate / 12) + noise[m]);
+          values.push(baseAnnualRate + noise[m]); // NOT pre-divided by 12
         }
 
         const scheduleName = assetDescriptor.isLegacyInterestRate
@@ -324,9 +341,18 @@ export class MonteCarloService {
           const clonedAsset = randomScenario.assets.find(a => a.name === assetDescriptor.assetName);
           if (clonedAsset) clonedAsset.return_schedule = scheduleName;
         }
+
+        // Use the first asset in the group as representative of "what this
+        // investment type actually did" for the exported return sequence --
+        // the ACTUAL monthly growth rate applied (values[m]/12, matching
+        // exactly what getAssetReturns() computes), not the raw annual-scale
+        // values or noise-only.
+        if (!representativeMonthlyRates) {
+          representativeMonthlyRates = values.map(v => v / 12);
+        }
       }
 
-      returnSequence[investmentType] = this.rollUpMonthlyToAnnual(noise);
+      returnSequence[investmentType] = this.rollUpMonthlyToAnnual(representativeMonthlyRates);
     }
 
     return { scenario: randomScenario, returnSequence };

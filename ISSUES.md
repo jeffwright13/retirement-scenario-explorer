@@ -700,6 +700,29 @@ and `monte-carlo-investment-type.test.js` (shape change, same coverage) and
 deleted `tests/unit/services/simulation-service-return-sequences.test.js`
 (tested the removed `ReturnModelService` round-trip entirely).
 
+**Follow-up correction (2026-08-31, found immediately after the fix above via
+live user testing with seed 1001):** the fix's `rate_schedules[x].values[m]`
+was stored **pre-divided by 12** (`baseAnnualRate/12 + noise[m]`), but
+`timeaware-engine.js`'s `getAssetReturns()` divides *whatever* `getRate()`
+returns by 12 **unconditionally**, for every schedule type — every other
+type (`fixed`/`sequence`/`map`) stores an annual rate and relies on that
+single `/12`. The `monthly_values` type broke that convention, so its
+already-monthly value got divided by 12 a *second* time — both the mean and
+the noise term ended up 12× too small. This alone doesn't fully explain why
+the user still saw large ($60M/$50M/$25M/$9M) outcomes with the doubly-shrunk
+rate in place; a probe against a comparable scenario (25-year horizon, $900K
+start, 18% stock volatility, seed 1001, 200 trials) after the fix produced
+median $214K / p90 $4.3M / max $28.3M — a wide, right-skewed spread with a
+real outlier is **expected, mathematically correct behavior** for
+undiversified, long-horizon, high-volatility equity exposure (√T·σ
+dispersion is still substantial at T=300 months), not a remaining bug.
+**Fixed** by storing `values[m] = baseAnnualRate + noise[m]` (annual-scale,
+undivided) and drawing noise at `stdDev·√12` so the engine's own `/12`
+produces the intended effective monthly-noise stdDev of `stdDev/√12`.
+Regression test in `tests/integration/monte-carlo.test.js` (zero-volatility,
+fully deterministic case, confirmed red against the pre-fix code via a
+temporary revert — `0.07/12` instead of `0.07` — then green).
+
 ### Issue 20 (high impact) — RESOLVED: Monte Carlo statistics/aggregation layer reads engine output at the wrong field name or object depth, zeroing or nulling most reported metrics
 
 **Root cause, same class as the already-resolved Issue #4/#6/#7 `.assets` bug,
