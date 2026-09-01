@@ -12,6 +12,141 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-09-01 — `docs/PLAN.md`'s Backlog is the single current-status source of truth; `ISSUES.md` holds root-cause detail only
+
+**Decision:** Stopped duplicating full write-ups in both `ISSUES.md` and
+`docs/PLAN.md`'s Backlog section. Going forward: `ISSUES.md` is the sole place
+for root-cause investigation and fix detail, numbered and never renumbered;
+`docs/PLAN.md`'s Backlog section is a dated, current-status index of exactly
+which `ISSUES.md` numbers are open and awaiting a decision, kept in sync with
+`ISSUES.md`'s actual OPEN list, with short pointers rather than restated
+paragraphs. `docs/BRIEF.md` also got a factual correction in the same pass (see
+below).
+
+**Rationale:** A user review of the docs found two concrete symptoms of drift:
+`docs/PLAN.md`'s Backlog entries had grown to duplicate multi-paragraph content
+already in `ISSUES.md` almost verbatim, and two currently-OPEN `ISSUES.md`
+items (#32's remaining findings, #36) had no Backlog entry at all — the two
+files had silently fallen out of sync with each other. Reviewed
+`~/coding/chronicle-weaver` and `~/coding/krashen` (per-repo `docs/` convention
+shared across this user's active projects) for how they avoid this: neither
+keeps a separate root-level issues file at all -- `krashen/docs/PLAN.md`
+instead keeps one dated "Current backlog (as of DATE)" section as the sole
+current-status source of truth, explicitly marking older per-version
+"deferred"/"known issues" lists as stale historical snapshots not to be
+trusted or edited in place, with short one-line pointers out to a dedicated
+subsection for anything that needs more detail. This repo's `ISSUES.md` format
+(numbered, root-caused, referenced by number from dozens of test names and
+code comments across the codebase) is more mature on the detail axis than
+either of those repos and not worth abandoning or renumbering -- so rather
+than fully merging issue-tracking into `PLAN.md` the way `krashen`/
+`chronicle-weaver` do, this adopts their *single-current-list* discipline
+while keeping `ISSUES.md` as the detail store `PLAN.md`'s Backlog points into,
+which is what `CLAUDE.md`'s existing (but previously unenforced) description
+of the two files already implied. Backlog *content* decisions (#10, #12, #13,
+#17, #26, #31's remaining sub-items, #32's remaining findings, #36) were
+explicitly left unresolved in this pass -- this is a documentation-process
+fix, not a decision on any of them.
+
+## 2026-09-01 — `docs/BRIEF.md` corrected: GitHub Pages hosting is not deferred, it's been live for a year
+
+**Decision:** Removed the "Deferred" bullet "Hosted/public deployment (e.g.
+GitHub Pages), if the audience ever broadens beyond personal use," and added a
+factual note under "Who It's For" instead: a live mirror is hosted on GitHub
+Pages, kept for the developer's own convenience (checking a scenario without
+running a local server), not as an onboarding/adoption path.
+
+**Rationale:** Checked the actual GitHub Pages build history while fixing an
+unrelated version-display staleness issue this session: the earliest recorded
+Pages build is from **2025-09-09** — nine months before `docs/BRIEF.md` was
+even written (`DECISIONS.md` 2026-06-22, "Documentation baseline
+established"). The "Deferred" framing was never accurate; it described a
+future state that had already happened before the sentence was written. Also
+surfaced a separate, real operational issue while investigating this — Pages'
+auto-build-on-push has stopped firing reliably — recorded as `ISSUES.md` #37
+rather than duplicated here, since it's not yet root-caused and still open.
+
+**Decision:** Replaced the Single Scenario chart's `tickformat: '$,.0f'` (exact
+dollars, e.g. `$800,000`, never abbreviates) and the Monte Carlo chart's manual
+`value / 1000` + hardcoded `ticksuffix: 'K'` (didn't rescale past a million,
+e.g. `$4000K`) with the same convention on both: raw dollar values in the
+trace/percentile data, `yaxis: { tickprefix: '$', tickformat: '.2~s' }` for the
+tick labels. Verified the exact output against real `d3-format`: `800000 ->
+"800k"`, `4000000 -> "4M"`, `1234567 -> "1.2M"`.
+
+**Rationale:** User-reported disparity (`ISSUES.md` #35) -- the two charts
+formatted the same kind of value two different clunky ways, and neither
+auto-scaled. `.2~s` was chosen after confirming its actual output with a
+scratch `d3-format` install rather than assuming d3's SI-prefix behavior from
+memory, since precision/rounding specifics there are easy to get wrong.
+
+## 2026-09-01 — Monte Carlo chart's X-axis stays relative years, not calendar dates
+
+**Decision:** Kept `xaxis.title: 'Years from Simulation Start'` with relative
+year values (`0, 1, 2, ...`) rather than converting to calendar years/dates
+via `plan.start_date` the way the Single Scenario chart's X-axis now does.
+
+**Rationale:** Put directly to the user as a design choice (`ISSUES.md` #35):
+a probability-of-success distribution across thousands of trials is about "how
+many years does this last," not a specific calendar date, and calendar labels
+would clutter a 20-30 year axis. User confirmed relative years over calendar
+years.
+
+## 2026-09-01 — Single Scenario chart's legend anchors inside the plot's top-right corner, matching Monte Carlo, trading a small overlap risk for full-width plotting area
+
+**Decision:** Single Scenario chart's `legend` now sets `{x: 1, y: 1, xanchor:
+'right', yanchor: 'top'}` (floating inside the plot, top-right corner) instead
+of Plotly's default outside-plot placement, which reserved a dedicated margin
+strip on the right whether or not it was actually needed.
+
+**Rationale:** User-reported disparity (`ISSUES.md` #35): the Monte Carlo
+chart already used this inside-corner placement and filled its full container
+width as a result; Single Scenario's default outside placement made its
+plotting area narrower for no functional reason. Confirmed with the user this
+fits Single Scenario's typical curve shape -- nearly every scenario's asset
+balances trend toward zero as time increases, so the top-right corner is
+reliably empty late in the timeline, the same condition Monte Carlo's charts
+already relied on. Traded off against a real but accepted risk: on a chart
+where a curve stays high into the top-right (an atypical scenario), the
+floating legend could overlap data -- accepted since it's the exception, not
+the common case.
+
+## 2026-09-01 — `plan.start_date` parses a bare `YYYY-MM-DD` as a local calendar date, not via `new Date(str)`
+
+**Decision:** `UIController.resolveScenarioStartDate()` hand-parses a
+`YYYY-MM-DD` string into year/month/day components (`new Date(year, month - 1,
+day)`) instead of passing it straight to `new Date(str)`.
+
+**Rationale:** `ISSUES.md` #34 wired the previously-dead `plan.start_date`
+field into chart/withdrawal-detail date labels for the first time. The first
+implementation used `new Date(str)` directly and its own regression test
+caught the bug before it shipped: `new Date('2033-01-01')` parses as UTC
+midnight, which silently renders as December 2032 in any timezone behind UTC
+(caught the test asserting `2033-01-01` renders as `01-33` failing with
+`12-32` instead). Worth recording since this is a generic JS date-parsing
+footgun, not specific to this field -- any future code parsing a bare
+date-only string in this codebase should use the same local-date construction
+rather than re-discovering this bug.
+
+## 2026-09-01 — `compounding: 'annual'` gets the doc-honesty fix, not a real implementation
+
+**Decision:** For `ISSUES.md` #25 (`compounding: 'annual'` documented in the
+schema and `docs/SPEC.md` but never implemented -- the engine always compounds
+monthly), marked the field `Future:` in both `docs/scenario-schema.json` and
+`docs/SPEC.md` and rewrote the test that had been asserting a local
+reimplementation of annual compounding (giving false confidence the real
+feature worked) to instead assert the real engine's actual no-op behavior via
+`simulateScenarioAdvanced`.
+
+**Rationale:** Building real annual compounding (tracking month-of-year,
+applying `(1 + rate) - 1` once per 12 months) was flagged to the user as the
+available alternative but not chosen -- confirmed via `grep` that no live
+scenario file under `data/` uses `compounding: 'annual'`, so the doc-honesty
+fix changes no runtime behavior for any real scenario today, and building the
+real feature can happen later if a scenario actually needs it.
+
+---
+
 ## 2026-08-31 — Monte Carlo return randomization: grouped by investment_type, drawn monthly, layered additively on the scenario's own configured rate
 
 **Decision:** Fixing `ISSUES.md` #19 (Monte Carlo drew one constant random

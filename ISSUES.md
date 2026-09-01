@@ -1,8 +1,13 @@
 # ISSUES TO RESOLVE
 
-_Root causes below were identified while writing `docs/SPEC.md` (2026-06-22) by
-tracing each symptom directly against the running code. See the cited SPEC.md
-section for full detail._
+_This is the single source of truth for root-caused bug/finding detail —
+numbered sequentially, never renumbered, status tagged inline (`OPEN`,
+`RESOLVED`, or untagged/default-open). Findings come from direct code reading,
+user reports, or cross-analysis audits; each entry says which. For anything
+still OPEN and gated on a decision (not a mechanical fix), see
+`docs/PLAN.md`'s Backlog section for current scheduling status — that section,
+not this one, is the place to check what's still waiting on a call and why
+(see `docs/DECISIONS.md` 2026-09-01 for why the two files are split this way)._
 
 ### Issue 1 — RESOLVED: In Choose Your Scenario...Scenario Builder...Copy an Existing Scenario, when you copy a scenario to a new one, all Withdrawal Order values revert to 1
 
@@ -1473,4 +1478,36 @@ separate DOM element -- so it rides on Plotly's own cross-browser-tested
 rendering instead of introducing a hand-positioned overlay that has to be
 kept in sync with the chart's own coordinate system. If this gets built,
 prefer `updatemenus` over a custom DOM overlay for exactly this reason.
+
+### Issue 37 (operational, not yet root-caused) — OPEN: GitHub Pages auto-build-on-push has stopped firing reliably
+
+**Found 2026-09-01** while investigating why the live GitHub Pages site
+still showed v1.0.19 after three subsequent version bumps had been pushed to
+`main`. `gh api repos/.../pages/builds` showed the last automatic build was
+for the `v1.0.19` commit; the next three pushes (v1.0.20, v1.0.21, v1.0.22)
+sat with no build queued at all, the oldest over 20 minutes old — well past
+normal auto-build latency (prior builds typically completed within ~1
+minute of a push). This repo uses the legacy branch-based Pages pipeline
+(`source: {branch: "main", path: "/"}`, no deploy workflow in
+`.github/workflows/`), which is supposed to auto-build on every push to
+`main` with no user action needed.
+
+**Not yet root-caused.** Manually triggering a build via
+`POST /repos/.../pages/builds` reliably works every time it's been tried
+(confirmed for v1.0.22, v1.0.23, v1.0.24) — the underlying Actions workflow
+(`pages-build-deployment`) itself runs fine and completes (build job +
+report-build-status + deploy, occasionally taking several minutes rather
+than the usual ~1 minute), it's specifically the *automatic trigger on push*
+that isn't firing. Possible causes not yet investigated: a stuck/misfiring
+webhook, GitHub-side rate limiting or debouncing after several rapid
+consecutive pushes (several version bumps landed within minutes of each
+other during the session that surfaced this), or an account/repo setting
+change. Needs someone with full repo-admin visibility (webhook delivery
+logs, `Settings → Pages`) to actually diagnose — not diagnosable via the
+`gh api` surface used so far.
+
+**Current workaround:** after pushing to `main`, manually trigger a rebuild:
+`gh api -X POST repos/jeffwright13/retirement-scenario-explorer/pages/builds`,
+then poll `gh api repos/.../pages/builds/latest` (or `gh run view` on the
+resulting `pages-build-deployment` Actions run) until `status: "built"`.
 

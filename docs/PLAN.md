@@ -894,93 +894,76 @@ three fields named above; Story Mode; `UIController` split.
 
 ---
 
-## Backlog (not yet assigned to a version)
+## Backlog (as of 2026-09-01)
 
-Unscoped on purpose — each needs a decision made before it can get a real version
-section with file changes and done criteria.
+_This is the single current-status source of truth for work that needs a decision
+before it can be scoped into a version — not `ISSUES.md`, which holds the full
+root-cause writeup each entry below points into. Keep the two in sync: every
+`ISSUES.md` item tagged `OPEN (design decision)` or similar should have exactly one
+line here, and an entry should disappear from here the same commit its blocking
+`ISSUES.md` issue gets resolved (see `DECISIONS.md` 2026-09-01 for why this split
+exists). Entries are unscoped on purpose — each needs a decision made before it can
+get a real version section with file changes and done criteria._
 
 - **Story Mode: finish or cut.** Currently Deferred per `docs/BRIEF.md`. ~1,050
   lines (`StoryController.js`, `StoryEngineService.js`, `StoryUI.js`) sit fully
-  built but disconnected behind a `Proxy` stub in `main.js`. Needs a decision on
-  whether this is worth finishing (fix whatever overlay/display issue got it
-  disabled on 2025-08-15 — see `DECISIONS.md`) before it can be scoped.
-- **`UIController.js` split.** 2,234 lines, ~70 methods, doing display, chart-data
-  prep, JSON editing, export, tax/withdrawal display, and custom-scenario modal
-  management in one class (`docs/AUDIT.md` §3). Needs the target module boundaries
-  decided (the audit suggests: chart data prep, JSON editor, export, custom-scenario
-  modal, tax/withdrawal display) before this becomes a real version with a file
-  scaffold.
+  built but disconnected behind a `Proxy` stub. Decision needed: worth finishing
+  (fix whatever overlay/display issue got it disabled 2025-08-15, see
+  `DECISIONS.md`) or cut.
+- **`UIController.js` split.** 2,234 lines, ~70 methods, several responsibilities
+  bundled (`docs/AUDIT.md` §3). Decision needed: target module boundaries (audit
+  suggests chart data prep / JSON editor / export / custom-scenario modal /
+  tax-withdrawal display).
 - **CI coverage-threshold direction.** Thresholds were lowered to match actual
-  coverage in 2025-09-17 rather than set as a target to grow into
-  (`DECISIONS.md`). Needs a decision on whether to set a ratchet (thresholds only
-  ever move up, enforced in CI) and what the near-term target should be.
-- **`EventBus` robustness gaps** (`ISSUES.md` #12, found 2026-07-01). No
-  `offAll(callback)`/per-owner unsubscribe — only exact `(event, callback)` pairs
-  via `off()`, or clearing an entire event for every subscriber via
-  `removeAllListeners()`. Not causing a bug today since all 19 current subscribers
-  are long-lived singletons wired up once in `main.js`, but it's a leak trap the
-  first time a subscriber becomes short-lived. Needs a decision on whether to add
-  the API now (cheap, small surface) or wait until a real short-lived subscriber
-  needs it. The `once()`/`forEach` re-entrancy issue (`ISSUES.md` #11) is separate
-  and mechanical — that one belongs in a PATCH version, not here.
-- **Fix the skipped rate-schedule test** (`ISSUES.md` #13, found 2026-07-02).
-  `tests/integration/timeaware-engine-real.test.js:262` fails if re-enabled as-is —
-  same `balanceHistory[name][0]` misunderstanding Issue 8 already fixed elsewhere in
-  this file. Needs a real invariant designed (e.g. computing the expected balance
-  from the known fixed rate) rather than a mechanical index fix, so it's not
-  scoped into a version yet.
-- **`min_balance` last-resort drawdown at shortfall auto-stop** (`ISSUES.md` #17,
-  `DECISIONS.md` 2026-07-02). Considered and declined for now — see the decision
-  entry for the full rationale. Revisit only if this becomes a real need rather
-  than a hypothetical; if so, the shape discussed was an opt-in toggle (e.g.
-  `plan.deplete_reserves_at_end`) rather than changing default behavior.
-- **Learning Examples: finish or cut** (`ISSUES.md` #26, found by cross-analysis
-  audit 2026-08-31). Two independent defects currently make this dead: the dropdown
-  code reads `window.app` where `main.js` assigns `window.retirementApp`, and —
-  more fundamentally — all nine files in `data/examples/` use a third scenario
-  schema (`accounts[]`/`events[]`) the engine can't run, directly contradicting
-  `docs/BRIEF.md`'s "everything is an asset" philosophy. Needs a decision on
-  whether the nine files get converted to the real schema (several, e.g.
-  `sequence-of-returns-shocks`, would be genuinely useful teaching scenarios and
-  a natural regression fixture for the Monte Carlo return-model fix above) or the
-  whole path is removed, following the `TabController` precedent (`ISSUES.md` #5),
-  before the wiring bug is even worth fixing.
-- **Two Monte Carlo test files exercise a hand-written reimplementation
-  instead of production code** (`ISSUES.md` #21, found 2026-08-31 while
-  migrating that issue's other files to a real-engine fixture).
-  `tests/unit/controllers/monte-carlo-csv-success-logic.test.js` defines its
-  own local `calculateIndividualSuccess()` and never calls the real
-  `MonteCarloService`/`MonteCarloController` for the logic it claims to
-  test; `tests/unit/survivorship-bias.test.js` defines a whole parallel
-  `TestMonteCarloService`/`createMockSimulation()` (explicit in its own
-  docstring: "without requiring the full engine") and never imports the real
-  `MonteCarloService`. Neither file can regress or protect against a
-  regression in real code. Needs a decision per file: rewrite
-  `monte-carlo-csv-success-logic.test.js` to call the real, now-fixed
-  `calculateIndividualSuccess()` (it looks like a straightforward swap), and
-  decide whether `survivorship-bias.test.js`'s statistical illustration
-  (survivorship bias vs. min-balance discrete-jump behavior) is more valuable
-  kept as a self-contained math demonstration or rebuilt against the real
-  engine.
-- **`tests/unit/controllers/monte-carlo-controller-csv.test.js`'s ~12
-  fabricated-shape mock sites are not worth fixing until Issue 28 is
-  resolved** (`ISSUES.md` #21/#28). The file calls the real
-  `MonteCarloController.downloadCSV()`, but that method is Issue 28's dead
-  export chain (unreachable from the live UI). Fix Issue 28 first, then
-  either delete this file with the code it tests or migrate whatever
-  remains.
-- **Model COLA (Cost-of-Living Adjustment) increases on `income[]` sources**
-  (`ISSUES.md` #33, found 2026-09-01 while fixing the Social Security
-  double-claim bug there). `income[]` entries are a flat `amount` today —
-  no growth mechanism at all, unlike `assets[]` (`return_schedule`/
-  `interest_rate`). Real Social Security COLA is applied **annually** (every
-  January, based on CPI-W), not on a fixed multi-year cycle — the percentage
-  varies year to year and is sometimes 0% in low-inflation years. A pension
-  or other income source might have a different adjustment cadence entirely,
-  or none. Needs a decision on the mechanism before scoping: reuse the
-  existing `rate_schedules{}` system (add e.g. `income[].cola_schedule`,
-  mirroring `assets[].return_schedule` — consistent with how growth/inflation
-  already work elsewhere) vs. a simpler flat `income[].cola_rate`. Either
-  way this is opt-in per income entry, not a global behavior change — most
-  existing scenarios model flat nominal income deliberately (pensions,
-  fixed annuities) and shouldn't start growing without being asked to.
+  coverage 2025-09-17 rather than set as a target (`DECISIONS.md`). Decision
+  needed: ratchet (thresholds only move up) vs. static, and the near-term target.
+- **`EventBus` robustness gaps.** See `ISSUES.md` #12. No per-owner unsubscribe,
+  only exact-pair `off()` or clear-everyone `removeAllListeners()`. Not a live bug
+  (all 19 subscribers are long-lived singletons) but a leak trap for the first
+  short-lived one. Decision needed: add the API now vs. wait for a real need.
+- **Skipped rate-schedule test.** See `ISSUES.md` #13. Fails if re-enabled as-is —
+  needs a real invariant designed (e.g. compute expected balance from the known
+  fixed rate), not a mechanical index fix.
+- **`min_balance` last-resort drawdown at shortfall auto-stop.** See `ISSUES.md`
+  #17 and `DECISIONS.md` 2026-07-02 — considered and declined for now. Revisit only
+  if this becomes a real need; the shape discussed was an opt-in
+  `plan.deplete_reserves_at_end` toggle, not a default-behavior change.
+- **Learning Examples: finish or cut.** See `ISSUES.md` #26. Unreachable (dropdown
+  wiring bug) and, more fundamentally, the nine `data/examples/` files use a third,
+  unrunnable scenario schema. Decision needed: convert the nine files to the real
+  schema vs. remove the whole path (`TabController` precedent, `ISSUES.md` #5).
+- **Two Monte Carlo test files exercise a hand-written reimplementation instead of
+  production code.** See `ISSUES.md` #21.
+  `tests/unit/controllers/monte-carlo-csv-success-logic.test.js` and
+  `tests/unit/survivorship-bias.test.js` both test local reimplementations, not the
+  real `MonteCarloService`. Decision needed per file: the first looks like a
+  straightforward swap to the real (now-fixed) `calculateIndividualSuccess()`; the
+  second needs a call on whether its statistical illustration is more valuable kept
+  self-contained or rebuilt against the real engine.
+- **Four independent scenario validators exist with different rules.** See
+  `ISSUES.md` #31. `ValidationService.validateScenario`,
+  `SimulationService.validateScenario`, `ScenarioBuilderService.validateFormData`,
+  `ContentService.validateScenario` — two of the four have zero live callers.
+  Decision needed: consolidate to one, and which.
+- **`ISSUES.md` #32, two remaining findings.** Chart-interactivity clarification —
+  needs the user to say what specifically felt not-user-friendly, since
+  `displayModeBar`/legend-click may already cover the literal ask — and a
+  staleness-indicator design (banner? dimming? title change?) for when a new
+  scenario loads without re-running. Two of #32's four findings already shipped
+  (`v1.0.23`).
+- **`ISSUES.md` #36: collapse/hide the chart legend entirely.** Distinct from the
+  already-working per-entry toggle. Not yet a confirmed ask — raised as a "what's
+  possible" question. If built, prefer Plotly's native `updatemenus` over a custom
+  DOM overlay (cross-browser risk this project's Jest/jsdom-only suite can't catch
+  — see `ISSUES.md` #36 for detail).
+- **Model COLA (Cost-of-Living Adjustment) increases on `income[]` sources.** See
+  `ISSUES.md` #33. `income[]` entries are flat `amount` today, no growth mechanism
+  unlike `assets[]`. Decision needed on mechanism: reuse `rate_schedules{}` (e.g.
+  `income[].cola_schedule`, mirroring `assets[].return_schedule`) vs. a simpler
+  flat `income[].cola_rate`. Either way, opt-in per income entry — most existing
+  scenarios model flat nominal income deliberately.
+- **GitHub Pages auto-build-on-push has stopped firing reliably.** See
+  `ISSUES.md` #37. Not yet root-caused — needs repo-admin visibility (webhook
+  delivery logs, `Settings → Pages`) this session's `gh api` access can't
+  reach. Workaround in place: manually trigger `POST /pages/builds` after
+  each push to `main`.

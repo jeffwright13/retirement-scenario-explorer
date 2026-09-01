@@ -24,8 +24,11 @@ requiring separate `events[]` / `liabilities[]` / `shocks[]` constructs.
 ## Who It's For
 
 A single personal user (the developer), used for actual retirement planning. The
-repository is public on GitHub with issues and PRs open, but there's no active push
-for adoption, onboarding polish, or hosted deployment.
+repository is public on GitHub with issues and PRs open. A live mirror is hosted on
+GitHub Pages (https://jeffwright13.github.io/retirement-scenario-explorer/) purely
+for the developer's own convenience — checking a scenario without running a local
+server — not as an onboarding path; there's no active push for adoption or
+onboarding polish.
 
 ## The Core Loop
 
@@ -47,8 +50,8 @@ for adoption, onboarding polish, or hosted deployment.
 
 - **Browser-only.** No backend, no build step, no bundler. Plain HTML/CSS/JS loaded
   via ES modules.
-- **Requires a local web server to run.** Browsers block `file://` access to ES
-  module `import`/`export`; there is no hosted deployment.
+- **Requires a web server to run — local, or the GitHub Pages mirror.** Browsers
+  block `file://` access to ES module `import`/`export`.
 - **No accounts, no server-side state.** All persistence (saved custom scenarios) is
   `localStorage`, keyed under `retirement-explorer-user-scenarios`.
 - **No telemetry or analytics.** Nothing leaves the browser.
@@ -84,5 +87,3 @@ for adoption, onboarding polish, or hosted deployment.
   `StoryController` and blocks the mode-switch event. Treat as a real feature to
   finish, not dead code to delete — see `docs/AUDIT.md` §2 and §5 for the current
   state.
-- Hosted/public deployment (e.g. GitHub Pages), if the audience ever broadens beyond
-  personal use
