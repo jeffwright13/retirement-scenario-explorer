@@ -633,7 +633,7 @@ correlation; `docs/SPEC.md` §5.1 describes ADDITIVE/REPLACE modes as implemente
 **This needs a design decision before it can be fixed** — see `docs/PLAN.md`
 Backlog. Not scoped into a version yet.
 
-### Issue 20 (high impact) — OPEN: Monte Carlo statistics/aggregation layer reads engine output at the wrong field name or object depth, zeroing or nulling most reported metrics
+### Issue 20 (high impact) — RESOLVED: Monte Carlo statistics/aggregation layer reads engine output at the wrong field name or object depth, zeroing or nulling most reported metrics
 
 **Root cause, same class as the already-resolved Issue #4/#6/#7 `.assets` bug,
 found here in the Monte Carlo statistics layer specifically (never previously
@@ -676,7 +676,51 @@ called from all affected sites, plus the `result.metrics.shortfallMonths` correc
 and the `wrapper.result.returnSequence` correction. Blocked on Issue 21 first so the
 fix is actually tested.
 
-### Issue 21 (test quality, high impact — the reason Issue 20 has shipped invisibly through 44 green suites) — OPEN: every Monte Carlo test fixture fabricates a `month.assets` shape the real engine never produces
+**Fixed in `fix/monte-carlo-statistics-layer`, after Issue 21's real-engine
+regression suite was written first and confirmed red (7/7 failing, one bug per
+assertion below).** Added two shared helpers to `MonteCarloService.js` —
+`getTotalBalanceSeries(balanceHistory, monthCount)` (a total-balance-per-month
+series from the real `balanceHistory` shape) and `getTotalWithdrawals(monthlyResults)`
+(sums each month's `withdrawals[].grossAmount`, since no precomputed total exists
+anywhere) — and rewired every site that read `month.assets` or the wrong object
+depth to use them: `extractMetrics()` (`finalBalance`, `shortfallMonths` now from
+`result.metrics.shortfallMonths`, `totalWithdrawals`), `calculateMaxDrawdownFromResults()`,
+`calculateTimeToDepletionFromResults()`, `calculateVaR()`, `calculateCVaR()`,
+`calculateMaxDrawdownStats()`, the "Final Balance Range" insight in
+`generateInsights()`, and `identifyKeyPercentileScenarios()` (both the
+`wrapper.result.returnSequence` fix and sourcing `finalBalance` from the
+already-correct `calculateIndividualFinalBalance()`-derived wrapper field).
+
+**One correction to the original write-up above, found while fixing:**
+`calculateIndividualSuccess()` does **not** actually read `.assets` in its
+primary path — it already used `balanceHistory` correctly for the
+`min_balance` floor check. The real mechanism was narrower: "survival" was
+defined as `timeawareResults.length` (months *simulated*), and the
+`min_balance` check was the *only* solvency check, so it was silently skipped
+whenever no asset had `min_balance` configured (the common case) — same
+practical bug (100% success rate for a fully-depleted, `stop_on_shortfall: false`
+run), different exact code path than described above. Fixed by having
+`calculateIndividualSuccess()` derive `survivalTime` from the now-corrected
+`calculateIndividualSurvivalTime()` (itself switched from `.assets` to
+`balanceHistory`) instead of the raw month count, so "survived N months" now
+consistently means "solvent for N months" everywhere it's used —
+`calculateSurvivalStatistics()` was also simplified to reuse this same
+per-trial value instead of independently re-deriving it a third time.
+
+**Not included in this fix, still open:** `SimulationService.analyzeAssetDepletion()`
+reading `finalResult.balances` (a nonexistent field) — same bug family, different
+file, not exercised by the regression suite below. Worth its own small follow-up.
+
+**Regression tests:** `tests/integration/monte-carlo-real-engine-statistics.test.js`
+(new, added by Issue 21's fix below) — 7 tests, one per bug described above, all
+run the real event-driven pipeline (`EventBus` + real `SimulationService` +
+real `MonteCarloService` + real `ReturnModelService`) with no fabricated
+`.assets` shapes anywhere. Confirmed red before the fix, green after. Full suite:
+45 suites / 745 passed / 2 skipped, no regressions in the four legacy mock-based
+files this issue is about (their `balanceHistory` fixtures happened to already be
+shaped correctly alongside their buggy `.assets` fields).
+
+### Issue 21 (test quality, high impact — the reason Issue 20 shipped invisibly through 44 green suites) — RESOLVED (partially): a real-engine regression suite now exists; the four legacy mock-based files are not yet migrated
 
 `tests/integration/monte-carlo.test.js` (`:166-168`, `:393`),
 `tests/unit/services/simulation-service-return-sequences.test.js` (`:90`, `:117`),
@@ -690,6 +734,28 @@ either. This single fixture choice is why the six-plus statistics bugs in Issue 
 pass CI today. **Fix:** add one shared fixture built by actually calling
 `simulateScenarioAdvanced()` on a small scenario, and use it in place of hand-written
 month objects — do this before or alongside Issue 20 so the fix is provably correct.
+
+**Partially fixed in `fix/monte-carlo-statistics-layer`.** Added
+`tests/fixtures/monte-carlo-real-fixtures.js` (two scenario builders —
+`createSolventScenario()`, which declines but never depletes, and
+`createDepletingScenario()`, which depletes ~month 32-34 of a 60-month run —
+plus `runRealMonteCarloAnalysis()`, a helper that wires a real `EventBus` +
+`SimulationService` + `MonteCarloService` + `ReturnModelService` together and
+resolves with the real `montecarlo:completed` payload) and a new suite,
+`tests/integration/monte-carlo-real-engine-statistics.test.js`, built entirely
+on it — no `.assets` fabrication anywhere. This is the "one shared fixture"
+called for above, and it's what proved and now guards Issue 20's fix.
+
+**Scope note:** the four originally-cited legacy files
+(`monte-carlo.test.js`, `simulation-service-return-sequences.test.js`,
+`monte-carlo-controller-csv.test.js`, `monte-carlo-csv-success-logic.test.js`)
+and `survivorship-bias.test.js`'s own `createMockSimulation()` were **not**
+migrated to the shared fixture — they still hand-write `.assets`/wrong-depth
+shapes, they just happen to still pass because their `balanceHistory` mocks
+were already shaped correctly in parallel. They no longer guard against a
+regression the way a real-engine fixture would. Migrating them is still open;
+tracked as a follow-up rather than done here to keep this change scoped to
+proving and fixing Issue 20.
 
 ### Issue 22 (medium impact) — OPEN: time-varying inflation schedules mis-compound; nominal expenses can decrease
 

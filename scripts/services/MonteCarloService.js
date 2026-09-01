@@ -368,12 +368,16 @@ export class MonteCarloService {
       return keyScenarios;
     }
     
-    // Create array of results with their indices and final balances
+    // Create array of results with their indices and final balances.
+    // `result` here is the runSimulationBatch() wrapper
+    // ({iteration, scenario, result, success, survivalTime, finalBalance,
+    // timestamp}) -- the return sequence is attached to the *inner*
+    // result.result, not the wrapper itself.
     const resultsWithBalances = results.map((result, index) => ({
       index,
       result,
-      finalBalance: finalBalances[index] || 0,
-      returnSequence: result.returnSequence
+      finalBalance: result.finalBalance ?? finalBalances[index] ?? 0,
+      returnSequence: result.returnSequence || result.result?.returnSequence
     })).filter(item => item.returnSequence); // Only include results with return sequences
     
     if (resultsWithBalances.length === 0) {
@@ -440,11 +444,45 @@ export class MonteCarloService {
   }
 
   /**
+   * Build a total-balance-per-month series from the engine's balanceHistory
+   * (keyed by asset name -> array of end-of-month balances). This is the
+   * correct source for aggregate balance over time -- the engine's per-month
+   * log objects have no `.assets` field. See ISSUES.md #20.
+   */
+  getTotalBalanceSeries(balanceHistory, monthCount) {
+    const series = [];
+    if (!balanceHistory) return series;
+    const histories = Object.values(balanceHistory);
+    for (let i = 0; i < monthCount; i++) {
+      let total = 0;
+      for (const history of histories) {
+        if (Array.isArray(history) && typeof history[i] === 'number') {
+          total += history[i];
+        }
+      }
+      series.push(total);
+    }
+    return series;
+  }
+
+  /**
+   * Sum gross withdrawal amounts across every month's `withdrawals[]` array
+   * (the engine records one entry per withdrawal, not a precomputed total).
+   */
+  getTotalWithdrawals(monthlyResults) {
+    if (!Array.isArray(monthlyResults)) return 0;
+    return monthlyResults.reduce((sum, month) => {
+      if (!month || !Array.isArray(month.withdrawals)) return sum;
+      return sum + month.withdrawals.reduce((s, w) => s + (w.grossAmount || 0), 0);
+    }, 0);
+  }
+
+  /**
    * Extract key metrics from simulation results
    */
   extractMetrics(results) {
     console.log('🔍 MonteCarloService: Extracting metrics from', results.length, 'results');
-    
+
     const metrics = {
       finalBalance: [],
       shortfallMonths: [],
@@ -452,38 +490,36 @@ export class MonteCarloService {
       timeToDepletion: [],
       totalWithdrawals: []
     };
-    
+
     results.forEach(({ result }, index) => {
       if (index < 3) { // Only log first 3 results to avoid console spam
         console.log(`🔍 MonteCarloService: Processing result ${index}`);
       }
-      
+
       if (result && result.results) {
         // The SimulationService wraps timeaware engine results in result.results
         // The actual monthly array is in result.results.results (from timeaware engine)
         const timeawareResults = result.results.results; // This is the monthly array
-        
-        // Calculate total balance from all assets at the end
-        let finalBalance = 0;
-        if (timeawareResults && Array.isArray(timeawareResults)) {
-          const lastMonth = timeawareResults[timeawareResults.length - 1];
-          if (lastMonth && lastMonth.assets) {
-            finalBalance = Object.values(lastMonth.assets).reduce((sum, balance) => sum + balance, 0);
-          }
-        }
-        
-        // Extract other metrics from the simulation wrapper
-        const shortfallMonths = result.results.shortfallMonths || 0;
-        const totalWithdrawals = result.results.totalWithdrawals || 0;
-        
+        const balanceHistory = result.results.balanceHistory;
+        const monthCount = Array.isArray(timeawareResults) ? timeawareResults.length : 0;
+
+        // Calculate total balance from all assets at the end, from balanceHistory
+        const balanceSeries = this.getTotalBalanceSeries(balanceHistory, monthCount);
+        const finalBalance = balanceSeries.length > 0 ? balanceSeries[balanceSeries.length - 1] : 0;
+
+        // shortfallMonths is computed by SimulationService into the wrapper's
+        // sibling `metrics` field, not onto `result.results` -- read it from there.
+        const shortfallMonths = result.metrics?.shortfallMonths || 0;
+        const totalWithdrawals = this.getTotalWithdrawals(timeawareResults);
+
         metrics.finalBalance.push(finalBalance);
         metrics.shortfallMonths.push(shortfallMonths);
-        metrics.maxDrawdown.push(this.calculateMaxDrawdownFromResults(timeawareResults));
-        metrics.timeToDepletion.push(this.calculateTimeToDepletionFromResults(timeawareResults));
+        metrics.maxDrawdown.push(this.calculateMaxDrawdownFromResults(balanceHistory, monthCount));
+        metrics.timeToDepletion.push(this.calculateTimeToDepletionFromResults(balanceHistory, monthCount));
         metrics.totalWithdrawals.push(totalWithdrawals);
       }
     });
-    
+
     return metrics;
   }
 
@@ -585,14 +621,9 @@ export class MonteCarloService {
           if (!result || !result.result || !result.result.results) return null;
           const timeawareResults = result.result.results.results;
           if (!timeawareResults || !Array.isArray(timeawareResults) || timeawareResults.length === 0) return null;
-          
-          const lastMonth = timeawareResults[timeawareResults.length - 1];
-          let finalBalance = 0;
-          if (lastMonth && lastMonth.assets) {
-            finalBalance = Object.values(lastMonth.assets).reduce((sum, balance) => sum + balance, 0);
-          }
-          
-          return finalBalance;
+
+          const series = this.getTotalBalanceSeries(result.result.results.balanceHistory, timeawareResults.length);
+          return series.length > 0 ? series[series.length - 1] : 0;
         })
         .filter(balance => balance !== null);
       
@@ -622,26 +653,10 @@ export class MonteCarloService {
    * Calculate survival time statistics for retirement planning
    */
   calculateSurvivalStatistics(results) {
-    const survivalTimes = results.map(({ result }) => {
-      if (!result || !result.results) return 0;
-      
-      const simulationResults = result.results.results || result.results;
-      if (!simulationResults || !Array.isArray(simulationResults)) return 0;
-      
-      // Find when shortfall occurs (total balance goes to zero or negative)
-      for (let monthIndex = 0; monthIndex < simulationResults.length; monthIndex++) {
-        const month = simulationResults[monthIndex];
-        if (month && month.assets) {
-          const totalBalance = Object.values(month.assets).reduce((sum, balance) => sum + balance, 0);
-          if (totalBalance <= 0) {
-            return monthIndex; // Shortfall occurred at this month
-          }
-        }
-      }
-      
-      // If we made it through all months without shortfall
-      return simulationResults.length;
-    });
+    // Reuse the per-trial survivalTime already computed (correctly, from
+    // balanceHistory) in runSimulationBatch(), rather than re-deriving it
+    // from the engine's per-month log objects, which have no `.assets` field.
+    const survivalTimes = results.map(r => r.survivalTime ?? 0);
     
     // Sort survival times for percentile calculations
     const sortedTimes = [...survivalTimes].sort((a, b) => a - b);
@@ -669,8 +684,12 @@ export class MonteCarloService {
     if (!timeawareResults || !Array.isArray(timeawareResults) || timeawareResults.length === 0) return false;
     
     const targetMonths = config.targetSurvivalMonths ?? 300;
-    const survivalTime = timeawareResults.length;
-    
+    // Survival must mean solvent, not merely simulated: derive it from
+    // balanceHistory (via the shared helper) rather than the raw month
+    // count, which stays equal to the full duration whenever
+    // stop_on_shortfall is false regardless of actual depletion.
+    const survivalTime = this.calculateIndividualSurvivalTime(result);
+
     // Check if scenario meets target survival time
     if (survivalTime < targetMonths) return false;
     
@@ -726,19 +745,14 @@ export class MonteCarloService {
    */
   calculateIndividualSurvivalTime(result) {
     if (!result || !result.results) return 0;
-    
+
     const timeawareResults = result.results.results;
     if (!timeawareResults || !Array.isArray(timeawareResults)) return 0;
-    
-    // Find when shortfall occurs (total balance goes to zero or negative)
-    const depletionMonth = timeawareResults.findIndex(month => {
-      if (month && month.assets) {
-        const totalBalance = Object.values(month.assets).reduce((sum, balance) => sum + balance, 0);
-        return totalBalance <= 0;
-      }
-      return false;
-    });
-    
+
+    // Find when total balance (from balanceHistory) goes to zero or negative
+    const series = this.getTotalBalanceSeries(result.results.balanceHistory, timeawareResults.length);
+    const depletionMonth = series.findIndex(balance => balance <= 0);
+
     return depletionMonth === -1 ? timeawareResults.length : depletionMonth;
   }
 
@@ -819,30 +833,21 @@ export class MonteCarloService {
   }
 
   /**
-   * Calculate maximum drawdown from simulation results array
+   * Calculate maximum drawdown from an engine balanceHistory
    */
-  calculateMaxDrawdownFromResults(simulationResults) {
-    if (!simulationResults || !Array.isArray(simulationResults)) return 0;
-    
-    // Calculate total balance for each month
-    const totalBalances = simulationResults.map(month => {
-      if (month && month.assets) {
-        return Object.values(month.assets).reduce((sum, balance) => sum + balance, 0);
-      }
-      return 0;
-    });
-    
+  calculateMaxDrawdownFromResults(balanceHistory, monthCount) {
+    const totalBalances = this.getTotalBalanceSeries(balanceHistory, monthCount);
     if (totalBalances.length === 0) return 0;
-    
+
     let maxBalance = totalBalances[0];
     let maxDrawdown = 0;
-    
+
     totalBalances.forEach(balance => {
       maxBalance = Math.max(maxBalance, balance);
       const drawdown = maxBalance > 0 ? (maxBalance - balance) / maxBalance : 0;
       maxDrawdown = Math.max(maxDrawdown, drawdown);
     });
-    
+
     return maxDrawdown;
   }
 
@@ -851,25 +856,17 @@ export class MonteCarloService {
    */
   calculateTimeToDepletion(balanceHistory) {
     if (!balanceHistory || balanceHistory.length === 0) return null;
-    
+
     const depletionMonth = balanceHistory.findIndex(month => month.totalBalance <= 0);
     return depletionMonth === -1 ? null : depletionMonth;
   }
 
   /**
-   * Calculate time to depletion from simulation results array
+   * Calculate time to depletion from an engine balanceHistory
    */
-  calculateTimeToDepletionFromResults(simulationResults) {
-    if (!simulationResults || !Array.isArray(simulationResults)) return null;
-    
-    const depletionMonth = simulationResults.findIndex(month => {
-      if (month && month.assets) {
-        const totalBalance = Object.values(month.assets).reduce((sum, balance) => sum + balance, 0);
-        return totalBalance <= 0;
-      }
-      return false;
-    });
-    
+  calculateTimeToDepletionFromResults(balanceHistory, monthCount) {
+    const totalBalances = this.getTotalBalanceSeries(balanceHistory, monthCount);
+    const depletionMonth = totalBalances.findIndex(balance => balance <= 0);
     return depletionMonth === -1 ? null : depletionMonth;
   }
 
@@ -972,18 +969,14 @@ export class MonteCarloService {
     // Value at Risk calculation
     const finalBalances = results.map(r => {
       if (!r.result || !r.result.results) return 0;
-      
+
       const simulationResults = r.result.results.results || r.result.results;
       if (!Array.isArray(simulationResults) || simulationResults.length === 0) return 0;
-      
-      // Get final month's total balance
-      const finalMonth = simulationResults[simulationResults.length - 1];
-      if (finalMonth && finalMonth.assets) {
-        return Object.values(finalMonth.assets).reduce((sum, balance) => sum + balance, 0);
-      }
-      return 0;
+
+      const series = this.getTotalBalanceSeries(r.result.results.balanceHistory, simulationResults.length);
+      return series.length > 0 ? series[series.length - 1] : 0;
     });
-    
+
     const sorted = finalBalances.sort((a, b) => a - b);
     const index = Math.floor(confidenceLevel * sorted.length);
     return sorted[index];
@@ -993,18 +986,14 @@ export class MonteCarloService {
     // Conditional Value at Risk (Expected Shortfall)
     const finalBalances = results.map(r => {
       if (!r.result || !r.result.results) return 0;
-      
+
       const simulationResults = r.result.results.results || r.result.results;
       if (!Array.isArray(simulationResults) || simulationResults.length === 0) return 0;
-      
-      // Get final month's total balance
-      const finalMonth = simulationResults[simulationResults.length - 1];
-      if (finalMonth && finalMonth.assets) {
-        return Object.values(finalMonth.assets).reduce((sum, balance) => sum + balance, 0);
-      }
-      return 0;
+
+      const series = this.getTotalBalanceSeries(r.result.results.balanceHistory, simulationResults.length);
+      return series.length > 0 ? series[series.length - 1] : 0;
     });
-    
+
     const sorted = finalBalances.sort((a, b) => a - b);
     const cutoff = Math.floor(confidenceLevel * sorted.length);
     const tail = sorted.slice(0, cutoff);
@@ -1014,13 +1003,13 @@ export class MonteCarloService {
   calculateMaxDrawdownStats(results) {
     const drawdowns = results.map(({ result }) => {
       if (!result || !result.results) return 0;
-      
+
       const simulationResults = result.results.results || result.results;
       if (!Array.isArray(simulationResults)) return 0;
-      
-      return this.calculateMaxDrawdownFromResults(simulationResults);
+
+      return this.calculateMaxDrawdownFromResults(result.results.balanceHistory, simulationResults.length);
     });
-    
+
     return this.calculateStatistics(drawdowns, [10, 25, 50, 75, 90, 95, 99]);
   }
 }
