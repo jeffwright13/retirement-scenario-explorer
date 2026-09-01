@@ -353,13 +353,30 @@ export function simulateScenarioAdvanced(scenario) {
     }
   }
 
+  // Cumulative inflation compounding accrued through the start of the month
+  // most recently requested from getInflationAdjustedExpenses() -- see there.
+  let cumulativeInflationMultiplier = 1;
+
   // Get time-aware inflation-adjusted expenses
   function getInflationAdjustedExpenses(month) {
     const baseExpenses = scenario.plan.monthly_expenses;
 
     if (scenario.plan.inflation_schedule) {
-      const monthlyInflationRate = rateManager.getRate(scenario.plan.inflation_schedule, month) / 12;
-      return baseExpenses * Math.pow(1 + monthlyInflationRate, month);
+      // Accumulate the real month-by-month compounding using each month's
+      // own rate, rather than raising the CURRENT month's rate to the power
+      // of total elapsed months (which silently discards every prior
+      // month's rate, and can make nominal expenses decrease when the
+      // schedule steps down -- ISSUES.md #22). month's own rate compounds
+      // into the multiplier used starting the FOLLOWING month, matching how
+      // the original (correct, for a constant rate) formula behaved: no
+      // inflation yet at month 0, one period of compounding by month 1, etc.
+      // Relies on this function being called once per month in increasing
+      // order -- the only call site (the main loop below) guarantees that.
+      if (month > 0) {
+        const priorMonthRate = rateManager.getRate(scenario.plan.inflation_schedule, month - 1) / 12;
+        cumulativeInflationMultiplier *= (1 + priorMonthRate);
+      }
+      return baseExpenses * cumulativeInflationMultiplier;
     } else {
       // Legacy inflation support
       const inflationRate = scenario.plan.inflation_rate || 0;
