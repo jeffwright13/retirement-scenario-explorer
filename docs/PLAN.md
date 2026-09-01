@@ -464,6 +464,74 @@ lower-severity findings from the same audit.
 
 ---
 
+## v1.0.16 — Monte Carlo return randomization fix (PATCH)
+
+**Goal:** Close `ISSUES.md` #19, reported live by the user (a Monte Carlo run
+showing one trajectory near $900M burying every other line) and confirmed by
+the user themselves with a fixed-seed test showing all three "Return Model"
+options producing byte-identical results. Root cause: Monte Carlo drew one
+constant random annual return per rate schedule per trial, with no
+month-to-month variation — a single high draw compounded unchecked for the
+whole horizon. Fix required three design decisions with no single correct
+answer, put to the user directly (see `docs/DECISIONS.md` 2026-08-31):
+randomization grouped by `investment_type`, drawn monthly (not annually), layered
+additively on the scenario's own configured rate.
+
+### Scope
+
+1. **`scripts/rate-schedules.js`**: added a `type: 'monthly_values'` schedule
+   (one rate per month index), reusing the engine's existing
+   `RateScheduleManager` unchanged.
+2. **`MonteCarloController.getDefaultVariableRanges()` → `getMarketDependentAssetConfig()`**:
+   returns a descriptor list instead of a flat mean/stdDev map; no longer
+   computes a mean (fixes the hardcoded-7%-baseline sub-bug); now includes
+   `interest_rate`-only assets (fixes the "skipped entirely" sub-bug).
+3. **`MonteCarloService.generateRandomScenario()` rewritten**: draws one
+   shared monthly noise array per `investment_type` (`stdDev/√12` per
+   month — the actual dispersion-scaling fix), layered additively onto each
+   asset's real per-month rate (via a temporary `RateScheduleManager` loaded
+   with the scenario's original schedules). Each trial's actual monthly
+   rates are compounded into an annual sequence and attached directly to the
+   result, replacing the `ReturnModelService` round-trip
+   (`SimulationService.generateReturnSequences()`, removed) — fixes the
+   "exported return sequence is a different draw than what was simulated"
+   finding with no `ExportController.js` change needed.
+4. **`MonteCarloUI.getDefaultVariableRanges()` deleted** — the hardcoded
+   four-schedule-name override whose own comment admitted it existed to
+   suppress this exact symptom by artificially shrinking volatility rather
+   than fixing the mechanism.
+5. Rewrote `tests/unit/controllers/monte-carlo-market-dependency.test.js`
+   and `monte-carlo-investment-type.test.js` (shape change, same coverage,
+   plus a new case for the interest_rate-only fix); deleted
+   `tests/unit/services/simulation-service-return-sequences.test.js`
+   (tested the removed round-trip); added
+   `tests/unit/rate-schedules.test.js` (no prior coverage existed) and
+   `tests/integration/monte-carlo-return-randomization.test.js` — the actual
+   regression guard, confirmed red against the pre-fix code via a temporary
+   revert (old API didn't even accept the new call signature), green after.
+
+### Out of scope
+
+Making the three `ReturnModelService` return models actually differ from
+each other (deferred by user decision — see `DECISIONS.md`); REPLACE mode
+(never implemented); `ISSUES.md` #26/#27/#28 and remaining lower-severity
+findings from the same audit.
+
+### Done criteria
+
+- [x] Design decisions resolved with the user and recorded in
+      `docs/DECISIONS.md` before implementation began
+- [x] Regression test added first and confirmed red against the pre-fix
+      code, then green after the fix
+- [x] `npm test` passes, no regressions
+- [x] `ISSUES.md` #19 marked resolved, including the live-browser
+      confirmation
+- [x] `docs/PLAN.md` Backlog entry for this decision removed (decision made,
+      recorded in `DECISIONS.md`)
+- [x] Version bumped via `npm version patch` (→ `1.0.16`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns
@@ -550,22 +618,6 @@ section with file changes and done criteria.
   entry for the full rationale. Revisit only if this becomes a real need rather
   than a hypothetical; if so, the shape discussed was an opt-in toggle (e.g.
   `plan.deplete_reserves_at_end`) rather than changing default behavior.
-- **Monte Carlo return-model architecture** (`ISSUES.md` #19, found by cross-analysis
-  audit 2026-08-31). `ReturnModelService`'s generated per-period return sequences
-  never reach the simulation engine — the only randomization that actually affects
-  a trial is a single constant annual rate mutated per rate-schedule per trial.
-  Before this can be fixed, needs a decision on: whether Monte Carlo returns should
-  be generated per-asset or per-asset-*type*; whether ADDITIVE mode (documented in
-  `docs/monte-carlo-analysis-guide.md`) layers volatility *on* a scenario's
-  configured rate or replaces it outright — the docs describe ADDITIVE/REPLACE as
-  implemented and no code implementing that distinction was found; and whether
-  returns should be drawn monthly or annual-with-monthly-interpolation. That
-  decision determines the fix shape for `ISSUES.md` #19 and its four bundled
-  sub-bugs (UI-hardcoded variable ranges overriding asset-aware ones,
-  `interest_rate`-only scenarios being skipped from randomization entirely, the
-  non-fixed-schedule 7% baseline fallback, and the exported return-sequence CSV
-  showing a different random draw than what was actually simulated) all at once.
-  Record the decision in `DECISIONS.md` once made.
 - **Learning Examples: finish or cut** (`ISSUES.md` #26, found by cross-analysis
   audit 2026-08-31). Two independent defects currently make this dead: the dropdown
   code reads `window.app` where `main.js` assigns `window.retirementApp`, and —

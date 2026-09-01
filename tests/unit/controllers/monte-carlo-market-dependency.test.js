@@ -15,7 +15,7 @@ describe('MonteCarloController Market Dependency', () => {
     monteCarloController = new MonteCarloController(eventBus);
   });
 
-  describe('getDefaultVariableRanges with market_dependent flags', () => {
+  describe('getMarketDependentAssetConfig with market_dependent flags', () => {
     test('should vary assets with market_dependent: true', () => {
       const scenarioData = {
         assets: [
@@ -41,15 +41,15 @@ describe('MonteCarloController Market Dependency', () => {
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
       // Should vary the stock portfolio
-      expect(variableRanges['rate_schedules.stocks_growth.rate']).toBeDefined();
-      expect(variableRanges['rate_schedules.stocks_growth.rate'].mean).toBe(0.07);
-      expect(variableRanges['rate_schedules.stocks_growth.rate'].stdDev).toBeGreaterThan(0);
+      const stockEntry = config.find(c => c.scheduleName === 'stocks_growth');
+      expect(stockEntry).toBeDefined();
+      expect(stockEntry.stdDev).toBeGreaterThan(0);
 
       // Should NOT vary the savings account
-      expect(variableRanges['rate_schedules.savings_growth.rate']).toBeUndefined();
+      expect(config.find(c => c.scheduleName === 'savings_growth')).toBeUndefined();
     });
 
     test('should not vary any assets when all have market_dependent: false', () => {
@@ -77,9 +77,9 @@ describe('MonteCarloController Market Dependency', () => {
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
-      expect(Object.keys(variableRanges)).toHaveLength(0);
+      expect(config).toHaveLength(0);
     });
 
     test('should vary all assets when all have market_dependent: true', () => {
@@ -105,11 +105,11 @@ describe('MonteCarloController Market Dependency', () => {
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
-      expect(Object.keys(variableRanges)).toHaveLength(2);
-      expect(variableRanges['rate_schedules.stocks_growth.rate']).toBeDefined();
-      expect(variableRanges['rate_schedules.bonds_growth.rate']).toBeDefined();
+      expect(config).toHaveLength(2);
+      expect(config.find(c => c.scheduleName === 'stocks_growth')).toBeDefined();
+      expect(config.find(c => c.scheduleName === 'bonds_growth')).toBeDefined();
     });
   });
 
@@ -177,14 +177,14 @@ describe('MonteCarloController Market Dependency', () => {
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
       // Should vary assets with market_dependent: true
-      expect(variableRanges['rate_schedules.stocks_growth.rate']).toBeDefined();
-      expect(variableRanges['rate_schedules.bonds_growth.rate']).toBeDefined();
+      expect(config.find(c => c.scheduleName === 'stocks_growth')).toBeDefined();
+      expect(config.find(c => c.scheduleName === 'bonds_growth')).toBeDefined();
 
       // Should NOT vary assets with market_dependent: false
-      expect(variableRanges['rate_schedules.savings_growth.rate']).toBeUndefined();
+      expect(config.find(c => c.scheduleName === 'savings_growth')).toBeUndefined();
     });
 
     test('should not vary assets without explicit market_dependent: true', () => {
@@ -203,10 +203,10 @@ describe('MonteCarloController Market Dependency', () => {
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
       // Should not vary assets without explicit market_dependent: true
-      expect(Object.keys(variableRanges)).toHaveLength(0);
+      expect(config).toHaveLength(0);
     });
 
     test('should not vary assets with explicit market_dependent: false', () => {
@@ -225,34 +225,60 @@ describe('MonteCarloController Market Dependency', () => {
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
       // Should not vary assets with explicit market_dependent: false
-      expect(Object.keys(variableRanges)).toHaveLength(0);
+      expect(config).toHaveLength(0);
     });
   });
 
   describe('market dependency edge cases', () => {
-    test('should handle assets without return_schedule', () => {
+    test('should handle assets without return_schedule or interest_rate', () => {
       const scenarioData = {
         assets: [
           {
             name: 'Invalid Asset',
             type: 'investment',
             market_dependent: true
-            // Missing return_schedule
+            // Missing both return_schedule and interest_rate
           }
         ],
         rate_schedules: {}
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
-      expect(Object.keys(variableRanges)).toHaveLength(0);
+      expect(config).toHaveLength(0);
     });
 
-    test('should handle missing rate_schedules section', () => {
+    test('should include interest_rate-only assets (no return_schedule needed)', () => {
+      const scenarioData = {
+        assets: [
+          {
+            name: 'Legacy Rate Asset',
+            type: 'investment',
+            interest_rate: 0.05,
+            market_dependent: true
+          }
+        ]
+      };
+
+      monteCarloController.currentScenarioData = scenarioData;
+      const config = monteCarloController.getMarketDependentAssetConfig();
+
+      // Previously skipped entirely -- interest_rate-only assets are now
+      // included, since MonteCarloService synthesizes a schedule for them.
+      expect(config).toHaveLength(1);
+      expect(config[0].isLegacyInterestRate).toBe(true);
+      expect(config[0].baseInterestRate).toBe(0.05);
+    });
+
+    test('should still describe an asset whose return_schedule is not (yet) registered', () => {
+      // The old hardcoded-0.07-baseline-mean fallback for a missing
+      // rate_schedules section is gone -- the controller no longer computes
+      // a mean at all. Resolving the schedule's real rate happens later, in
+      // MonteCarloService, against the scenario's actual rate_schedules.
       const scenarioData = {
         assets: [
           {
@@ -266,11 +292,10 @@ describe('MonteCarloController Market Dependency', () => {
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
-      // Should still create range with default rate
-      expect(variableRanges['rate_schedules.stocks_growth.rate']).toBeDefined();
-      expect(variableRanges['rate_schedules.stocks_growth.rate'].mean).toBe(0.07); // Default
+      expect(config).toHaveLength(1);
+      expect(config[0].scheduleName).toBe('stocks_growth');
     });
 
     test('should not vary assets with undefined market_dependent', () => {
@@ -290,10 +315,10 @@ describe('MonteCarloController Market Dependency', () => {
       };
 
       monteCarloController.currentScenarioData = scenarioData;
-      const variableRanges = monteCarloController.getDefaultVariableRanges();
+      const config = monteCarloController.getMarketDependentAssetConfig();
 
       // Should not vary assets without explicit market_dependent: true
-      expect(Object.keys(variableRanges)).toHaveLength(0);
+      expect(config).toHaveLength(0);
     });
   });
 });

@@ -582,7 +582,7 @@ the two source assessments are preserved outside this file; the entries below ar
 the root-caused summary. All Monte Carlo findings are new; none were previously in
 this file._
 
-### Issue 19 (critical impact) — OPEN: Monte Carlo "Return Model" selection has no effect on any simulated outcome, and the surrounding config layer has four separate bugs compounding it
+### Issue 19 (critical impact) — RESOLVED: Monte Carlo "Return Model" selection has no effect on any simulated outcome, and the surrounding config layer has four separate bugs compounding it
 
 **Root cause.** `ReturnModelService.generateReturns()` produces per-period return
 sequences and emits `returnmodel:returns-generated`, but nothing ever writes them
@@ -630,8 +630,75 @@ and `docs/return-model-service-guide.md` describe the three return models as
 materially affecting simulated returns and preserving sequence risk / cross-asset
 correlation; `docs/SPEC.md` §5.1 describes ADDITIVE/REPLACE modes as implemented.
 
-**This needs a design decision before it can be fixed** — see `docs/PLAN.md`
-Backlog. Not scoped into a version yet.
+**Live-browser confirmation (2026-08-31, user-reported):** running the real
+Monte Carlo UI produced a single trajectory ending near $900M, burying every
+other line at the noise floor — the live symptom of the constant-per-trial
+return with no monthly variation described above. The user then set a fixed
+seed (1001) and reran all three "Return Model" options: **byte-identical
+results across all three**, directly confirming the root cause outside of
+code tracing or a headless probe — the one live-browser check neither the
+Claude nor SWE-1.7 source assessment had performed.
+
+**Fixed in `fix/monte-carlo-return-randomization`, per user decisions on the
+redesign (grouping by `investment_type`, monthly draws for real
+sequence-of-returns risk, ADDITIVE semantics layering noise on the
+scenario's own configured rate):**
+
+- **`scripts/rate-schedules.js`**: added a `type: 'monthly_values'` schedule
+  (one rate per month index), reusing the engine's existing
+  `RateScheduleManager`/`getAssetReturns()` unchanged.
+- **`MonteCarloController.getDefaultVariableRanges()`** replaced with
+  **`getMarketDependentAssetConfig()`**, returning a descriptor list
+  (`{assetName, scheduleName, isLegacyInterestRate, baseInterestRate,
+  investmentType, stdDev}`) instead of a flat mean/stdDev map. No longer
+  computes a mean at all — fixes the hardcoded-7%-baseline sub-bug as a side
+  effect of not needing one. Now includes `interest_rate`-only assets (fixes
+  the "skipped entirely, degenerate MC" sub-bug) by synthesizing a schedule
+  name for them.
+- **`MonteCarloService.generateRandomScenario()`** rewritten: for each
+  `investment_type` group, draws **one shared monthly noise array**
+  (`stdDev / √12` per month — the actual dispersion-scaling fix, replacing
+  the old `T·σ` blowup with the correct `√T·σ`), then layers it additively
+  onto each asset's *real* per-month rate (evaluated via a temporary
+  `RateScheduleManager` loaded with the scenario's original schedules, so
+  `fixed`/`sequence`/`map`/`pipeline` are all honored correctly). Same-type
+  assets move together (correlated); different-type assets vary
+  independently.
+- **`MonteCarloUI.getDefaultVariableRanges()` deleted** (`:261-298`) — the
+  hardcoded four-schedule-name override whose own comment admitted it
+  existed to suppress this exact symptom ("prevents 20%+ return outliers
+  that cause hockey stick curves") by artificially shrinking volatility,
+  rather than fixing the mechanism. `getConfigurationFromUI()` no longer
+  contributes a variable-ranges field at all; the controller is now the sole
+  source of truth.
+- **Exported return sequence now reflects what was actually simulated**: each
+  trial's monthly rates are compounded into an annual sequence and attached
+  directly to the result, replacing the old `ReturnModelService` round-trip
+  (`SimulationService.generateReturnSequences()`, seeded independently of
+  the trial) — fixing the separate "exported CSV shows a different random
+  draw than what ran" finding as a byproduct, with no change needed in
+  `ExportController.js` since the shape is unchanged.
+
+**Explicitly out of scope, by user decision:** making the three
+`ReturnModelService` models (Simple Random / Historical Bootstrap /
+Historical Sequence) actually differ from each other — the dropdown remains
+selectable but all three now produce statistically-equivalent (correctly
+dispersed) results, same as before this fix but for a different reason.
+REPLACE mode (never implemented, not wired to any UI control). The synthetic
+bond data noted above is unaffected and still moot.
+
+**Regression tests**, all in `tests/integration/monte-carlo-return-randomization.test.js`
+(new) plus `tests/unit/rate-schedules.test.js` (new, no prior test file
+existed for `rate-schedules.js`): confirmed same-type assets share one noise
+sequence (differ only by their own base-rate offset, at every month); and a
+realistic 18%-volatility stock scenario's `max/median` final-balance ratio
+across 60 seeded trials stays under 50 — confirmed this specific assertion
+throws/fails against the pre-fix code (old API doesn't even accept the new
+call signature) via a temporary revert, then passes after. Also rewrote the
+~12 call sites across `tests/unit/controllers/monte-carlo-market-dependency.test.js`
+and `monte-carlo-investment-type.test.js` (shape change, same coverage) and
+deleted `tests/unit/services/simulation-service-return-sequences.test.js`
+(tested the removed `ReturnModelService` round-trip entirely).
 
 ### Issue 20 (high impact) — RESOLVED: Monte Carlo statistics/aggregation layer reads engine output at the wrong field name or object depth, zeroing or nulling most reported metrics
 

@@ -12,6 +12,49 @@ correct it or strike it if it doesn't match what actually happened._
 
 ---
 
+## 2026-08-31 — Monte Carlo return randomization: grouped by investment_type, drawn monthly, layered additively on the scenario's own configured rate
+
+**Decision:** Fixing `ISSUES.md` #19 (Monte Carlo drew one constant random
+annual return per rate schedule per trial — no month-to-month variation, so
+a single unlucky-high draw compounded unchecked for the whole horizon,
+observed live by the user as a single trajectory ending near $900M). Three
+open design questions were resolved by the user rather than assumed:
+
+1. **Randomization is grouped by `investment_type`** (stocks/bonds/mixed/...),
+   not per individual asset — same-type holdings move together within a
+   trial (correlated), matching how the existing volatility defaults already
+   work per type.
+2. **Returns are drawn monthly**, not annually with interpolation — this is
+   the actual mechanism fix: dispersion now scales with `√T·σ` instead of
+   `T·σ`, and real sequence-of-returns risk (mixed good/bad months within a
+   trial) is representable for the first time.
+3. **ADDITIVE mode means layering Monte Carlo noise on top of the scenario's
+   own configured rate** (from `return_schedule` or `interest_rate`), not
+   replacing it with a generic model — a scenario's own assumptions stay the
+   anchor.
+
+**Rationale:** These three questions had no single objectively-correct
+answer (`docs/PLAN.md`'s prior Backlog entry for this issue listed them as
+exactly that — decisions needed before a fix could be scoped), so they were
+put to the user directly rather than guessed at. Per-type grouping was
+already implicit in how `getVolatilityForAsset()` assigns volatility, so it
+extends an existing convention rather than introducing a new one. Monthly
+draws are the only option of the three that actually resolves the reported
+bug's root cause (the annual-with-interpolation alternative would still
+allow one bad interpolated year to dominate, just less severely). ADDITIVE
+was already the documented default behavior (`docs/monte-carlo-analysis-guide.md`);
+REPLACE mode remains unimplemented and out of scope, since it was never
+wired to any UI control and no code implemented it before this fix either.
+
+**Explicitly deferred:** making the three `ReturnModelService` return models
+(Simple Random / Historical Bootstrap / Historical Sequence) actually
+produce different results — a separate, larger effort. This fix makes Monte
+Carlo dispersion correct regardless of which model is selected in the UI;
+the dropdown remains cosmetic in the sense that all three still produce
+statistically-equivalent output.
+
+---
+
 ## 2026-07-02 — `min_balance` stays a hard floor even at shortfall auto-stop; no last-resort drawdown
 
 **Decision:** When a scenario auto-stops due to shortfall (`ISSUES.md` #17), assets
