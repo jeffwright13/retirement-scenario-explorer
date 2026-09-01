@@ -395,6 +395,75 @@ were already correct.
 
 ---
 
+## v1.0.15 — Monte Carlo statistics/aggregation layer fix (PATCH)
+
+**Goal:** Close `ISSUES.md` #20 and (partially) #21, found by the 2026-08-31
+cross-analysis audit. Six independent sites in `MonteCarloService.js` read a
+`.assets` field the real engine never produces, or read `shortfallMonths`/
+`totalWithdrawals` at the wrong object depth — `finalBalance`, `maxDrawdown`,
+`timeToDepletion`, VaR/CVaR, the "Final Balance Range" insight, and
+per-trial survival-time tracking were all zero, null, or trivially constant
+as a result. `keyScenarios` was always empty (a separate wrapper/inner
+`returnSequence` mismatch), and success rate reported 100% for fully-depleted
+`stop_on_shortfall: false` runs because survival was measured in months
+simulated rather than months solvent. Same bug family, separate file:
+`SimulationService.analyzeAssetDepletion()` read a nonexistent
+`finalResult.balances`, so the "Asset Alert" depletion insight could never
+fire.
+
+### Scope
+
+1. **Real-engine regression suite first (`ISSUES.md` #21).** Added
+   `tests/fixtures/monte-carlo-real-fixtures.js` and
+   `tests/integration/monte-carlo-real-engine-statistics.test.js` — 7 tests,
+   each isolating one bug below, run through the real event-driven pipeline
+   (`EventBus` + real `SimulationService`/`MonteCarloService`/
+   `ReturnModelService`, no `.assets` fabrication). Confirmed all 7 red
+   before any production fix.
+2. **`MonteCarloService.js` statistics layer (`ISSUES.md` #20).** Added two
+   shared helpers — `getTotalBalanceSeries()` and `getTotalWithdrawals()` —
+   and rewired `extractMetrics()`, `calculateMaxDrawdownFromResults()`,
+   `calculateTimeToDepletionFromResults()`, `calculateMaxDrawdownStats()`,
+   `calculateVaR()`, `calculateCVaR()`, the "Final Balance Range" insight in
+   `generateInsights()`, `calculateSurvivalStatistics()`,
+   `calculateIndividualSuccess()`, `calculateIndividualSurvivalTime()`, and
+   `identifyKeyPercentileScenarios()` off `.assets`/wrong-depth reads onto
+   `balanceHistory` and the wrapper's real `metrics`/`returnSequence`
+   fields.
+3. **`SimulationService.analyzeAssetDepletion()`.** Now reads real per-asset
+   final balances from `balanceHistory`, passed through by
+   `generateInsights()` before it unwraps `results` to the monthly array.
+   Guards negative-balance "planned expense" assets (`BRIEF.md` §1.1 idiom)
+   from being flagged as depleted. Regression tests in
+   `tests/unit/services/simulation-service-asset-depletion.test.js`.
+4. **Two legacy Monte Carlo test fixtures corrected** (`ISSUES.md` #21):
+   `monte-carlo.test.js` and `simulation-service-return-sequences.test.js`
+   had their `.assets`-shaped mocks corrected to the real engine/wrapper
+   shape. The other three files `ISSUES.md` #21 originally named needed
+   decisions rather than a mechanical fix (two test a hand-written
+   reimplementation that never calls production code; one tests a dead-code
+   deletion candidate, `ISSUES.md` #28) — recorded as `PLAN.md` Backlog items
+   rather than guessed at here.
+
+### Out of scope
+
+Migrating `monte-carlo-controller-csv.test.js`,
+`monte-carlo-csv-success-logic.test.js`, and `survivorship-bias.test.js`
+(Backlog); `ISSUES.md` #19 (the larger return-model architecture gap, needs
+a design decision first); `ISSUES.md` #26, #27, #28 and the remaining
+lower-severity findings from the same audit.
+
+### Done criteria
+
+- [x] Regression suite added first and confirmed red (7/7), then the fix
+      applied (7/7 green)
+- [x] `npm test` passes (46 suites, 748 passed, 2 skipped, no regressions)
+- [x] `ISSUES.md` #20 marked resolved; #21 marked partially resolved with an
+      accurate per-file breakdown of what's fixed vs. still needs a decision
+- [x] Version bumped via `npm version patch` (→ `1.0.15`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns
