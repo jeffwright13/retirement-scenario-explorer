@@ -45,3 +45,6 @@ logs
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Ad hoc cross-analysis / assessment scratch docs (not part of the maintained docs set)
+*CROSS*
