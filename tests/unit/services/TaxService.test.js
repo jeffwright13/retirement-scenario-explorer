@@ -127,11 +127,35 @@ describe('TaxService', () => {
 
     test('partial updates preserve existing rates', () => {
       taxService.updateTaxConfig({ tax_deferred: 0.30 });
-      
+
       const config = taxService.getTaxConfig();
       expect(config.tax_deferred).toBe(0.30);
       expect(config.taxable).toBe(0.15); // Original value preserved
       expect(config.tax_free).toBe(0.0);
+    });
+
+    test('falls back to the default rate for an invalid update instead of letting it through (ISSUES.md #31)', () => {
+      taxService.updateTaxConfig({ tax_deferred: 1.5 });
+
+      const config = taxService.getTaxConfig();
+      expect(config.tax_deferred).toBe(0.22); // Default, not 1.5
+    });
+  });
+
+  describe('constructor rejects rates >= 1 (ISSUES.md #31)', () => {
+    test('falls back to the default rate instead of letting a >= 1 rate through the constructor', () => {
+      const badService = new TaxService({ tax_deferred: 1.0, taxable: 0.15, tax_free: 0.0 });
+
+      expect(badService.getTaxConfig().tax_deferred).toBe(0.22); // Default, not 1.0
+    });
+
+    test('a >= 1 rate no longer produces Infinity or a negative gross withdrawal', () => {
+      const badService = new TaxService({ tax_deferred: 1.0 });
+
+      const result = badService.calculateGrossWithdrawal(1000, 'tax_deferred');
+
+      expect(Number.isFinite(result.grossWithdrawal)).toBe(true);
+      expect(result.grossWithdrawal).toBeGreaterThan(0);
     });
   });
 

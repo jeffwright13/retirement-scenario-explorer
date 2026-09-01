@@ -3,17 +3,38 @@
  * Supports different account types and configurable tax rates
  */
 
+// Default tax rates by account type
+const DEFAULT_TAX_CONFIG = {
+  tax_deferred: 0.22, // 22% marginal tax rate for traditional 401k/IRA
+  taxable: 0.15,      // 15% capital gains rate for taxable accounts
+  tax_free: 0.0,      // 0% for Roth IRA/401k
+};
+
 export class TaxService {
   constructor(taxConfig = {}) {
-    this.taxConfig = {
-      // Default tax rates by account type
-      tax_deferred: 0.22, // 22% marginal tax rate for traditional 401k/IRA
-      taxable: 0.15,      // 15% capital gains rate for taxable accounts
-      tax_free: 0.0,      // 0% for Roth IRA/401k
-      
-      // Override with user-provided config
-      ...taxConfig
-    };
+    this.taxConfig = TaxService._sanitizeTaxConfig({ ...DEFAULT_TAX_CONFIG, ...taxConfig });
+  }
+
+  /**
+   * A rate >= 1 makes calculateGrossWithdrawal()'s net / (1 - rate) divide by
+   * zero or go negative, silently corrupting withdrawals rather than
+   * erroring (ISSUES.md #31). validateTaxConfig() already catches this, but
+   * was never actually called from anywhere -- fall back to the default
+   * rate for whichever entry is invalid.
+   */
+  static _sanitizeTaxConfig(config) {
+    const validation = TaxService.validateTaxConfig(config);
+    if (validation.isValid) return config;
+
+    console.warn('⚠️ TaxService: invalid tax_config, falling back to defaults for invalid entries:', validation.errors);
+    const sanitized = { ...config };
+    for (const accountType of Object.keys(DEFAULT_TAX_CONFIG)) {
+      const rate = sanitized[accountType];
+      if (typeof rate !== 'number' || rate < 0 || rate >= 1) {
+        sanitized[accountType] = DEFAULT_TAX_CONFIG[accountType];
+      }
+    }
+    return sanitized;
   }
 
   /**
@@ -87,7 +108,7 @@ export class TaxService {
    * @param {Object} newConfig - New tax rates by account type
    */
   updateTaxConfig(newConfig) {
-    this.taxConfig = { ...this.taxConfig, ...newConfig };
+    this.taxConfig = TaxService._sanitizeTaxConfig({ ...this.taxConfig, ...newConfig });
   }
 
   /**

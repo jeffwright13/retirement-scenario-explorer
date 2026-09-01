@@ -13,7 +13,6 @@ export class MonteCarloUI {
     // UI elements will be initialized when DOM is ready
     this.runButton = null;
     this.cancelButton = null;
-    this.exportButton = null;
     this.monteCarloSection = null;
     this.iterationsInput = null;
     this.seedInput = null;
@@ -81,7 +80,6 @@ export class MonteCarloUI {
     // Get UI elements
     this.runButton = document.getElementById('run-monte-carlo-btn');
     this.cancelButton = document.getElementById('cancel-monte-carlo');
-    this.exportButton = document.getElementById('export-monte-carlo');
     this.monteCarloSection = document.getElementById('monte-carlo-section');
     this.iterationsInput = document.getElementById('monte-carlo-iterations');
     this.seedInput = document.getElementById('monte-carlo-seed');
@@ -100,12 +98,6 @@ export class MonteCarloUI {
     if (this.cancelButton) {
       this.cancelButton.addEventListener('click', () => {
         this.handleCancelAnalysis();
-      });
-    }
-    
-    if (this.exportButton) {
-      this.exportButton.addEventListener('click', () => {
-        this.handleExportResults();
       });
     }
     
@@ -164,14 +156,6 @@ export class MonteCarloUI {
   handleCancelAnalysis() {
     console.log('🎲 MonteCarloUI: Cancel analysis clicked');
     this.eventBus.emit('ui:monte-carlo-cancel-requested');
-  }
-
-  /**
-   * Handle export results button click
-   */
-  handleExportResults() {
-    console.log('🎲 MonteCarloUI: Export results clicked');
-    this.eventBus.emit('ui:monte-carlo-export-requested', { format: 'csv' });
   }
 
   /**
@@ -301,9 +285,6 @@ export class MonteCarloUI {
       this.cancelButton.style.display = isRunning ? 'inline-block' : 'none';
     }
     
-    if (this.exportButton) {
-      this.exportButton.disabled = !hasResults;
-    }
   }
 
   /**
@@ -352,7 +333,6 @@ export class MonteCarloUI {
       elements: {
         startButton: !!this.startButton,
         cancelButton: !!this.cancelButton,
-        exportButton: !!this.exportButton,
         monteCarloSection: !!this.monteCarloSection,
         iterationsInput: !!this.iterationsInput,
         seedInput: !!this.seedInput

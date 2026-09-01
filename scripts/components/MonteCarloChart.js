@@ -63,76 +63,6 @@ export class MonteCarloChart {
   }
 
   /**
-   * Export chart data as CSV
-   */
-  exportData() {
-    if (!this.currentTrajectories || this.currentTrajectories.length === 0) {
-      console.log('📊 MonteCarloChart: No data to export');
-      return;
-    }
-
-    // Export percentile data for debugging
-    const percentileData = this.calculatePercentileData(this.currentTrajectories);
-    
-    let csvContent = 'Year,P10,P25,P50_Median,P75,P90,ActiveScenarios\n';
-    
-    percentileData.forEach(data => {
-      csvContent += `${data.month.toFixed(2)},${data.p10.toFixed(2)},${data.p25.toFixed(2)},${data.p50.toFixed(2)},${data.p75.toFixed(2)},${data.p90.toFixed(2)},${data.activeCount}\n`;
-    });
-
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'monte_carlo_percentiles.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    window.URL.revokeObjectURL(url);
-    
-    console.log('📊 MonteCarloChart: Percentile data exported to CSV');
-  }
-
-  /**
-   * Calculate percentile data with active scenario count for debugging
-   */
-  calculatePercentileData(trajectories) {
-    const maxMonths = Math.max(...trajectories.map(t => t.length));
-    const percentileData = [];
-    
-    for (let month = 0; month < maxMonths; month++) {
-      const monthBalances = trajectories
-        .map(t => {
-          if (month >= t.length) {
-            return null;
-          } else {
-            return t[month].totalBalance;
-          }
-        })
-        .filter(balance => balance !== null)
-        .sort((a, b) => a - b);
-
-      const activeCount = monthBalances.length;
-      const minSampleSize = Math.max(10, trajectories.length * 0.1);
-      
-      if (activeCount >= minSampleSize) {
-        percentileData.push({
-          month: month / 12,
-          p10: this.percentile(monthBalances, 10) / 1000,
-          p25: this.percentile(monthBalances, 25) / 1000,
-          p50: this.percentile(monthBalances, 50) / 1000,
-          p75: this.percentile(monthBalances, 75) / 1000,
-          p90: this.percentile(monthBalances, 90) / 1000,
-          activeCount: activeCount
-        });
-      }
-    }
-    
-    return percentileData;
-  }
-
-  /**
    * Render all charts
    */
   render(data) {
@@ -279,26 +209,6 @@ export class MonteCarloChart {
       width: canvas.width,
       height: canvas.height,
       title: 'Risk Analysis'
-    });
-  }
-
-  /**
-   * Display scenario paths chart
-   */
-  displayScenarioPathsChart(results, scenarioData, canvasId) {
-    const canvas = document.getElementById(canvasId);
-    if (!canvas) return;
-
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Sample a subset of scenarios for visualization
-    const sampleSize = Math.min(50, results.length);
-    const sampledResults = this.sampleResults(results, sampleSize);
-    
-    this.drawScenarioPaths(ctx, sampledResults, {
-      width: canvas.width,
-      height: canvas.height,
     });
   }
 
@@ -1266,91 +1176,6 @@ export class MonteCarloChart {
       const formattedValue = this.formatValue(metric.value, metric.format);
       ctx.fillText(formattedValue, x + boxWidth / 2, startY + 50);
     });
-  }
-
-  /**
-   * Draw scenario paths - UPDATED
-   */
-  drawScenarioPaths(ctx, sampledResults, options) {
-    const { width, height, title } = options;
-    const margin = { top: 50, right: 30, bottom: 60, left: 80 };
-    const chartWidth = width - margin.left - margin.right;
-    const chartHeight = height - margin.top - margin.bottom;
-    
-    // Draw title
-    ctx.fillStyle = '#333';
-    ctx.font = 'bold 16px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText(title || 'Scenario Paths', width / 2, 25);
-    
-    // Extract trajectories using our helper method
-    const trajectories = [];
-    sampledResults.forEach(({ result }) => {
-      const trajectory = this.extractBalanceTrajectory(result);
-      if (trajectory.length > 0) {
-        trajectories.push(trajectory);
-      }
-    });
-    
-    if (trajectories.length === 0) {
-      ctx.fillStyle = '#666';
-      ctx.font = '16px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('No valid trajectory data available', width / 2, height / 2);
-      return;
-    }
-    
-    // Find bounds
-    const maxMonths = Math.max(...trajectories.map(t => t.length));
-    const allBalances = trajectories.flat().map(point => point.totalBalance);
-    const maxBalance = Math.max(...allBalances);
-    
-    console.log(`📊 Drawing ${trajectories.length} scenario paths`);
-    
-    // Draw axes
-    ctx.strokeStyle = '#666';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(margin.left, margin.top);
-    ctx.lineTo(margin.left, height - margin.bottom);
-    ctx.lineTo(width - margin.right, height - margin.bottom);
-    ctx.stroke();
-    
-    // Draw scenario paths
-    ctx.lineWidth = 1;
-    ctx.globalAlpha = 0.3;
-    
-    trajectories.forEach((trajectory, i) => {
-      const hue = (i * 137.5) % 360;
-      ctx.strokeStyle = `hsl(${hue}, 70%, 50%)`;
-      
-      ctx.beginPath();
-      trajectory.forEach((point, monthIndex) => {
-        const x = margin.left + (monthIndex / maxMonths) * chartWidth;
-        const y = height - margin.bottom - (point.totalBalance / maxBalance) * chartHeight;
-        
-        if (monthIndex === 0) {
-          ctx.moveTo(x, y);
-        } else {
-          ctx.lineTo(x, y);
-        }
-      });
-      ctx.stroke();
-    });
-    
-    ctx.globalAlpha = 1;
-    
-    // Draw labels
-    ctx.fillStyle = '#666';
-    ctx.font = '12px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('Months', width / 2, height - 10);
-    
-    ctx.save();
-    ctx.translate(15, height / 2);
-    ctx.rotate(-Math.PI / 2);
-    ctx.fillText('Balance ($)', 0, 0);
-    ctx.restore();
   }
 
   /**

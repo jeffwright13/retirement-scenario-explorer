@@ -228,6 +228,41 @@ describe('Testing Setup Verification', () => {
     });
   });
 
+  describe('prepareChartData income trace visibility (ISSUES.md #31)', () => {
+    test('shows an income trace for a source active from month 1 (no explicit start_month)', () => {
+      const uiController = new UIController(mockEventBus);
+      const results = [{ month: 1 }, { month: 2 }, { month: 3 }];
+      const balanceHistory = { 'Checking': [10000, 10500, 11000] };
+      const scenario = {
+        assets: [{ name: 'Checking' }],
+        // No start_month -- the engine defaults this to 1 and simulates it
+        // from month 1; the chart used to skip the trace entirely.
+        income: [{ name: 'Pension', amount: 2000 }]
+      };
+
+      const traces = uiController.prepareChartData(results, balanceHistory, scenario);
+      const incomeTrace = traces.find(t => t.name && t.name.includes('Pension'));
+
+      expect(incomeTrace).toBeDefined();
+      expect(incomeTrace.y.every(value => value === 2000)).toBe(true);
+    });
+
+    test('shows an income trace for an explicit start_month: 0', () => {
+      const uiController = new UIController(mockEventBus);
+      const results = [{ month: 1 }, { month: 2 }];
+      const balanceHistory = { 'Checking': [10000, 10500] };
+      const scenario = {
+        assets: [{ name: 'Checking' }],
+        income: [{ name: 'Pension', amount: 1500, start_month: 0 }]
+      };
+
+      const traces = uiController.prepareChartData(results, balanceHistory, scenario);
+      const incomeTrace = traces.find(t => t.name && t.name.includes('Pension'));
+
+      expect(incomeTrace).toBeDefined();
+    });
+  });
+
   describe('scenario dropdown sync', () => {
     test('should sync the dropdown selection to the newly active scenario (scenario:selected payload)', () => {
       document.body.innerHTML = `

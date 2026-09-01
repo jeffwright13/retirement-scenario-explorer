@@ -21,8 +21,7 @@ describe('MonteCarloUI', () => {
     mockElements = {
       runButton: { addEventListener: jest.fn(), disabled: false, textContent: '' },
       cancelButton: { addEventListener: jest.fn(), style: { display: '' } },
-      exportButton: { addEventListener: jest.fn(), disabled: false },
-      monteCarloSection: { 
+      monteCarloSection: {
         classList: { 
           remove: jest.fn(), 
           add: jest.fn() 
@@ -43,7 +42,6 @@ describe('MonteCarloUI', () => {
       const elementMap = {
         'run-monte-carlo-btn': mockElements.runButton,
         'cancel-monte-carlo': mockElements.cancelButton,
-        'export-monte-carlo': mockElements.exportButton,
         'monte-carlo-section': mockElements.monteCarloSection,
         'monte-carlo-iterations': mockElements.iterationsInput,
         'monte-carlo-seed': mockElements.seedInput,
@@ -82,7 +80,6 @@ describe('MonteCarloUI', () => {
     test('should initialize UI element references as null', () => {
       expect(monteCarloUI.runButton).toBeNull();
       expect(monteCarloUI.cancelButton).toBeNull();
-      expect(monteCarloUI.exportButton).toBeNull();
       expect(monteCarloUI.monteCarloSection).toBeNull();
     });
   });
@@ -102,7 +99,6 @@ describe('MonteCarloUI', () => {
       
       expect(monteCarloUI.runButton).toBe(mockElements.runButton);
       expect(monteCarloUI.cancelButton).toBe(mockElements.cancelButton);
-      expect(monteCarloUI.exportButton).toBe(mockElements.exportButton);
       expect(monteCarloUI.monteCarloSection).toBe(mockElements.monteCarloSection);
     });
 
@@ -111,7 +107,6 @@ describe('MonteCarloUI', () => {
       
       expect(mockElements.runButton.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
       expect(mockElements.cancelButton.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
-      expect(mockElements.exportButton.addEventListener).toHaveBeenCalledWith('click', expect.any(Function));
       expect(mockElements.configToggle.addEventListener).toHaveBeenCalledWith('change', expect.any(Function));
     });
 
@@ -189,14 +184,6 @@ describe('MonteCarloUI', () => {
       cancelHandler();
       
       expect(mockEventBus.emit).toHaveBeenCalledWith('ui:monte-carlo-cancel-requested');
-    });
-
-    test('should handle export results button click', () => {
-      const exportHandler = mockElements.exportButton.addEventListener.mock.calls[0][1];
-      
-      exportHandler();
-      
-      expect(mockEventBus.emit).toHaveBeenCalledWith('ui:monte-carlo-export-requested', { format: 'csv' });
     });
 
     test('should handle config toggle change', () => {
@@ -300,16 +287,14 @@ describe('MonteCarloUI', () => {
       expect(mockElements.runButton.disabled).toBe(true);
       expect(mockElements.runButton.textContent).toBe('Running Analysis...');
       expect(mockElements.cancelButton.style.display).toBe('inline-block');
-      expect(mockElements.exportButton.disabled).toBe(true);
     });
 
     test('should update UI state when not running with results', () => {
       monteCarloUI.updateUIState(false, true);
-      
+
       expect(mockElements.runButton.disabled).toBe(false);
       expect(mockElements.runButton.textContent).toBe('🚀 Run Analysis');
       expect(mockElements.cancelButton.style.display).toBe('none');
-      expect(mockElements.exportButton.disabled).toBe(false);
     });
 
     test('should handle config toggle collapse', () => {
@@ -369,7 +354,6 @@ describe('MonteCarloUI', () => {
       expect(state.isInitialized).toBe(true);
       expect(state.elements).toHaveProperty('startButton');
       expect(state.elements).toHaveProperty('cancelButton');
-      expect(state.elements).toHaveProperty('exportButton');
       expect(state.configuration).toBeDefined();
     });
 

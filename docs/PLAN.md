@@ -690,6 +690,52 @@ fixes. See v1.0.21+ for the rest.
 
 ---
 
+## v1.0.21 — Clear the mechanical ISSUES.md backlog, part 2: Monte Carlo dead code and config (PATCH)
+
+**Goal:** Continuation of the low-hanging-fruit sweep (see `v1.0.20`) —
+Monte Carlo dead-code deletion and small config/validation fixes.
+
+### Scope
+
+1. **`ISSUES.md` #28** — deleted the entire dead Monte Carlo export chain
+   (`MonteCarloController.exportResults()`/`downloadJSON()`/`downloadCSV()`,
+   ~270 lines) and the dead `MonteCarloChart.displayScenarioPathsChart()`/
+   `drawScenarioPaths()`, plus their DOM bindings in `MonteCarloUI.js` and
+   two test files that called the dead chain directly. Left
+   `monte-carlo-csv-success-logic.test.js` alone (tests a reimplementation,
+   not the real dead chain — tracked separately in Backlog).
+2. **`ISSUES.md` #29** — `index.html`'s iterations input `max` now matches
+   `MonteCarloService.defaultConfig.maxIterations` (1,000, not 10,000).
+3. **`ISSUES.md` #30** — `ExportController.generateMonteCarloCSV()` now
+   builds dynamic asset-name columns, mirroring
+   `generateMonteCarloReturnsCSV()`'s existing approach, instead of four
+   hardcoded names that zeroed out any differently-named asset.
+4. **`ISSUES.md` #31, several sub-items**: `prepareChartData`'s income
+   trace now shows for `start_month: 0` or omitted (was invisible);
+   `TaxService`'s constructor and `updateTaxConfig()` now sanitize rates
+   `>= 1` instead of letting `net / (1 - rate)` divide by zero or go
+   negative; deleted `MonteCarloChart.exportData()`/`calculatePercentileData()`
+   (both dead, and the latter's filtering approach was already flagged
+   `// WRONG (survivorship bias)` in the project's own docs); trimmed
+   `main.js`'s `new MonteCarloController(...)` call to its real
+   one-parameter signature.
+
+### Out of scope (left OPEN, needs a decision, not mechanical)
+
+The four-validators consolidation; `duration_months` coercion (earmarked
+for `v1.1.0`); engine console-log volume (touches many scattered sites in
+the hot loop, more invasive than the rest of this pass).
+
+### Done criteria
+
+- [x] Each fix's regression test confirmed red against the pre-fix code via
+      a temporary revert, then green
+- [x] `npm test` passes, no regressions
+- [x] `ISSUES.md` #28, #29, #30 marked resolved; #31 updated per sub-item
+- [x] Version bumped via `npm version patch` (→ `1.0.21`)
+
+---
+
 ## v1.1.0 — Opt-in strict scenario validation (MINOR)
 
 **Goal:** Resolve `ISSUES.md` #10 (missing `plan.duration_months` silently returns
